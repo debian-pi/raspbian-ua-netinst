@@ -1,0 +1,24 @@
+raspbian-ua-netinst - Raspbian (minimal) unattended netinstaller
+
+This repository will be updated with instructions and more detailed information soon.
+
+You need:
+
+ * a Raspberry Pi Model B
+ * working Ethernet with DHCP server
+ * no HTTP proxies
+
+The actual image that will be written to a SD card must have only one (small, 50 MB preferred) partition with bootfs/ contents.
+
+The smallest SD card that Raspbian with this installer can fit without any issues is 512 MB.
+
+Actual install process has zero error checking, so if it fails it fails hard.
+
+I take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing.
+
+Some developement ideas that has been suggested:
+
+ * completely configurable eth0 setup from a configuration file in /boot - allows static ips
+ * reinstallation support by running the installer again
+
+See LICENSE for license information.

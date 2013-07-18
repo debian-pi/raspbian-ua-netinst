@@ -1,0 +1,99 @@
+#!/bin/busybox sh
+
+# udhcp sample script by Gabriel Somlo (somlo at cmu edu)
+#       - uses 'ip' instead of 'ifconfig' and 'route'
+#       - make minimal changes, and only if required by changing dhcp options
+
+[ -z "$1" ] && echo 'Error: should be called from udhcpc' && exit 1
+
+# where to save config information for $interface:
+CFG="/var/run/udhcpc.${interface}.cfg"
+
+# names of files we might need to touch:
+RESOLV_CONF='/etc/resolv.conf'
+NTP_CONF='/etc/ntp.conf'
+
+# which interface configures DNS and NTP ? Comment out if none:
+PEERDNS_IF=eth0
+
+case "$1" in
+  deconfig)
+    # bring interface up, but with no IP configured:
+    ip addr flush dev $interface
+    ip link set $interface up
+    # remove any stored config info for this $interface:
+    rm -f $CFG
+    # restore any pre-dhcp config files:
+    if [ "$interface" == "$PEERDNS_IF" ] ; then
+      [ -f ${RESOLV_CONF}.dhcsave ] && mv -f ${RESOLV_CONF}.dhcsave $RESOLV_CONF
+    fi
+    if [ "$interface" == "$PEERNTP_IF" ] ; then
+      [ -f ${NTP_CONF}.dhcsave ] && mv -f ${NTP_CONF}.dhcsave $NTP_CONF
+    fi
+    ;;
+  bound)
+    # save config info for $interface:
+    set > $CFG
+    # configure interface and routes:
+    ip addr flush dev $interface
+    ip addr add ${ip}/${mask} dev $interface
+    [ -n "$router" ] && ip route add default via ${router%% *} dev $interface
+    # save pre-dhcp config files and generate new ones:
+    if [ "$interface" == "$PEERDNS_IF" ] ; then
+      [ -f $RESOLV_CONF ] && mv -f $RESOLV_CONF ${RESOLV_CONF}.dhcsave
+      [ -n "$domain" ] && echo search $domain > $RESOLV_CONF
+      for i in $dns ; do
+        echo nameserver $i >> $RESOLV_CONF
+      done
+    fi
+    if [ "$interface" == "$PEERNTP_IF" ] ; then
+      [ -f $NTP_CONF ] && mv -f $NTP_CONF ${NTP_CONF}.dhcsave
+      > $NTP_CONF
+      for i in $ntpsrv ; do
+        echo server $i >> $NTP_CONF
+      done
+    fi
+    ;;
+  renew)
+    # compare new vs. previous config info:
+    set > ${CFG}.new
+    for i in $(diff -U1 $CFG ${CFG}.new | grep -E ^[+-] \
+                                        | tail +3 \
+                                        | awk -F[+-=] '{print $2}') ; do
+      case "$i" in
+        ip|mask|router)
+          REDO_NET='yes'
+          ;;
+        domain|dns)
+          REDO_DNS='yes'
+          ;;
+        ntpsrv)
+          REDO_NTP='yes'
+          ;;
+      esac
+    done
+    # save new config info:
+    mv -f ${CFG}.new $CFG
+    # make only necessary changes, as per config comparison:
+    if [ -n "$REDO_NET" ] ; then
+      ip addr flush dev $interface
+      ip addr add ${ip}/${mask} dev $interface
+      [ -n "$router" ] && ip route add default via ${router%% *} dev $interface
+    fi
+    if [ -n "$REDO_DNS" -a "$interface" == "$PEERDNS_IF" ] ; then
+      [ -n "$domain" ] && echo search $domain > $RESOLV_CONF
+      for i in $dns ; do
+        echo nameserver $i >> $RESOLV_CONF
+      done
+    fi
+    if [ -n "$REDO_NTP" -a "$interface" == "$PEERNTP_IF" ] ; then
+      > $NTP_CONF
+      for i in $ntpsrv ; do
+        echo server $i >> $NTP_CONF
+      done
+      # FIXME: RELOAD NTP DAEMON HERE
+    fi
+    ;;
+esac
+
+exit 0

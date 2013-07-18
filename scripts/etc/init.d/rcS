@@ -1,0 +1,59 @@
+#!/bin/busybox sh
+
+mkdir -p /proc
+mkdir -p /sys
+mkdir -p /usr/bin
+mkdir -p /usr/sbin
+mkdir -p /var/run
+mkdir /rootfs
+
+/bin/busybox --install
+
+export PATH=/bin:/sbin:/usr/bin
+
+mount -t proc none /proc
+mount -t sysfs none /sys
+
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+mdev -s
+
+sleep 4
+
+echo "==========================================="
+echo " Welcome to automatic Raspbian installer!  "
+echo "==========================================="
+echo "http://github.com/hifi/raspbian-ua-netinst/"
+echo "==========================================="
+
+umount /boot
+
+udhcpc -i eth0 || exit
+
+umount /boot
+
+# allocate new partition
+fdisk /dev/mmcblk0 <<EOF
+n
+p
+2
+
+
+w
+EOF
+
+# create filesystem
+mkfs.ext4 /dev/mmcblk0p2
+
+mount /dev/mmcblk0p2 /rootfs
+mkdir /rootfs/boot
+mount /dev/mmcblk0p1 /rootfs/boot
+
+. /sbin/install
+
+# boots kernel.img from now on
+rm /rootfs/boot/config.txt
+
+umount /rootfs/boot
+umount /rootfs
+
+reboot

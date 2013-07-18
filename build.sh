@@ -1,0 +1,100 @@
+#!/bin/sh
+
+MIRROR=http://mirrordirector.raspbian.org/raspbian/
+
+if [ ! -d packages ]; then
+    mkdir packages
+fi
+
+if [ ! -f packages/busybox.deb ]; then
+    wget $MIRROR/pool/main/b/busybox/busybox-static_1.20.0-7_armhf.deb -O packages/busybox.deb
+fi
+
+if [ ! -f packages/libc6.deb ]; then
+    wget $MIRROR/pool/main/e/eglibc/libc6_2.17-7+rpi1_armhf.deb -O packages/libc6.deb
+fi
+
+if [ ! -f packages/cdebootstrap.deb ]; then
+    wget $MIRROR/pool/main/c/cdebootstrap/cdebootstrap-static_0.5.10_armhf.deb -O packages/cdebootstrap.deb
+fi
+
+if [ ! -f packages/e2fslibs.deb ]; then
+    wget $MIRROR/pool/main/e/e2fsprogs/e2fslibs_1.42.5-1.1_armhf.deb -O packages/e2fslibs.deb
+fi
+
+if [ ! -f packages/e2fsprogs.deb ]; then
+    wget $MIRROR/pool/main/e/e2fsprogs/e2fsprogs_1.42.5-1.1_armhf.deb -O packages/e2fsprogs.deb
+fi
+
+if [ ! -f packages/libcomerr2.deb ]; then
+    wget $MIRROR/pool/main/e/e2fsprogs/libcomerr2_1.42.5-1.1_armhf.deb -O packages/libcomerr2.deb
+fi
+
+if [ ! -f packages/libblkid1.deb ]; then
+    wget $MIRROR/pool/main/u/util-linux/libblkid1_2.20.1-5.5_armhf.deb -O packages/libblkid1.deb
+fi
+
+if [ ! -f packages/libuuid1.deb ]; then
+    wget $MIRROR/pool/main/u/util-linux/libuuid1_2.20.1-5.5_armhf.deb -O packages/libuuid1.deb
+fi
+
+if [ ! -f packages/libgcc1.deb ]; then
+    wget $MIRROR/pool/main/g/gcc-4.8/libgcc1_4.8.1-6+rpi1_armhf.deb -O packages/libgcc1.deb
+fi
+
+if [ ! -f packages/util-linux.deb ]; then
+    wget $MIRROR/pool/main/u/util-linux/util-linux_2.20.1-5.5_armhf.deb -O packages/util-linux.deb
+fi
+
+rm -rf tmp
+mkdir tmp
+
+# extract debs
+for i in packages/*.deb; do
+    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
+done
+
+# initialize rootfs
+rm -rf rootfs
+mkdir -p rootfs/bin/
+mkdir -p rootfs/lib/
+
+# install scripts
+cp -r scripts/* rootfs/
+
+# install busybox
+cp tmp/bin/busybox rootfs/bin
+cd rootfs && ln -s bin/busybox init; cd ..
+
+# install libc6 (for DNS and filesystem utils)
+cp tmp/lib/*/ld-2.17.so rootfs/lib/ld-linux-armhf.so.3
+cp tmp/lib/*/libc-2.17.so rootfs/lib/libc.so.6
+cp tmp/lib/*/libresolv-2.17.so rootfs/lib/libresolv.so.2
+cp tmp/lib/*/libnss_dns-2.17.so rootfs/lib/libnss_dns.so.2
+cp tmp/lib/*/libpthread-2.17.so rootfs/lib/libpthread.so.0
+
+# install cdebootstrap
+mkdir -p rootfs/usr/share/
+mkdir -p rootfs/usr/bin/
+cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
+cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+
+# libs for mkfs
+cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
+cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
+cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
+cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
+cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
+
+# filesystem utils
+mkdir -p rootfs/sbin/
+cp tmp/sbin/mkfs.ext4 rootfs/sbin/
+cp tmp/sbin/sfdisk rootfs/sbin/
+cp tmp/usr/bin/setterm rootfs/usr/bin/
+cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
+
+cd rootfs && find . | cpio -H newc -ov | gzip -9 > ../installer.cpio.gz
+cd ..
+
+rm -rf tmp
+rm -rf rootfs
