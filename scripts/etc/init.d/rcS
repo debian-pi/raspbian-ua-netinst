@@ -23,6 +23,8 @@ klogd -c 1
 echo "==========================================="
 echo " Welcome to automatic Raspbian installer!  "
 echo "==========================================="
+echo " Revision __VERSION__"
+echo " Built on __DATE__"
 echo "http://github.com/hifi/raspbian-ua-netinst/"
 echo "==========================================="
 

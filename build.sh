@@ -62,6 +62,10 @@ mkdir -p rootfs/lib/
 # install scripts
 cp -r scripts/* rootfs/
 
+# update version
+sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
+sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
+
 # install busybox
 cp tmp/bin/busybox rootfs/bin
 cd rootfs && ln -s bin/busybox init; cd ..
