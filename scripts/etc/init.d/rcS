@@ -1,5 +1,13 @@
 #!/bin/busybox sh
 
+# default options, can be overriden in installer-config.txt
+mirror=http://mirrordirector.raspbian.org/raspbian/
+release=wheezy
+hostname=pi
+rootpw=raspbian
+cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,vim-tiny,ifupdown,net-tools,isc-dhcp-client,iputils-ping,openntpd,openssh-server"
+bootsize=+50M
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /usr/bin
@@ -25,8 +33,31 @@ echo " Welcome to automatic Raspbian installer!  "
 echo "==========================================="
 echo " Revision __VERSION__"
 echo " Built on __DATE__"
+echo "==========================================="
 echo "http://github.com/hifi/raspbian-ua-netinst/"
 echo "==========================================="
+
+echo -n "Copying boot files... "
+# copy boot data to safety if not fetching them
+mount /dev/mmcblk0p1 /boot || exit
+cp /boot/* /bootfs/ || exit
+umount /boot || exit
+echo "OK"
+
+if [ -e /bootfs/installer-config.txt ]; then
+    echo "Reading installer-config.txt..."
+    source /bootfs/installer-config.txt
+fi
+
+echo
+echo "Installer configuration:"
+echo "  mirror = $mirror"
+echo "  release = $release"
+echo "  hostname = $hostname"
+echo "  rootpw = $rootpw"
+echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
+echo "  bootsize = $bootsize"
+echo
 
 echo -n "Waiting for eth0... "
 
@@ -58,13 +89,6 @@ else
     exit
 fi
 
-echo -n "Saving boot files... "
-# copy boot data to safety if not fetching them
-mount /dev/mmcblk0p1 /boot || exit
-cp /boot/* /bootfs/ || exit
-umount /boot || exit
-echo "OK"
-
 echo -n "Applying new partition table... "
 dd if=/dev/zero of=/dev/mmcblk0 bs=512 count=1 &>/dev/null
 fdisk /dev/mmcblk0 &>/dev/null <<EOF
@@ -72,7 +96,7 @@ n
 p
 1
 
-+50M
+$bootsize
 t
 b
 n
@@ -104,11 +128,11 @@ sync
 echo "OK"
 
 echo "Starting install process..."
-cdebootstrap-static --allow-unauthenticated --flavour=minimal --include=fake-hwclock,vim-tiny,ifupdown,net-tools,isc-dhcp-client,iputils-ping,openntpd,openssh-server --arch=armhf wheezy /rootfs http://mirrordirector.raspbian.org/raspbian/
+cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || exit
 
 # allow root login
 echo -n "Configuring installed system... "
-echo -n root:raspbian | chroot /rootfs /usr/sbin/chpasswd || exit
+echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || exit
 
 # default mounts
 echo "/dev/mmcblk0p1 /boot vfat defaults 0 0" > /rootfs/etc/fstab || exit
@@ -118,8 +142,8 @@ echo "/dev/mmcblk0p2 / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab 
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
 
 # default hostname
-echo -n pi > /rootfs/etc/hostname || exit
-echo "127.0.0.1 localhost pi" > /rootfs/etc/hosts || exit
+echo -n $hostname > /rootfs/etc/hostname || exit
+echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || exit
 
 # dhcp networking
 echo "auto lo" > /rootfs/etc/network/interfaces || exit
@@ -131,7 +155,9 @@ echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || exit
 
 # allow ntpd to set time on boot
-echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || exit
+if [ -e /rootfs/etc/default/openntpd ]; then
+    echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || exit
+fi
 
 echo "OK"
 
@@ -142,6 +168,11 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 echo -n "Removing cdebootstrap-helper-rc.d... " 
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || exit
 echo "OK"
+
+if [ -e /bootfs/post-install.txt ]; then
+    echo "Running post-install.txt..."
+    source /bootfs/post-install.txt
+fi
 
 echo "Unmounting filesystems..."
 umount /rootfs/boot
