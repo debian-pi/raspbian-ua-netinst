@@ -5,7 +5,8 @@ mkdir -p /sys
 mkdir -p /usr/bin
 mkdir -p /usr/sbin
 mkdir -p /var/run
-mkdir /rootfs
+mkdir -p /rootfs/boot
+mkdir -p /bootfs
 
 /bin/busybox --install
 
@@ -17,7 +18,7 @@ mount -t sysfs none /sys
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
-sleep 4
+klogd -c 1
 
 echo "==========================================="
 echo " Welcome to automatic Raspbian installer!  "
@@ -25,14 +26,53 @@ echo "==========================================="
 echo "http://github.com/hifi/raspbian-ua-netinst/"
 echo "==========================================="
 
-umount /boot
+echo -n "Waiting for eth0... "
 
-udhcpc -i eth0 || exit
+for i in `seq 1 10`; do
 
-umount /boot
+    ifconfig eth0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        break
+    fi
 
-# allocate new partition
-fdisk /dev/mmcblk0 <<EOF
+    if [ $i -eq 10 ]; then
+        echo "FAILED"
+        exit
+    fi
+
+    sleep 1
+
+    echo -n "$i.. "
+done
+
+echo -n "Configuring eth0 with DHCP... "
+
+udhcpc -i eth0 &>/dev/null
+if [ $? -eq 0 ]; then
+    ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+else
+    echo "FAILED"
+    exit
+fi
+
+echo -n "Saving boot files... "
+# copy boot data to safety if not fetching them
+mount /dev/mmcblk0p1 /boot || exit
+cp /boot/* /bootfs/ || exit
+umount /boot || exit
+echo "OK"
+
+echo -n "Applying new partition table... "
+dd if=/dev/zero of=/dev/mmcblk0 bs=512 count=1 &>/dev/null
+fdisk /dev/mmcblk0 &>/dev/null <<EOF
+n
+p
+1
+
++50M
+t
+b
 n
 p
 2
@@ -40,20 +80,36 @@ p
 
 w
 EOF
+echo "OK"
 
-# create filesystem
-mkfs.ext4 /dev/mmcblk0p2
+echo -n "Initializing /boot as vfat... "
+mkfs.vfat /dev/mmcblk0p1 &>/dev/null || exit
+echo "OK"
 
-mount /dev/mmcblk0p2 /rootfs
-mkdir /rootfs/boot
-mount /dev/mmcblk0p1 /rootfs/boot
+echo -n "Initializing / as ext4... "
+mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || exit
+echo "OK"
 
+echo -n "Mounting new filesystems... "
+mount /dev/mmcblk0p2 /rootfs || exit
+mkdir /rootfs/boot || exit
+mount /dev/mmcblk0p1 /rootfs/boot || exit
+echo "OK"
+
+echo -n "Copying /boot files in... "
+cp /bootfs/* /rootfs/boot || exit
+sync
+echo "OK"
+
+echo "Starting install process..."
 . /sbin/install
 
-# boots kernel.img from now on
-rm /rootfs/boot/config.txt
+echo "Configuring bootloader to start the installed system..."
+mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
+echo "Unmounting filesystems..."
 umount /rootfs/boot
 umount /rootfs
 
+echo "Finished! Rebooting to installed system."
 reboot

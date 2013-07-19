@@ -42,8 +42,8 @@ if [ ! -f packages/libgcc1.deb ]; then
     wget $MIRROR/pool/main/g/gcc-4.8/libgcc1_4.8.1-6+rpi1_armhf.deb -O packages/libgcc1.deb
 fi
 
-if [ ! -f packages/util-linux.deb ]; then
-    wget $MIRROR/pool/main/u/util-linux/util-linux_2.20.1-5.5_armhf.deb -O packages/util-linux.deb
+if [ ! -f packages/dosfstools.deb ]; then
+    wget $MIRROR/pool/main/d/dosfstools/dosfstools_3.0.16-2_armhf.deb -O packages/dosfstools.deb
 fi
 
 rm -rf tmp
@@ -88,9 +88,8 @@ cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 
 # filesystem utils
 mkdir -p rootfs/sbin/
+cp tmp/sbin/mkfs.vfat rootfs/sbin/
 cp tmp/sbin/mkfs.ext4 rootfs/sbin/
-cp tmp/sbin/sfdisk rootfs/sbin/
-cp tmp/usr/bin/setterm rootfs/usr/bin/
 cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
 
 cd rootfs && find . | cpio -H newc -ov | gzip -9 > ../installer.cpio.gz
