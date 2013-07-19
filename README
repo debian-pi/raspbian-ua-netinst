@@ -8,17 +8,16 @@ You need:
  * working Ethernet with DHCP server
  * no HTTP proxies
 
-The actual image that will be written to a SD card must have only one (small, 50 MB preferred) partition with bootfs/ contents.
+The actual image that will be written to a SD card must have only one partition with bootfs/ contents.
+
+You can also reinstall or overwrite an existing system by running the installer from existing /boot.
 
 The smallest SD card that Raspbian with this installer can fit without any issues is 512 MB.
-
-Actual install process has zero error checking, so if it fails it fails hard.
 
 I take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing.
 
 Some developement ideas that has been suggested:
 
  * completely configurable eth0 setup from a configuration file in /boot - allows static ips
- * reinstallation support by running the installer again
 
 See LICENSE for license information.
