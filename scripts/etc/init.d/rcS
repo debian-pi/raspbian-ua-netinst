@@ -1,11 +1,12 @@
 #!/bin/busybox sh
 
 # default options, can be overriden in installer-config.txt
+preset=server
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
 rootpw=raspbian
-cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,vim-tiny,ifupdown,net-tools,isc-dhcp-client,iputils-ping,openntpd,openssh-server"
+cdebootstrap_cmdline=
 bootsize=+50M
 timeserver=time.nist.gov
 
@@ -50,8 +51,30 @@ if [ -e /bootfs/installer-config.txt ]; then
     source /bootfs/installer-config.txt
 fi
 
+# configure different kinds of presets
+if [ "$cdebootstrap_cmdline" = "" ]; then
+
+    # minimal
+    cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server"
+
+    case $preset in
+        server)
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,rsyslog,dialog,locales,less,man-db" ;;
+        minimal)
+            ;;
+        base)
+            cdebootstrap_cmdline="--flavour=minimal" ;;
+        *)
+            preset=server
+    esac
+
+else
+    preset=none
+fi
+
 echo
 echo "Installer configuration:"
+echo "  preset = $preset"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
@@ -156,11 +179,15 @@ echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs
 echo -n $hostname > /rootfs/etc/hostname || exit
 echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || exit
 
-# dhcp networking
+# loopback networking
 echo "auto lo" > /rootfs/etc/network/interfaces || exit
 echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || exit
-echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
-echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
+
+# dhcp networking if dhclient installed
+if [ -e /rootfs/etc/dhcp/dhclient.conf ]; then
+    echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
+    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
+fi
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || exit
