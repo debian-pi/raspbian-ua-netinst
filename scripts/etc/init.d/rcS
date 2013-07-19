@@ -7,6 +7,7 @@ hostname=pi
 rootpw=raspbian
 cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,vim-tiny,ifupdown,net-tools,isc-dhcp-client,iputils-ping,openntpd,openssh-server"
 bootsize=+50M
+timeserver=time.nist.gov
 
 mkdir -p /proc
 mkdir -p /sys
@@ -57,6 +58,7 @@ echo "  hostname = $hostname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
+echo "  timeserver = $timeserver"
 echo
 
 echo -n "Waiting for eth0... "
@@ -86,6 +88,15 @@ if [ $? -eq 0 ]; then
     ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
 else
     echo "FAILED"
+    exit
+fi
+
+echo -n "Configuring the clock using rdate... "
+rdate $timeserver &>/dev/null
+if [ $? -eq 0 ]; then
+    date
+else
+    echo "failed (not fatal)"
     exit
 fi
 
@@ -168,6 +179,11 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 echo -n "Removing cdebootstrap-helper-rc.d... " 
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || exit
 echo "OK"
+
+# save current time if fake-hwclock
+echo "Saving current time for fake-hwclock..."
+sync # synchronize before saving time to make it "more accurate"
+date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
 
 if [ -e /bootfs/post-install.txt ]; then
     echo "Running post-install.txt..."
