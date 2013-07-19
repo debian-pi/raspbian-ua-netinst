@@ -93,7 +93,7 @@ mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || exit
 echo "OK"
 
 echo -n "Mounting new filesystems... "
-mount /dev/mmcblk0p2 /rootfs || exit
+mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier || exit
 mkdir /rootfs/boot || exit
 mount /dev/mmcblk0p1 /rootfs/boot || exit
 echo "OK"
@@ -104,10 +104,44 @@ sync
 echo "OK"
 
 echo "Starting install process..."
-. /sbin/install
+cdebootstrap-static --allow-unauthenticated --flavour=minimal --include=fake-hwclock,vim-tiny,ifupdown,net-tools,isc-dhcp-client,iputils-ping,openntpd,openssh-server --arch=armhf wheezy /rootfs http://mirrordirector.raspbian.org/raspbian/
+
+# allow root login
+echo -n "Configuring installed system... "
+echo -n root:raspbian | chroot /rootfs /usr/sbin/chpasswd || exit
+
+# default mounts
+echo "/dev/mmcblk0p1 /boot vfat defaults 0 0" > /rootfs/etc/fstab || exit
+echo "/dev/mmcblk0p2 / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || exit
+
+# use ram tmpfs by default
+echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+
+# default hostname
+echo -n pi > /rootfs/etc/hostname || exit
+echo "127.0.0.1 localhost pi" > /rootfs/etc/hosts || exit
+
+# dhcp networking
+echo "auto lo" > /rootfs/etc/network/interfaces || exit
+echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || exit
+echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
+echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
+
+# there is no hw clock on rpi
+echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || exit
+
+# allow ntpd to set time on boot
+echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || exit
+
+echo "OK"
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
+
+# remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
+echo -n "Removing cdebootstrap-helper-rc.d... " 
+chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || exit
+echo "OK"
 
 echo "Unmounting filesystems..."
 umount /rootfs/boot
