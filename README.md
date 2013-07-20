@@ -58,6 +58,15 @@ The default **root** password is **raspbian**.
 > Configure your timezone: `dpkg-reconfigure tzdata`  
 > Set new root password: `passwd`  
 
+Reinstalling or replacing an existing system
+--------------------------------------------
+If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_emergency.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
+
+    mv /boot/config-reinstall.txt /boot/config.txt
+    reboot
+
+**Remember to backup all your data and original config.txt before doing this!**
+
 Installer customization
 -----------------------
 While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file _installer-config.txt_ from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
