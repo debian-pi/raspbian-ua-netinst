@@ -21,3 +21,5 @@ if [ ! -d bootfs ]; then
 fi
 
 cp installer.cpio.gz bootfs/
+
+cd bootfs && zip -9 ../raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip *; cd ..
