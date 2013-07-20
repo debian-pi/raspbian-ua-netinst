@@ -90,7 +90,7 @@ Available presets: _server_, _minimal_ and _base_.
 
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
 
-> _--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server,vim-tiny,iputils-ping,rsyslog,dialog,locales,less,man-db_
+> _--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
 There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in.
 

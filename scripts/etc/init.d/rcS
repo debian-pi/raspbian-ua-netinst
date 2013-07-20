@@ -59,7 +59,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     case $preset in
         server)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,rsyslog,dialog,locales,less,man-db" ;;
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db" ;;
         minimal)
             ;;
         base)
