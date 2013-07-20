@@ -16,7 +16,7 @@ Features
  - completely unattended, you only need working Internet connection through the Ethernet port
  - always installs the latest version of Raspbian
  - configurable default settings
- - installation takes only **10 minutes** with fast Internet from power on to sshd running
+ - installation takes under **15 minutes** with fast Internet from power on to sshd running
  - fits in 512MB SD card
  - default install includes fake-hwclock to save time on shutdown
  - /tmp is mounted as tmpfs to improve speed

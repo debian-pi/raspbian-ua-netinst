@@ -31,10 +31,10 @@ mdev -s
 klogd -c 1
 
 echo "==========================================="
-echo " Welcome to automatic Raspbian installer!  "
+echo "raspbian-ua-netinst"
 echo "==========================================="
-echo " Revision __VERSION__"
-echo " Built on __DATE__"
+echo "Revision __VERSION__"
+echo "Built on __DATE__"
 echo "==========================================="
 echo "http://github.com/hifi/raspbian-ua-netinst/"
 echo "==========================================="
@@ -59,7 +59,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     case $preset in
         server)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db" ;;
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db" ;;
         minimal)
             ;;
         base)
@@ -151,7 +151,7 @@ mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || exit
 echo "OK"
 
 echo -n "Mounting new filesystems... "
-mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier || exit
+mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || exit
 mkdir /rootfs/boot || exit
 mount /dev/mmcblk0p1 /rootfs/boot || exit
 echo "OK"
