@@ -83,6 +83,11 @@ The format of the file and the current defaults:
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to _fdisk_
     timeserver=time.nist.gov
+    ip_addr=dhcp
+    ip_netmask=0.0.0.0
+    ip_broadcast=0.0.0.0
+    ip_gateway=0.0.0.0
+    ip_nameservers=
 
 All of the configuration options should be clear. You can override any of these in your _installer-config.txt_. The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
 

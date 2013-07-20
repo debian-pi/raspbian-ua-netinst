@@ -9,6 +9,11 @@ rootpw=raspbian
 cdebootstrap_cmdline=
 bootsize=+50M
 timeserver=time.nist.gov
+ip_addr=dhcp
+ip_netmask=0.0.0.0
+ip_broadcast=0.0.0.0
+ip_gateway=0.0.0.0
+ip_nameservers=
 
 mkdir -p /proc
 mkdir -p /sys
@@ -51,11 +56,16 @@ if [ -e /bootfs/installer-config.txt ]; then
     source /bootfs/installer-config.txt
 fi
 
+dhcp_packages=
+if [ "$ip_addr" = "dhcp" ]; then
+    dhcp_packages=,isc-dhcp-client
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # minimal
-    cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server"
+    cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,openntpd,openssh-server$dhcp_packages"
 
     case $preset in
         server)
@@ -82,6 +92,15 @@ echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  timeserver = $timeserver"
+echo "  ip_addr = $ip_addr"
+
+if [ "$ip_addr" != "dhcp" ]; then
+    echo "  ip_netmask = $ip_netmask"
+    echo "  ip_broadcast = $ip_broadcast"
+    echo "  ip_gateway = $ip_gateway"
+    echo "  ip_nameservers = $ip_nameservers"
+fi
+
 echo
 
 echo -n "Waiting for eth0... "
@@ -104,14 +123,25 @@ for i in `seq 1 10`; do
     echo -n "$i.. "
 done
 
-echo -n "Configuring eth0 with DHCP... "
+if [ "$ip_addr" = "dhcp" ]; then
+    echo -n "Configuring eth0 with DHCP... "
 
-udhcpc -i eth0 &>/dev/null
-if [ $? -eq 0 ]; then
-    ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+    udhcpc -i eth0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+    else
+        echo "FAILED"
+        exit
+    fi
 else
-    echo "FAILED"
-    exit
+    echo -n "Configuring eth0 with static ip $ip_addr... "
+    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || exit
+    route add default gw $ip_gateway || exit
+    echo -n > /etc/resolv.conf
+    for i in $ip_nameservers; do
+        echo "nameserver $i" >> /etc/resolv.conf
+    done
+    echo "OK"
 fi
 
 echo -n "Configuring the clock using rdate... "
@@ -179,14 +209,22 @@ echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs
 echo -n $hostname > /rootfs/etc/hostname || exit
 echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || exit
 
-# loopback networking
+# networking
 echo "auto lo" > /rootfs/etc/network/interfaces || exit
 echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || exit
 
-# dhcp networking if dhclient installed
-if [ -e /rootfs/etc/dhcp/dhclient.conf ]; then
-    echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
+# eth0 config
+echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
+if [ "$ip_addr" = "dhcp" ]; then
     echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
+else
+    echo "iface eth0 inet static" >> /rootfs/etc/network/interfaces || exit
+    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || exit
+    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || exit
+    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || exit
+    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || exit
+
+    cp /etc/resolv.conf /rootfs/etc/ || exit
 fi
 
 # there is no hw clock on rpi
