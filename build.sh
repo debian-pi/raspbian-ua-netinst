@@ -46,6 +46,26 @@ if [ ! -f packages/dosfstools.deb ]; then
     wget $MIRROR/pool/main/d/dosfstools/dosfstools_3.0.16-2_armhf.deb -O packages/dosfstools.deb
 fi
 
+if [ ! -d bootfs ]; then
+    mkdir -p bootfs
+    cd bootfs
+    wget \
+        https://raw.github.com/raspberrypi/firmware/master/boot/bootcode.bin \
+        https://raw.github.com/raspberrypi/firmware/master/boot/fixup.dat\
+        https://raw.github.com/raspberrypi/firmware/master/boot/fixup_cd.dat \
+        https://raw.github.com/raspberrypi/firmware/master/boot/fixup_x.dat \
+        https://raw.github.com/raspberrypi/firmware/master/boot/kernel.img \
+        https://raw.github.com/raspberrypi/firmware/master/boot/kernel_emergency.img \
+        https://raw.github.com/raspberrypi/firmware/master/boot/start.elf \
+        https://raw.github.com/raspberrypi/firmware/master/boot/start_cd.elf \
+        https://raw.github.com/raspberrypi/firmware/master/boot/start_x.elf
+
+    echo "kernel=kernel_emergency.img" > config.txt
+    echo "initramfs installer.cpio.gz" >> config.txt
+
+    cd ..
+fi
+
 rm -rf tmp
 mkdir tmp
 
@@ -101,3 +121,10 @@ cd ..
 
 rm -rf tmp
 rm -rf rootfs
+
+cp installer.cpio.gz bootfs/
+
+ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
+rm -f $ZIPFILE
+
+cd bootfs && zip -9 ../$ZIPFILE *; cd ..

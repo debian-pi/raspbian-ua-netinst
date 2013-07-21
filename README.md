@@ -84,7 +84,7 @@ The format of the file and the current defaults:
     hostname=pi
     rootpw=raspbian
     cdebootstrap_cmdline=
-    bootsize=+50M # /boot partition size as given to _fdisk_
+    bootsize=+50M # /boot partition size as given to fdisk
     timeserver=time.nist.gov
     ip_addr=dhcp
     ip_netmask=0.0.0.0
