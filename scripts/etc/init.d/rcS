@@ -58,9 +58,64 @@ if [ -e /bootfs/installer-config.txt ]; then
     source /bootfs/installer-config.txt
 fi
 
+echo
+echo "Network configuration:"
+echo "  ip_addr = $ip_addr"
+
+if [ "$ip_addr" != "dhcp" ]; then
+    echo "  ip_netmask = $ip_netmask"
+    echo "  ip_broadcast = $ip_broadcast"
+    echo "  ip_gateway = $ip_gateway"
+    echo "  ip_nameservers = $ip_nameservers"
+fi
+
+echo "  online_config = $online_config"
+echo
+
+echo -n "Waiting for eth0... "
+
+for i in `seq 1 10`; do
+
+    ifconfig eth0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        break
+    fi
+
+    if [ $i -eq 10 ]; then
+        echo "FAILED"
+        exit
+    fi
+
+    sleep 1
+
+    echo -n "$i.. "
+done
+
+if [ "$ip_addr" = "dhcp" ]; then
+    echo -n "Configuring eth0 with DHCP... "
+
+    udhcpc -i eth0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+    else
+        echo "FAILED"
+        exit
+    fi
+else
+    echo -n "Configuring eth0 with static ip $ip_addr... "
+    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || exit
+    route add default gw $ip_gateway || exit
+    echo -n > /etc/resolv.conf
+    for i in $ip_nameservers; do
+        echo "nameserver $i" >> /etc/resolv.conf
+    done
+    echo "OK"
+fi
+
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    wget -q $online_config -O /online-config.txt &>/dev/null || exit
+    wget -q -O /online-config.txt $online_config &>/dev/null || exit
     echo "OK"
 
     echo "Reading online-config.txt..."
@@ -114,59 +169,8 @@ echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  timeserver = $timeserver"
-echo "  ip_addr = $ip_addr"
-
-if [ "$ip_addr" != "dhcp" ]; then
-    echo "  ip_netmask = $ip_netmask"
-    echo "  ip_broadcast = $ip_broadcast"
-    echo "  ip_gateway = $ip_gateway"
-    echo "  ip_nameservers = $ip_nameservers"
-fi
-
-echo "  online_config = $online_config"
-
 echo
 
-echo -n "Waiting for eth0... "
-
-for i in `seq 1 10`; do
-
-    ifconfig eth0 &>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "OK"
-        break
-    fi
-
-    if [ $i -eq 10 ]; then
-        echo "FAILED"
-        exit
-    fi
-
-    sleep 1
-
-    echo -n "$i.. "
-done
-
-if [ "$ip_addr" = "dhcp" ]; then
-    echo -n "Configuring eth0 with DHCP... "
-
-    udhcpc -i eth0 &>/dev/null
-    if [ $? -eq 0 ]; then
-        ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
-    else
-        echo "FAILED"
-        exit
-    fi
-else
-    echo -n "Configuring eth0 with static ip $ip_addr... "
-    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || exit
-    route add default gw $ip_gateway || exit
-    echo -n > /etc/resolv.conf
-    for i in $ip_nameservers; do
-        echo "nameserver $i" >> /etc/resolv.conf
-    done
-    echo "OK"
-fi
 
 echo -n "Configuring the clock using rdate... "
 rdate $timeserver &>/dev/null
