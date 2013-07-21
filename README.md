@@ -65,9 +65,12 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 
 The default **root** password is **raspbian**.
 
+> Set new root password: `passwd`  
 > Configure your default locale: `dpkg-reconfigure locales`  
 > Configure your timezone: `dpkg-reconfigure tzdata`  
-> Set new root password: `passwd`  
+> Update your firmware: `apt-get update && apt-get install rpi-update && rpi-update`
+
+Updating your firmware is **strongly** recommended for desktop use because the installer does not install any kernel modules which are required for sound and other non-server related devices to work.
 
 Reinstalling or replacing an existing system
 --------------------------------------------
