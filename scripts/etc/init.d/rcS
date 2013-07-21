@@ -15,6 +15,7 @@ ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
 ip_gateway=0.0.0.0
 ip_nameservers=
+online_config=
 
 mkdir -p /proc
 mkdir -p /sys
@@ -57,9 +58,13 @@ if [ -e /bootfs/installer-config.txt ]; then
     source /bootfs/installer-config.txt
 fi
 
-dhcp_packages=
-if [ "$ip_addr" = "dhcp" ]; then
-    dhcp_packages=,isc-dhcp-client
+if [ "$online_config" != "" ]; then
+    echo -n "Downloading online config from $online_config... "
+    wget -q $online_config -O /online-config.txt &>/dev/null || exit
+    echo "OK"
+
+    echo "Reading online-config.txt..."
+    source /online-config.txt
 fi
 
 # configure different kinds of presets
@@ -68,15 +73,21 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # minimal
     cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,openntpd,openssh-server$dhcp_packages"
 
+    # add dhcp client if using dhcp
+    if [ "$ip_addr" = "dhcp" ]; then
+        cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
+    fi
+
     case $preset in
-        server)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db" ;;
         minimal)
             ;;
         base)
-            cdebootstrap_cmdline="--flavour=minimal" ;;
+            cdebootstrap_cmdline="--flavour=minimal"
+            ;;
         *)
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
             preset=server
+            ;;
     esac
 
     # add extra packages
@@ -111,6 +122,8 @@ if [ "$ip_addr" != "dhcp" ]; then
     echo "  ip_gateway = $ip_gateway"
     echo "  ip_nameservers = $ip_nameservers"
 fi
+
+echo "  online_config = $online_config"
 
 echo
 

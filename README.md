@@ -91,6 +91,7 @@ The format of the file and the current defaults:
     ip_broadcast=0.0.0.0
     ip_gateway=0.0.0.0
     ip_nameservers=
+    online_config= # URL to extra config that will be executed after installer-config.txt
 
 All of the configuration options should be clear. You can override any of these in your _installer-config.txt_. The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
 
