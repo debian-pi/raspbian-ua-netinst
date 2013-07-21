@@ -1,7 +1,7 @@
 raspbian-ua-netinst
 ===================
 
-The minimal Raspbian unattended netinstaller.
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model B.
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -17,6 +17,7 @@ Features
  - DHCP and static ip configuration (DHCP is the default)
  - always installs the latest version of Raspbian
  - configurable default settings
+ - extra configuration over HTTP possible - gives unlimited flexibility
  - installation takes well under **15 minutes** with fast Internet from power on to sshd running
  - fits in 512MB SD card
  - default install includes fake-hwclock to save time on shutdown
@@ -30,15 +31,23 @@ Requirements
  - SD card of at least 512MB
  - working Ethernet with Internet connectivity
 
-Obtaining prebuilt installer image
-----------------------------------
-Latest prebuilt image is **16MB** xz compressed and **32MB** uncompressed. It contains a single vfat filesystem with essential firmware files and the latest installer.
+Obtaining installer files on Windows and Mac
+--------------------------------------------
+Installer archive is around **18MB** and contains all firmware files and the installer.
 
-http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.img.gz
+http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.zip
+
+Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
+
+SD card image for Linux
+-----------------------
+Prebuilt image is around **16MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+
+http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.img.xz
 
 To flash your SD card on Linux:
 
-    xzcat /path/to/raspbian-ua-netinst-latest.img.gz > /dev/sdX
+    xzcat /path/to/raspbian-ua-netinst-latest.img.xz > /dev/sdX
 
 Replace _/dev/sdX_ with the real path to your SD card.
 
