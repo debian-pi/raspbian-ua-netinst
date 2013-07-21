@@ -1,5 +1,5 @@
 raspbian-ua-netinst
-=============
+===================
 
 The minimal Raspbian unattended netinstaller.
 
@@ -12,21 +12,23 @@ There are different kinds of "presets" that define the default packages that are
 Other presets include _minimal_ which has even less packages (no logging, no text editor, no cron) and _base_ which doesn't even have networking. You can customize the installed packages by adding a small configuration file to your SD card before booting up.
 
 Features
----------
+--------
  - completely unattended, you only need working Internet connection through the Ethernet port
+ - DHCP and static ip configuration (DHCP is the default)
  - always installs the latest version of Raspbian
  - configurable default settings
- - installation takes under **15 minutes** with fast Internet from power on to sshd running
+ - installation takes well under **15 minutes** with fast Internet from power on to sshd running
  - fits in 512MB SD card
  - default install includes fake-hwclock to save time on shutdown
+ - default install includes OpenNTPd to keep time
  - /tmp is mounted as tmpfs to improve speed
  - no clutter included, you only get the bare essential packages
 
 Requirements
---------------
+------------
  - a Raspberry Pi Model B
  - SD card of at least 512MB
- - working Ethernet with DHCP server
+ - working Ethernet with Internet connectivity
 
 Obtaining prebuilt installer image
 ----------------------------------
@@ -41,7 +43,7 @@ To flash your SD card on Linux:
 Replace _/dev/sdX_ with the real path to your SD card.
 
 Installing
----------
+----------
 In normal circumstances, you can just power on your Pi and cross your fingers.
 
 If you don't have a display attached you can monitor the Ethernet card leds to guess activity. When it finally reboots after installing everything you will see them going out and on a few times when Raspbian configures it on boot.
