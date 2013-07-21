@@ -2,6 +2,7 @@
 
 # default options, can be overriden in installer-config.txt
 preset=server
+packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
@@ -78,6 +79,15 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             preset=server
     esac
 
+    # add extra packages
+    if [ "$packages" != "" ]; then
+        if [ "$preset" = "base" ]; then
+            cdebootstrap_cmdline="$cdebootstrap_cmdline --include=$packages"
+        else
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,$packages"
+        fi
+    fi
+
 else
     preset=none
 fi
@@ -85,6 +95,7 @@ fi
 echo
 echo "Installer configuration:"
 echo "  preset = $preset"
+echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"

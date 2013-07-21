@@ -78,6 +78,7 @@ Easiest way to do this is to first _xzcat_ the image to your SD card and then mo
 The format of the file and the current defaults:
 
     preset=server
+    packages= # comma separated list of extra packages
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=wheezy
     hostname=pi
