@@ -17,6 +17,16 @@ ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
 
+fail()
+{
+    echo
+    echo "Oh noes, something went wrong!"
+    echo "You have 10 seconds to hit ENTER to get a shell..."
+
+    read -t 10 || reboot && exit
+    sh
+}
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /usr/bin
@@ -48,9 +58,9 @@ echo "==========================================="
 
 echo -n "Copying boot files... "
 # copy boot data to safety if not fetching them
-mount /dev/mmcblk0p1 /boot || exit
-cp /boot/* /bootfs/ || exit
-umount /boot || exit
+mount /dev/mmcblk0p1 /boot || fail
+cp /boot/* /bootfs/ || fail
+umount /boot || fail
 echo "OK"
 
 if [ -e /bootfs/installer-config.txt ]; then
@@ -84,7 +94,7 @@ for i in `seq 1 10`; do
 
     if [ $i -eq 10 ]; then
         echo "FAILED"
-        exit
+        fail
     fi
 
     sleep 1
@@ -100,12 +110,12 @@ if [ "$ip_addr" = "dhcp" ]; then
         ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
     else
         echo "FAILED"
-        exit
+        fail
     fi
 else
     echo -n "Configuring eth0 with static ip $ip_addr... "
-    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || exit
-    route add default gw $ip_gateway || exit
+    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || fail
+    route add default gw $ip_gateway || fail
     echo -n > /etc/resolv.conf
     for i in $ip_nameservers; do
         echo "nameserver $i" >> /etc/resolv.conf
@@ -115,7 +125,7 @@ fi
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    wget -q -O /online-config.txt $online_config &>/dev/null || exit
+    wget -q -O /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
     echo "Reading online-config.txt..."
@@ -202,66 +212,66 @@ EOF
 echo "OK"
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat /dev/mmcblk0p1 &>/dev/null || exit
+mkfs.vfat /dev/mmcblk0p1 &>/dev/null || fail
 echo "OK"
 
 echo -n "Initializing / as ext4... "
-mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || exit
+mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || fail
 echo "OK"
 
 echo -n "Mounting new filesystems... "
-mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || exit
-mkdir /rootfs/boot || exit
-mount /dev/mmcblk0p1 /rootfs/boot || exit
+mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || fail
+mkdir /rootfs/boot || fail
+mount /dev/mmcblk0p1 /rootfs/boot || fail
 echo "OK"
 
 echo -n "Copying /boot files in... "
-cp /bootfs/* /rootfs/boot || exit
+cp /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
 echo "Starting install process..."
-cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || exit
+cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
 
 # allow root login
 echo -n "Configuring installed system... "
-echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || exit
+echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
-echo "/dev/mmcblk0p1 /boot vfat defaults 0 0" > /rootfs/etc/fstab || exit
-echo "/dev/mmcblk0p2 / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || exit
+echo "/dev/mmcblk0p1 /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
+echo "/dev/mmcblk0p2 / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
 
 # use ram tmpfs by default
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
 
 # default hostname
-echo -n $hostname > /rootfs/etc/hostname || exit
-echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || exit
+echo -n $hostname > /rootfs/etc/hostname || fail
+echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || fail
 
 # networking
-echo "auto lo" > /rootfs/etc/network/interfaces || exit
-echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || exit
+echo "auto lo" > /rootfs/etc/network/interfaces || fail
+echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
 
 # eth0 config
-echo "auto eth0" >> /rootfs/etc/network/interfaces || exit
+echo "auto eth0" >> /rootfs/etc/network/interfaces || fail
 if [ "$ip_addr" = "dhcp" ]; then
-    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || exit
+    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || fail
 else
-    echo "iface eth0 inet static" >> /rootfs/etc/network/interfaces || exit
-    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || exit
-    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || exit
-    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || exit
-    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || exit
+    echo "iface eth0 inet static" >> /rootfs/etc/network/interfaces || fail
+    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || fail
+    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || fail
+    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || fail
+    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || fail
 
-    cp /etc/resolv.conf /rootfs/etc/ || exit
+    cp /etc/resolv.conf /rootfs/etc/ || fail
 fi
 
 # there is no hw clock on rpi
-echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || exit
+echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
 # allow ntpd to set time on boot
 if [ -e /rootfs/etc/default/openntpd ]; then
-    echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || exit
+    echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || fail
 fi
 
 echo "OK"
@@ -271,7 +281,7 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... " 
-chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || exit
+chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
 # add raspberrypi.org repository to apt (failing is ok)
