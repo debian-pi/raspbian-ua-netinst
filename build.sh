@@ -60,9 +60,6 @@ if [ ! -d bootfs ]; then
         https://raw.github.com/raspberrypi/firmware/master/boot/start_cd.elf \
         https://raw.github.com/raspberrypi/firmware/master/boot/start_x.elf
 
-    echo "kernel=kernel_emergency.img" > config.txt
-    echo "initramfs installer.cpio.gz" >> config.txt
-
     cd ..
 fi
 
@@ -123,6 +120,10 @@ rm -rf tmp
 rm -rf rootfs
 
 cp installer.cpio.gz bootfs/
+
+echo "kernel=kernel_emergency.img" > bootfs/config.txt
+echo "initramfs installer.cpio.gz" >> bootfs/config.txt
+echo "consoleblank=0" > bootfs/cmdline.txt
 
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
 rm -f $ZIPFILE
