@@ -57,9 +57,27 @@ echo "http://github.com/hifi/raspbian-ua-netinst/"
 echo "==========================================="
 
 echo -n "Copying boot files... "
-# copy boot data to safety if not fetching them
+# copy boot data to safety
 mount /dev/mmcblk0p1 /boot || fail
-cp /boot/* /bootfs/ || fail
+
+cp /boot/bootcode.bin \
+    /boot/fixup_cd.dat \
+    /boot/fixup.dat \
+    /boot/fixup_x.dat \
+    /boot/installer.cpio.gz \
+    /boot/kernel_emergency.img \
+    /boot/kernel.img \
+    /boot/start_cd.elf \
+    /boot/start.elf \
+    /boot/start_x.elf /bootfs/ || fail
+
+if [ -f /boot/installer-config.txt ]; then
+    cp /boot/installer-config.txt /bootfs/config.txt || fail
+fi
+
+# if installation aborts it will restart
+cp /boot/config.txt /bootfs/config.txt || fail
+
 umount /boot || fail
 echo "OK"
 
