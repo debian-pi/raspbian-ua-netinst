@@ -178,7 +178,6 @@ if [ $? -eq 0 ]; then
     date
 else
     echo "failed (not fatal)"
-    exit
 fi
 
 echo -n "Applying new partition table... "
