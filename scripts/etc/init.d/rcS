@@ -72,7 +72,7 @@ cp /boot/bootcode.bin \
     /boot/start_x.elf /bootfs/ || fail
 
 if [ -f /boot/installer-config.txt ]; then
-    cp /boot/installer-config.txt /bootfs/config.txt || fail
+    cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
 fi
 
 # if installation aborts it will restart
