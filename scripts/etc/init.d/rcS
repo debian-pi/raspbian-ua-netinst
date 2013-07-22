@@ -172,12 +172,14 @@ echo "  timeserver = $timeserver"
 echo
 
 
-echo -n "Configuring the clock using rdate... "
-rdate $timeserver &>/dev/null
-if [ $? -eq 0 ]; then
-    date
-else
-    echo "failed (not fatal)"
+if [ "$timeserver" != "" ]; then
+    echo -n "Configuring the clock using rdate... "
+    rdate $timeserver &>/dev/null
+    if [ $? -eq 0 ]; then
+        date
+    else
+        echo "failed (not fatal)"
+    fi
 fi
 
 echo -n "Applying new partition table... "
