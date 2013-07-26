@@ -15,7 +15,7 @@ if [ ! -f packages/libc6.deb ]; then
 fi
 
 if [ ! -f packages/cdebootstrap.deb ]; then
-    wget $MIRROR/pool/main/c/cdebootstrap/cdebootstrap-static_0.5.10_armhf.deb -O packages/cdebootstrap.deb
+    wget $MIRROR/pool/main/c/cdebootstrap/cdebootstrap-static_0.5.10+rpi1_armhf.deb -O packages/cdebootstrap.deb
 fi
 
 if [ ! -f packages/e2fslibs.deb ]; then
