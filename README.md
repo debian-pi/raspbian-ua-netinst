@@ -68,9 +68,9 @@ The default **root** password is **raspbian**.
 > Set new root password: `passwd`  
 > Configure your default locale: `dpkg-reconfigure locales`  
 > Configure your timezone: `dpkg-reconfigure tzdata`  
-> Update your firmware: `apt-get update && apt-get install wget kmod rpi-update && mkdir -p /lib/modules && rpi-update`
+> Install official firmware package: `apt-get update && apt-get install raspberrypi-bootloader`
 
-Updating your firmware is **strongly** recommended for desktop use because the installer does not install any kernel modules which are required for sound and other non-server related devices to work.
+Installing the firmware package is **strongly** recommended because the installer does not install any kernel modules which are required for ipv6, sound and many more stuff you might need.
 
 Reinstalling or replacing an existing system
 --------------------------------------------
@@ -111,7 +111,7 @@ Available presets: _server_, _minimal_ and _base_.
 
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
 
-> _--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
+> _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,openntpd,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
 There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in.
 

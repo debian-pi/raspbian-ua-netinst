@@ -154,7 +154,7 @@ fi
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # minimal
-    cdebootstrap_cmdline="--flavour=minimal --include=fake-hwclock,ifupdown,net-tools,openntpd,openssh-server$dhcp_packages"
+    cdebootstrap_cmdline="--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,openntpd,openssh-server$dhcp_packages"
 
     # add dhcp client if using dhcp
     if [ "$ip_addr" = "dhcp" ]; then
