@@ -308,6 +308,10 @@ echo "deb http://archive.raspberrypi.org/debian $release main" >> /rootfs/etc/ap
 wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 
+# add reasonable default modules, works only after kernel is properly installed
+echo "leds-gpio" >> /rootfs/etc/modules
+echo "snd-bcm2835" >> /rootfs/etc/modules
+
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
     echo "Running post-install.txt..."
