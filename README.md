@@ -69,6 +69,7 @@ The default **root** password is **raspbian**.
 > Configure your default locale: `dpkg-reconfigure locales`  
 > Configure your timezone: `dpkg-reconfigure tzdata`  
 > Install official firmware package: `apt-get update && apt-get install raspberrypi-bootloader`
+> Reboot to new firmware: `reboot`
 
 Installing the firmware package is **strongly** recommended because the installer does not install any kernel modules which are required for ipv6, sound and many more stuff you might need.
 
