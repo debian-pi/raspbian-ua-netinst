@@ -121,5 +121,3 @@ ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
 rm -f $ZIPFILE
 
 cd bootfs && zip -9 ../$ZIPFILE *; cd ..
-
-rm -rf bootfs
