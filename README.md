@@ -68,7 +68,7 @@ The default **root** password is **raspbian**.
 > Set new root password: `passwd`  
 > Configure your default locale: `dpkg-reconfigure locales`  
 > Configure your timezone: `dpkg-reconfigure tzdata`  
-> Update your firmware: `apt-get update && apt-get install rpi-update && rpi-update`
+> Update your firmware: `apt-get update && apt-get install wget kmod rpi-update && rpi-update`
 
 Updating your firmware is **strongly** recommended for desktop use because the installer does not install any kernel modules which are required for sound and other non-server related devices to work.
 
