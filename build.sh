@@ -46,8 +46,12 @@ if [ ! -f packages/dosfstools.deb ]; then
     wget $MIRROR/pool/main/d/dosfstools/dosfstools_3.0.16-2_armhf.deb -O packages/dosfstools.deb
 fi
 
-if [ ! -f packages/raspberrypi-bootloader.deb ]; then
-    wget http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware/raspberrypi-bootloader_1.20130617-1_armhf.deb -O packages/raspberrypi-bootloader.deb
+if [ ! -f packages/linux-image.deb ]; then
+    wget $MIRROR/pool/main/l/linux/linux-image-3.2.0-4-rpi_3.2.46-1%2brpi1_armhf.deb -O packages/linux-image.deb
+fi
+
+if [ ! -f packages/raspberrypi-firmware-nokernel.deb ]; then
+    wget $MIRROR/pool/firmware/r/raspberrypi-firmware-nokernel/raspberrypi-bootloader-nokernel_1.20130207-1~nokernel2_armhf.deb -O packages/raspberrypi-firmware-nokernel.deb
 fi
 
 rm -rf tmp
@@ -62,11 +66,22 @@ done
 rm -rf bootfs
 mkdir -p bootfs
 cp tmp/boot/* bootfs/
+rm bootfs/System*
+rm bootfs/config-*
+mv bootfs/vmlinuz* bootfs/kernel_install.img
 
 # initialize rootfs
 rm -rf rootfs
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
+
+# install required modules
+mkdir -p rootfs/lib/modules/
+cp tmp/lib/modules/*/kernel/fs/fat/fat.ko rootfs/lib/modules/
+cp tmp/lib/modules/*/kernel/fs/fat/vfat.ko rootfs/lib/modules/
+cp tmp/lib/modules/*/kernel/fs/nls/nls_cp437.ko rootfs/lib/modules/
+cp tmp/lib/modules/*/kernel/fs/nls/nls_utf8.ko rootfs/lib/modules/
+cp tmp/lib/modules/*/kernel/drivers/input/evdev.ko rootfs/lib/modules/
 
 # install scripts
 cp -r scripts/* rootfs/
@@ -113,7 +128,7 @@ rm -rf rootfs
 
 cp installer.cpio.gz bootfs/
 
-echo "kernel=kernel_emergency.img" > bootfs/config.txt
+echo "kernel=kernel_install.img" > bootfs/config.txt
 echo "initramfs installer.cpio.gz" >> bootfs/config.txt
 echo "consoleblank=0" > bootfs/cmdline.txt
 

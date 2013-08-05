@@ -37,6 +37,7 @@ fail()
 
 mkdir -p /proc
 mkdir -p /sys
+mkdir -p /boot
 mkdir -p /usr/bin
 mkdir -p /usr/sbin
 mkdir -p /var/run
@@ -52,6 +53,11 @@ mount -t sysfs none /sys
 
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
+
+insmod /lib/modules/fat.ko
+insmod /lib/modules/vfat.ko
+insmod /lib/modules/nls_cp437.ko
+insmod /lib/modules/nls_utf8.ko
 
 klogd -c 1
 
@@ -73,11 +79,13 @@ cp /boot/bootcode.bin \
     /boot/fixup.dat \
     /boot/fixup_x.dat \
     /boot/installer.cpio.gz \
-    /boot/kernel_emergency.img \
-    /boot/kernel.img \
+    /boot/kernel_install.img \
     /boot/start_cd.elf \
     /boot/start.elf \
     /boot/start_x.elf /bootfs/ || fail
+
+# use install kernel in first boot
+cp /boot/kernel_install.img /bootfs/kernel.img || fail
 
 if [ -f /boot/installer-config.txt ]; then
     cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
