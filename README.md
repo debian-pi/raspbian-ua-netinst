@@ -24,11 +24,12 @@ Features
  - default install includes OpenNTPd to keep time
  - /tmp is mounted as tmpfs to improve speed
  - no clutter included, you only get the bare essential packages
+ - option to install root to USB drive
 
 Requirements
 ------------
  - a Raspberry Pi Model B
- - SD card of at least 512MB
+ - SD card of at least 512MB (or at least 64MB for USB root install)
  - working Ethernet with Internet connectivity
 
 Obtaining installer files on Windows and Mac
@@ -105,6 +106,8 @@ The format of the file and the current defaults:
     ip_gateway=0.0.0.0
     ip_nameservers=
     online_config= # URL to extra config that will be executed after installer-config.txt
+    usbroot= # set to 1 to install to first USB disk
+    cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 
 All of the configuration options should be clear. You can override any of these in your _installer-config.txt_. The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
 
