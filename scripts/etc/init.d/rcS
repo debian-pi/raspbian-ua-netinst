@@ -16,6 +16,7 @@ ip_broadcast=0.0.0.0
 ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
+usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 
 # these shouldn't really be changed unless auto-detection fails
@@ -197,6 +198,10 @@ else
     preset=none
 fi
 
+if [ "$usbroot" != "" ]; then
+    rootdev=/dev/sda
+fi
+
 if [ "$rootpartition" = "" ]; then
     if [ "$rootdev" = "/dev/sda" ]; then
         rootpartition=/dev/sda1
@@ -217,6 +222,7 @@ echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
+echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
 echo "  rootpartition = $rootpartition"
 echo
