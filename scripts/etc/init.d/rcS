@@ -16,6 +16,13 @@ ip_broadcast=0.0.0.0
 ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
+cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+
+# these shouldn't really be changed unless auto-detection fails
+bootdev=/dev/mmcblk0
+bootpartition=/dev/mmcblk0p1
+rootdev=/dev/mmcblk0
+rootpartition=
 
 fail()
 {
@@ -58,7 +65,7 @@ echo "==========================================="
 
 echo -n "Copying boot files... "
 # copy boot data to safety
-mount /dev/mmcblk0p1 /boot || fail
+mount $bootpartition /boot || fail
 
 cp /boot/bootcode.bin \
     /boot/fixup_cd.dat \
@@ -190,6 +197,14 @@ else
     preset=none
 fi
 
+if [ "$rootpartition" = "" ]; then
+    if [ "$rootdev" = "/dev/sda" ]; then
+        rootpartition=/dev/sda1
+    else
+        rootpartition=/dev/mmcblk0p2
+    fi
+fi
+
 echo
 echo "Installer configuration:"
 echo "  preset = $preset"
@@ -201,8 +216,10 @@ echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  timeserver = $timeserver"
+echo "  cmdline = $cmdline"
+echo "  rootdev = $rootdev"
+echo "  rootpartition = $rootpartition"
 echo
-
 
 if [ "$timeserver" != "" ]; then
     echo -n "Configuring the clock using rdate... "
@@ -214,9 +231,28 @@ if [ "$timeserver" != "" ]; then
     fi
 fi
 
-echo -n "Applying new partition table... "
-dd if=/dev/zero of=/dev/mmcblk0 bs=512 count=1 &>/dev/null
-fdisk /dev/mmcblk0 &>/dev/null <<EOF
+echo -n "Waiting for $rootdev... "
+for i in `seq 1 10`; do
+
+    if [ "`fdisk -l $rootdev 2>&1 | fgrep Disk`" != "" ]; then
+        echo "OK"
+        break
+    fi
+
+    if [ $i -eq 10 ]; then
+        echo "FAILED"
+        fail
+    fi
+
+    sleep 1
+
+    echo -n "$i.. "
+done
+
+if [ "$rootdev" = "$bootdev" ]; then
+    echo -n "Applying new partition table... "
+    dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
+    fdisk $bootdev &>/dev/null <<EOF
 n
 p
 1
@@ -231,20 +267,48 @@ p
 
 w
 EOF
-echo "OK"
+    echo "OK"
+else
+    echo -n "Applying new partition table for $bootdev... "
+    dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
+    fdisk $bootdev &>/dev/null <<EOF
+n
+p
+1
+
+$bootsize
+t
+b
+w
+EOF
+    echo "OK"
+
+    echo -n "Applying new partition table for $rootdev... "
+    dd if=/dev/zero of=$rootdev bs=512 count=1 &>/dev/null
+    fdisk $rootdev &>/dev/null <<EOF
+n
+p
+1
+
+
+w
+EOF
+    echo "OK"
+
+fi
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat /dev/mmcblk0p1 &>/dev/null || fail
+mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
 
 echo -n "Initializing / as ext4... "
-mkfs.ext4 /dev/mmcblk0p2 &>/dev/null || fail
+mkfs.ext4 $rootpartition &>/dev/null || fail
 echo "OK"
 
 echo -n "Mounting new filesystems... "
-mount /dev/mmcblk0p2 /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || fail
+mount $rootpartition /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || fail
 mkdir /rootfs/boot || fail
-mount /dev/mmcblk0p1 /rootfs/boot || fail
+mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
 echo -n "Copying /boot files in... "
@@ -260,8 +324,8 @@ echo -n "Configuring installed system... "
 echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
-echo "/dev/mmcblk0p1 /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
-echo "/dev/mmcblk0p2 / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
+echo "$bootpartition /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
+echo "$rootpartition / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
 
 # use ram tmpfs by default
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
@@ -315,6 +379,10 @@ echo "OK"
 # add reasonable default modules, works only after kernel is properly installed
 echo "leds-gpio" >> /rootfs/etc/modules
 echo "snd-bcm2835" >> /rootfs/etc/modules
+
+# default cmdline.txt
+echo "Creating default cmdline.txt..."
+echo "$cmdline root=$rootpartition rootfstype=ext4 rootwait" > /rootfs/boot/cmdline.txt 
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
