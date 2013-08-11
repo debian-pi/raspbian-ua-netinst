@@ -1,57 +1,7 @@
 #!/bin/sh
 
-MIRROR=http://mirrordirector.raspbian.org/raspbian/
-
 if [ ! -d packages ]; then
-    mkdir packages
-fi
-
-if [ ! -f packages/busybox.deb ]; then
-    wget $MIRROR/pool/main/b/busybox/busybox-static_1.20.0-7_armhf.deb -O packages/busybox.deb
-fi
-
-if [ ! -f packages/libc6.deb ]; then
-    wget $MIRROR/pool/main/e/eglibc/libc6_2.17-7+rpi1_armhf.deb -O packages/libc6.deb
-fi
-
-if [ ! -f packages/cdebootstrap.deb ]; then
-    wget $MIRROR/pool/main/c/cdebootstrap/cdebootstrap-static_0.5.10+rpi1_armhf.deb -O packages/cdebootstrap.deb
-fi
-
-if [ ! -f packages/e2fslibs.deb ]; then
-    wget $MIRROR/pool/main/e/e2fsprogs/e2fslibs_1.42.5-1.1_armhf.deb -O packages/e2fslibs.deb
-fi
-
-if [ ! -f packages/e2fsprogs.deb ]; then
-    wget $MIRROR/pool/main/e/e2fsprogs/e2fsprogs_1.42.5-1.1_armhf.deb -O packages/e2fsprogs.deb
-fi
-
-if [ ! -f packages/libcomerr2.deb ]; then
-    wget $MIRROR/pool/main/e/e2fsprogs/libcomerr2_1.42.5-1.1_armhf.deb -O packages/libcomerr2.deb
-fi
-
-if [ ! -f packages/libblkid1.deb ]; then
-    wget $MIRROR/pool/main/u/util-linux/libblkid1_2.20.1-5.5_armhf.deb -O packages/libblkid1.deb
-fi
-
-if [ ! -f packages/libuuid1.deb ]; then
-    wget $MIRROR/pool/main/u/util-linux/libuuid1_2.20.1-5.5_armhf.deb -O packages/libuuid1.deb
-fi
-
-if [ ! -f packages/libgcc1.deb ]; then
-    wget $MIRROR/pool/main/g/gcc-4.8/libgcc1_4.8.1-6+rpi1_armhf.deb -O packages/libgcc1.deb
-fi
-
-if [ ! -f packages/dosfstools.deb ]; then
-    wget $MIRROR/pool/main/d/dosfstools/dosfstools_3.0.16-2_armhf.deb -O packages/dosfstools.deb
-fi
-
-if [ ! -f packages/linux-image.deb ]; then
-    wget $MIRROR/pool/main/l/linux-3.6/linux-image-3.6-trunk-rpi_3.6.9-1~experimental.1%2brpi6_armhf.deb -O packages/linux-image.deb
-fi
-
-if [ ! -f packages/raspberrypi-firmware-nokernel.deb ]; then
-    wget $MIRROR/pool/firmware/r/raspberrypi-firmware-nokernel/raspberrypi-bootloader-nokernel_1.20130207-1~nokernel2_armhf.deb -O packages/raspberrypi-firmware-nokernel.deb
+    . ./update.sh
 fi
 
 rm -rf tmp
