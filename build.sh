@@ -47,7 +47,7 @@ if [ ! -f packages/dosfstools.deb ]; then
 fi
 
 if [ ! -f packages/linux-image.deb ]; then
-    wget $MIRROR/pool/main/l/linux/linux-image-3.2.0-4-rpi_3.2.46-1%2brpi1_armhf.deb -O packages/linux-image.deb
+    wget $MIRROR/pool/main/l/linux-3.6/linux-image-3.6-trunk-rpi_3.6.9-1~experimental.1%2brpi6_armhf.deb -O packages/linux-image.deb
 fi
 
 if [ ! -f packages/raspberrypi-firmware-nokernel.deb ]; then
@@ -74,14 +74,6 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 rm -rf rootfs
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
-
-# install required modules
-mkdir -p rootfs/lib/modules/
-cp tmp/lib/modules/*/kernel/fs/fat/fat.ko rootfs/lib/modules/
-cp tmp/lib/modules/*/kernel/fs/fat/vfat.ko rootfs/lib/modules/
-cp tmp/lib/modules/*/kernel/fs/nls/nls_cp437.ko rootfs/lib/modules/
-cp tmp/lib/modules/*/kernel/fs/nls/nls_utf8.ko rootfs/lib/modules/
-cp tmp/lib/modules/*/kernel/drivers/input/evdev.ko rootfs/lib/modules/
 
 # install scripts
 cp -r scripts/* rootfs/

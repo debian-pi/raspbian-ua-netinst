@@ -54,11 +54,6 @@ mount -t sysfs none /sys
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
-insmod /lib/modules/fat.ko
-insmod /lib/modules/vfat.ko
-insmod /lib/modules/nls_cp437.ko
-insmod /lib/modules/nls_utf8.ko
-
 klogd -c 1
 
 echo "==========================================="
@@ -391,7 +386,6 @@ wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot 
 echo "OK"
 
 # add reasonable default modules, works only after kernel is properly installed
-echo "leds-gpio" >> /rootfs/etc/modules
 echo "snd-bcm2835" >> /rootfs/etc/modules
 
 # default cmdline.txt
