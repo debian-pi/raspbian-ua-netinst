@@ -379,8 +379,9 @@ echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
-# add raspberrypi.org repository to apt (failing is ok)
-echo -n "Adding raspberrypi.org repository to apt... "
+# add firmware to default apt sources
+echo -n "Configuring apt... "
+echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
 echo "deb http://archive.raspberrypi.org/debian $release main" >> /rootfs/etc/apt/sources.list
 wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
