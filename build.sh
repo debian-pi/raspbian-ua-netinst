@@ -62,16 +62,16 @@ cp tmp/sbin/mkfs.vfat rootfs/sbin/
 cp tmp/sbin/mkfs.ext4 rootfs/sbin/
 cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
 
-cd rootfs && find . | cpio -H newc -ov | gzip -9 > ../installer.cpio.gz
+cd rootfs && find . | cpio -H newc -ov | xz -9 > ../installer.cpio.xz
 cd ..
 
 rm -rf tmp
 rm -rf rootfs
 
-cp installer.cpio.gz bootfs/
+cp installer.cpio.xz bootfs/
 
 echo "kernel=kernel_install.img" > bootfs/config.txt
-echo "initramfs installer.cpio.gz" >> bootfs/config.txt
+echo "initramfs installer.cpio.xz" >> bootfs/config.txt
 echo "consoleblank=0" > bootfs/cmdline.txt
 
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip

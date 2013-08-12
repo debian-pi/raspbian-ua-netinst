@@ -5,7 +5,7 @@ IMG=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.img
 rm -f $IMG
 rm -f $IMG.xz
 
-dd if=/dev/zero of=$IMG bs=1M count=32 || exit
+dd if=/dev/zero of=$IMG bs=1M count=16 || exit
 
 fdisk $IMG <<EOF
 n
