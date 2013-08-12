@@ -73,7 +73,7 @@ cp /boot/bootcode.bin \
     /boot/fixup_cd.dat \
     /boot/fixup.dat \
     /boot/fixup_x.dat \
-    /boot/installer.cpio.gz \
+    /boot/installer.cpio \
     /boot/kernel_install.img \
     /boot/start_cd.elf \
     /boot/start.elf \
