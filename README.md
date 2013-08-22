@@ -34,7 +34,7 @@ Requirements
 
 Obtaining installer files on Windows and Mac
 --------------------------------------------
-Installer archive is around **18MB** and contains all firmware files and the installer.
+Installer archive is around **8MB** and contains all firmware files and the installer.
 
 http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.zip
 
@@ -42,7 +42,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 
 SD card image for Linux
 -----------------------
-Prebuilt image is around **16MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **5MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.img.xz
 
