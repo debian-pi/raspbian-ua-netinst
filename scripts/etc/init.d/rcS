@@ -169,7 +169,7 @@ fi
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # minimal
-    cdebootstrap_cmdline="--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,openntpd,openssh-server$dhcp_packages"
+    cdebootstrap_cmdline="--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,ntp,openssh-server$dhcp_packages"
 
     # add dhcp client if using dhcp
     if [ "$ip_addr" = "dhcp" ]; then
@@ -363,13 +363,6 @@ fi
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
-
-# allow ntpd to set time on boot
-if [ -e /rootfs/etc/default/openntpd ]; then
-    echo "DAEMON_OPTS=\"-f /etc/openntpd/ntpd.conf -s\"" > /rootfs/etc/default/openntpd || fail
-fi
-
-echo "OK"
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
