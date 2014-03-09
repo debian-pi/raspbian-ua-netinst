@@ -37,11 +37,11 @@ cp tmp/bin/busybox rootfs/bin
 cd rootfs && ln -s bin/busybox init; cd ..
 
 # install libc6 (for DNS and filesystem utils)
-cp tmp/lib/*/ld-2.17.so rootfs/lib/ld-linux-armhf.so.3
-cp tmp/lib/*/libc-2.17.so rootfs/lib/libc.so.6
-cp tmp/lib/*/libresolv-2.17.so rootfs/lib/libresolv.so.2
-cp tmp/lib/*/libnss_dns-2.17.so rootfs/lib/libnss_dns.so.2
-cp tmp/lib/*/libpthread-2.17.so rootfs/lib/libpthread.so.0
+cp tmp/lib/*/ld-2.18.so rootfs/lib/ld-linux-armhf.so.3
+cp tmp/lib/*/libc-2.18.so rootfs/lib/libc.so.6
+cp tmp/lib/*/libresolv-2.18.so rootfs/lib/libresolv.so.2
+cp tmp/lib/*/libnss_dns-2.18.so rootfs/lib/libnss_dns.so.2
+cp tmp/lib/*/libpthread-2.18.so rootfs/lib/libpthread.so.0
 
 # install cdebootstrap
 mkdir -p rootfs/usr/share/
