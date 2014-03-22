@@ -18,6 +18,7 @@ ip_nameservers=
 online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+rootfstype=ext4
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -183,7 +184,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             cdebootstrap_cmdline="--flavour=minimal"
             ;;
         *)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db,linux-image-rpi-rpfv,raspberrypi-bootloader-nokernel"
             preset=server
             ;;
     esac
@@ -228,6 +229,7 @@ echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
 echo "  rootpartition = $rootpartition"
+echo "  rootfstype = $rootfstype"
 echo
 
 if [ "$timeserver" != "" ]; then
@@ -310,12 +312,22 @@ echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
 
-echo -n "Initializing / as ext4... "
-mkfs.ext4 $rootpartition &>/dev/null || fail
+echo -n "Initializing / as $rootfstype... "
+mkfs.$rootfstype $rootpartition &>/dev/null || fail
 echo "OK"
 
+if [ "$rootfstype" = "f2fs" ] ; then
+  echo -n "Loading f2fs module..."
+  modprobe f2fs &> /dev/null || fail
+  echo "OK"
+
+  mount_options="noatime"
+else
+  mount_options="noatime,data=writeback,nobarrier,noinit_itable"
+fi
+
 echo -n "Mounting new filesystems... "
-mount $rootpartition /rootfs -o noatime,data=writeback,nobarrier,noinit_itable || fail
+mount $rootpartition /rootfs -o $mount_options || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 echo "OK"
@@ -325,8 +337,17 @@ cp /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
+if [ "$rootfstype" = "f2fs" ] ; then
+  mkdir -p /rootfs/etc/initramfs-tools
+  echo "f2fs" >> /rootfs/etc/initramfs-tools/modules
+fi
+
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
+
+# install latest kernel in /boot
+echo -n "Install new kernel..."
+cp -a /rootfs/vmlinuz /rootfs/boot/kernel.img
 
 # allow root login
 echo -n "Configuring installed system... "
@@ -334,7 +355,7 @@ echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
 echo "$bootpartition /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
-echo "$rootpartition / ext4 errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
+echo "$rootpartition / $rootfstype errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
 
 # use ram tmpfs by default
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
@@ -384,7 +405,11 @@ echo "snd-bcm2835" >> /rootfs/etc/modules
 
 # default cmdline.txt
 echo "Creating default cmdline.txt..."
-echo "$cmdline root=$rootpartition rootfstype=ext4 rootwait" > /rootfs/boot/cmdline.txt 
+echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/boot/cmdline.txt
+
+# Use initramfs
+echo "Creating default config.txt..."
+echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
