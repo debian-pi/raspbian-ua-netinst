@@ -24,6 +24,9 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 rm -rf rootfs
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
+mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/fs
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/f2fs rootfs/lib/modules/3.10-3-rpi/kernel/fs/f2fs
+depmod -a -b rootfs 3.10-3-rpi
 
 # install scripts
 cp -r scripts/* rootfs/
@@ -60,7 +63,9 @@ cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 mkdir -p rootfs/sbin/
 cp tmp/sbin/mkfs.vfat rootfs/sbin/
 cp tmp/sbin/mkfs.ext4 rootfs/sbin/
+cp tmp/sbin/mkfs.f2fs rootfs/sbin/
 cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
+cp tmp/usr/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
 
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..
