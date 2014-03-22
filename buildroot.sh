@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 IMG=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.img
 

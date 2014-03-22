@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
