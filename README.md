@@ -112,6 +112,7 @@ The format of the file and the current defaults:
     online_config= # URL to extra config that will be executed after installer-config.txt
     usbroot= # set to 1 to install to first USB disk
     cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+    rootfstype=ext4
 
 All of the configuration options should be clear. You can override any of these in your _installer-config.txt_. The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
 

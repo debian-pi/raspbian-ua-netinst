@@ -313,12 +313,18 @@ mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
 
 echo -n "Initializing / as $rootfstype... "
-mkfs.$rootfstype $rootpartition &>/dev/null || fail
+mkfs.$rootfstype $rootpartition -f &>/dev/null || fail
 echo "OK"
 
 if [ "$rootfstype" = "f2fs" ] ; then
   echo -n "Loading f2fs module..."
   modprobe f2fs &> /dev/null || fail
+  echo "OK"
+
+  mount_options="noatime"
+elif [ "$rootfstype" = "btrfs" ] ; then
+  echo -n "Loading btrfs module..."
+  modprobe btrfs &> /dev/null || fail
   echo "OK"
 
   mount_options="noatime"
@@ -340,6 +346,9 @@ echo "OK"
 if [ "$rootfstype" = "f2fs" ] ; then
   mkdir -p /rootfs/etc/initramfs-tools
   echo "f2fs" >> /rootfs/etc/initramfs-tools/modules
+elif [ "$rootfstype" = "btrfs" ] ; then
+  mkdir -p /rootfs/etc/initramfs-tools
+  echo "btrfs" >> /rootfs/etc/initramfs-tools/modules
 fi
 
 echo "Starting install process..."
@@ -355,7 +364,7 @@ echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
 echo "$bootpartition /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
-echo "$rootpartition / $rootfstype errors=remount-ro,noatime 0 0" >> /rootfs/etc/fstab || fail
+echo "$rootpartition / $rootfstype $mount_options 0 0" >> /rootfs/etc/fstab || fail
 
 # use ram tmpfs by default
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 

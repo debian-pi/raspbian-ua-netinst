@@ -2,7 +2,7 @@
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
-packages="busybox-static libc6 cdebootstrap-static e2fslibs e2fsprogs libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-3.10-3-rpi raspberrypi-bootloader-nokernel f2fs-tools"
+packages="busybox-static libc6 cdebootstrap-static e2fslibs e2fsprogs libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-3.10-3-rpi raspberrypi-bootloader-nokernel f2fs-tools btrfs-tools zlib1g liblzo2-2"
 packages_found=
 packages_debs=
 
