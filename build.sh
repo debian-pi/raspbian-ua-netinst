@@ -26,7 +26,14 @@ mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
 mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/fs
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/f2fs rootfs/lib/modules/3.10-3-rpi/kernel/fs/f2fs
-depmod -a -b rootfs 3.10-3-rpi
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/btrfs rootfs/lib/modules/3.10-3-rpi/kernel/fs/btrfs
+mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/lib
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/libcrc32c.ko rootfs/lib/modules/3.10-3-rpi/kernel/lib
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/raid6 rootfs/lib/modules/3.10-3-rpi/kernel/lib/raid6
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate rootfs/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate
+mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/crypto
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/crypto/xor.ko rootfs/lib/modules/3.10-3-rpi/kernel/crypto
+/sbin/depmod -a -b rootfs 3.10-3-rpi
 
 # install scripts
 cp -r scripts/* rootfs/
@@ -64,8 +71,13 @@ mkdir -p rootfs/sbin/
 cp tmp/sbin/mkfs.vfat rootfs/sbin/
 cp tmp/sbin/mkfs.ext4 rootfs/sbin/
 cp tmp/sbin/mkfs.f2fs rootfs/sbin/
+cp tmp/sbin/mkfs.btrfs rootfs/sbin/
 cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
 cp tmp/usr/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
+cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
+cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
+cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
+cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
 
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..
