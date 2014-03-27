@@ -80,9 +80,6 @@ cp /boot/bootcode.bin \
     /boot/start.elf \
     /boot/start_x.elf /bootfs/ || fail
 
-# use install kernel in first boot
-cp /boot/kernel_install.img /bootfs/kernel.img || fail
-
 if [ -f /boot/installer-config.txt ]; then
     cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
 fi
@@ -198,6 +195,11 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
         cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
     fi
 
+    # add latest kernel and firmware if rootfstype requires a module
+    if [ "$kernel_module" = true ] ; then
+        cdebootstrap_cmdline="$cdebootstrap_cmdline,linux-image-rpi-rpfv,raspberrypi-bootloader-nokernel"
+    fi
+
     case $preset in
         minimal)
             ;;
@@ -205,7 +207,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             cdebootstrap_cmdline="--flavour=minimal"
             ;;
         *)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db,linux-image-rpi-rpfv,raspberrypi-bootloader-nokernel"
+            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
             preset=server
             ;;
     esac
@@ -336,7 +338,7 @@ echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
 
-if [ "$kernel_module" == true ] ; then
+if [ "$kernel_module" = true ] ; then
   echo -n "Loading $rootfstype module..."
   modprobe $rootfstype &> /dev/null || fail
   echo "OK"
@@ -357,20 +359,13 @@ cp /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
-if [ "$rootfstype" = "f2fs" ] ; then
+if [ "$kernel_module" = true ] ; then
   mkdir -p /rootfs/etc/initramfs-tools
-  echo "f2fs" >> /rootfs/etc/initramfs-tools/modules
-elif [ "$rootfstype" = "btrfs" ] ; then
-  mkdir -p /rootfs/etc/initramfs-tools
-  echo "btrfs" >> /rootfs/etc/initramfs-tools/modules
+  echo $rootfstype >> /rootfs/etc/initramfs-tools/modules
 fi
 
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
-
-# install latest kernel in /boot
-echo -n "Install new kernel..."
-cp -a /rootfs/vmlinuz /rootfs/boot/kernel.img
 
 # allow root login
 echo -n "Configuring installed system... "
@@ -411,6 +406,16 @@ echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
+if [ "$kernel_module" = true ] ; then
+  # use latest kernel with initramfs in first boot
+  echo -n "Install new kernel and initramfs..."
+  cp /rootfs/vmlinuz /rootfs/boot/kernel.img
+  echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
+else
+  # use install kernel in first boot
+  cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
+fi
+
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... " 
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
@@ -429,10 +434,6 @@ echo "snd-bcm2835" >> /rootfs/etc/modules
 # default cmdline.txt
 echo "Creating default cmdline.txt..."
 echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/boot/cmdline.txt
-
-# Use initramfs
-echo "Creating default config.txt..."
-echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
