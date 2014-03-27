@@ -113,6 +113,9 @@ The format of the file and the current defaults:
     usbroot= # set to 1 to install to first USB disk
     cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
     rootfstype=ext4
+    rootfs_mkfs_options=
+    rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
+    rootfs_mount_options='errors=remount-ro,noatime'
 
 All of the configuration options should be clear. You can override any of these in your _installer-config.txt_. The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
 
