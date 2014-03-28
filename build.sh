@@ -29,10 +29,17 @@ cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/f2fs rootfs/lib/modules/3.10-3-rpi/ke
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/btrfs rootfs/lib/modules/3.10-3-rpi/kernel/fs/btrfs
 mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/lib
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/libcrc32c.ko rootfs/lib/modules/3.10-3-rpi/kernel/lib
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/crc-t10dif.ko rootfs/lib/modules/3.10-3-rpi/kernel/lib
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/raid6 rootfs/lib/modules/3.10-3-rpi/kernel/lib/raid6
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate rootfs/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate
 mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/crypto
 cp -a tmp/lib/modules/3.10-3-rpi/kernel/crypto/xor.ko rootfs/lib/modules/3.10-3-rpi/kernel/crypto
+mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage/usb-storage.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage
+mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/sg.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
+cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
 /sbin/depmod -a -b rootfs 3.10-3-rpi
 
 # install scripts
