@@ -6,6 +6,7 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
+domainname=
 rootpw=raspbian
 cdebootstrap_cmdline=
 bootsize=+50M
@@ -242,6 +243,7 @@ echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
+echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
@@ -385,7 +387,12 @@ echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs
 
 # default hostname
 echo -n $hostname > /rootfs/etc/hostname || fail
-echo "127.0.0.1 localhost $hostname" > /rootfs/etc/hosts || fail
+echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
+if [ "$domainname" = "" ]; then
+     echo "127.0.1.1	$hostname" >> /rootfs/etc/hosts || fail
+else
+     echo "127.0.1.1	$hostname.$domainname	$hostname" >> /rootfs/etc/hosts || fail
+fi
 
 # networking
 echo "auto lo" > /rootfs/etc/network/interfaces || fail
