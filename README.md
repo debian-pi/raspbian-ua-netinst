@@ -100,6 +100,7 @@ The format of the file and the current defaults:
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=wheezy
     hostname=pi
+    domainname=
     rootpw=raspbian
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to fdisk
