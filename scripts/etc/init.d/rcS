@@ -10,6 +10,7 @@ domainname=
 rootpw=raspbian
 cdebootstrap_cmdline=
 bootsize=+50M
+rootsize=
 timeserver=time.nist.gov
 ip_addr=dhcp
 ip_netmask=0.0.0.0
@@ -253,6 +254,7 @@ echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
+echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
@@ -307,7 +309,7 @@ n
 p
 2
 
-
+$rootsize
 w
 EOF
     echo "OK"
@@ -333,7 +335,7 @@ n
 p
 1
 
-
+$rootsize
 w
 EOF
     echo "OK"
