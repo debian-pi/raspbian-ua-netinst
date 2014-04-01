@@ -225,6 +225,10 @@ fi
 
 if [ "$usbroot" != "" ]; then
     rootdev=/dev/sda
+    echo -n "Loading USB modules ..."
+    modprobe sd_mod &> /dev/null || fail
+    modprobe usb-storage &> /dev/null || fail
+    echo "OK"
 fi
 
 if [ "$rootpartition" = "" ]; then
