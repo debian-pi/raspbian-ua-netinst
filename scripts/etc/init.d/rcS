@@ -380,8 +380,8 @@ echo -n "Configuring installed system... "
 echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
-echo "$bootpartition /boot vfat defaults 0 0" > /rootfs/etc/fstab || fail
-echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
+echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
+echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
 
 # use ram tmpfs by default
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
