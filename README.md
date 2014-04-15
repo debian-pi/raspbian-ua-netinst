@@ -34,17 +34,17 @@ Requirements
 
 Obtaining installer files on Windows and Mac
 --------------------------------------------
-Installer archive is around **8MB** and contains all firmware files and the installer.
+Installer archive is around **9MB** and contains all firmware files and the installer.
 
-http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.zip
+https://github.com/hifi/raspbian-ua-netinst/releases/download/v1.0/raspbian-ua-netinst-v1.0.zip
 
 Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
 
 SD card image for Linux
 -----------------------
-Prebuilt image is around **5MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **6MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
-http://hifi.iki.fi/raspbian-ua-netinst/raspbian-ua-netinst-latest.img.xz
+https://github.com/hifi/raspbian-ua-netinst/releases/download/v1.0/raspbian-ua-netinst-v1.0.img.xz
 
 To flash your SD card on Linux:
 
@@ -131,7 +131,7 @@ There's also a post-install script support which is executed just before unmount
 
 Disclaimer
 ----------
-I take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
+We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
 
 See LICENSE for license information.
 
