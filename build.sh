@@ -80,7 +80,7 @@ cp tmp/sbin/mkfs.ext4 rootfs/sbin/
 cp tmp/sbin/mkfs.f2fs rootfs/sbin/
 cp tmp/sbin/mkfs.btrfs rootfs/sbin/
 cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
-cp tmp/usr/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
+cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
 cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
 cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
 cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
