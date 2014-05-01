@@ -383,6 +383,8 @@ echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
 if [ "$rootfstype" = "f2fs" ]; then
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
+elif [ "$rootfstype" = "btrfs" ]; then
+	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
 else
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
 fi
