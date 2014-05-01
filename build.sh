@@ -1,5 +1,7 @@
 #!/bin/bash
 
+KERNEL_VERSION=3.10-3-rpi
+
 if [ ! -d packages ]; then
     . ./update.sh
 fi
@@ -24,23 +26,23 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 rm -rf rootfs
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
-mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/fs
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/f2fs rootfs/lib/modules/3.10-3-rpi/kernel/fs/f2fs
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/fs/btrfs rootfs/lib/modules/3.10-3-rpi/kernel/fs/btrfs
-mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/lib
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/libcrc32c.ko rootfs/lib/modules/3.10-3-rpi/kernel/lib
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/crc-t10dif.ko rootfs/lib/modules/3.10-3-rpi/kernel/lib
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/raid6 rootfs/lib/modules/3.10-3-rpi/kernel/lib/raid6
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate rootfs/lib/modules/3.10-3-rpi/kernel/lib/zlib_deflate
-mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/crypto
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/crypto/xor.ko rootfs/lib/modules/3.10-3-rpi/kernel/crypto
-mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage/usb-storage.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/usb/storage
-mkdir -p rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/sg.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
-cp -a tmp/lib/modules/3.10-3-rpi/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/3.10-3-rpi/kernel/drivers/scsi
-/sbin/depmod -a -b rootfs 3.10-3-rpi
+mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/fs
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/fs/f2fs rootfs/lib/modules/$KERNEL_VERSION/kernel/fs/f2fs
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/fs/btrfs rootfs/lib/modules/$KERNEL_VERSION/kernel/fs/btrfs
+mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/lib
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/lib/libcrc32c.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/lib
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/lib/crc-t10dif.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/lib
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/lib/raid6 rootfs/lib/modules/$KERNEL_VERSION/kernel/lib/raid6
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/lib/zlib_deflate rootfs/lib/modules/$KERNEL_VERSION/kernel/lib/zlib_deflate
+mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/crypto
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/crypto/xor.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/crypto
+mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/usb/storage
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/usb/storage/usb-storage.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/usb/storage
+mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi/sg.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi
+cp -a tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/scsi
+/sbin/depmod -a -b rootfs $KERNEL_VERSION
 
 # install scripts
 cp -r scripts/* rootfs/
