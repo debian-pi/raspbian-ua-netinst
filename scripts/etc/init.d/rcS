@@ -452,6 +452,9 @@ echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > 
 echo "deb http://archive.raspberrypi.org/debian $release main" >> /rootfs/etc/apt/sources.list
 wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
+echo -n "Updating package lists... "
+chroot /rootfs /usr/bin/apt-get update &>/dev/null || fail
+echo "OK"
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
