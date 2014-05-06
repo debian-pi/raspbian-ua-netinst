@@ -197,9 +197,11 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
         cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
     fi
 
-    # add latest kernel and firmware if rootfstype requires a module
+    # add latest kernel if rootfstype requires a module. 
+    # Changed it so it is always installed.
+    # Firmware can't be installed just yet, we'll do so at the end
     if [ "$kernel_module" = true ] ; then
-        cdebootstrap_cmdline="$cdebootstrap_cmdline,linux-image-rpi-rpfv,raspberrypi-bootloader-nokernel"
+        cdebootstrap_cmdline="$cdebootstrap_cmdline,linux-image-rpi-rpfv"
     fi
 
     case $preset in
@@ -455,6 +457,12 @@ echo "OK"
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null || fail
 echo "OK"
+# firmware package can't be installed during cdebootstrap fase, so do so now
+if [ "$kernel_module" = true ] ; then
+  echo -n "Installing bootloader package (=firmware)... "
+  chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null || fail
+  echo "OK"
+fi
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
