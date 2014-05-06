@@ -433,6 +433,7 @@ if [ "$kernel_module" = true ] ; then
   # use latest kernel with initramfs in first boot
   echo -n "Install new kernel and initramfs..."
   cp /rootfs/vmlinuz /rootfs/boot/kernel.img
+  echo "OK"
   echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
 else
   echo "THIS SHOULD NOT HAPPEN, kernel_module = false !!!"
