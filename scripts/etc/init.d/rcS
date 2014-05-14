@@ -175,6 +175,7 @@ if [ "$ip_addr" = "dhcp" ]; then
     udhcpc -i eth0 &>/dev/null
     if [ $? -eq 0 ]; then
         ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+        echo "OK"
     else
         echo "FAILED"
         fail
@@ -364,7 +365,7 @@ echo "OK"
 
 if [ "$kernel_module" = true ] ; then
   if [ "$rootfstype" != "ext4" ] ; then
-    echo -n "Loading $rootfstype module..."
+    echo -n "Loading $rootfstype module... "
     modprobe $rootfstype &> /dev/null || fail
     echo "OK"
   fi
@@ -396,7 +397,7 @@ echo "Starting install process..."
 cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
 
 # allow root login
-echo -n "Configuring installed system... "
+echo "Configuring installed system..."
 echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 
 # default mounts
@@ -424,6 +425,7 @@ fi
 # networking
 echo "auto lo" > /rootfs/etc/network/interfaces || fail
 echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
+echo "" >>  /rootfs/etc/network/interfaces || fail
 
 # eth0 config
 echo "auto eth0" >> /rootfs/etc/network/interfaces || fail
@@ -482,8 +484,9 @@ fi
 echo "snd-bcm2835" >> /rootfs/etc/modules
 
 # default cmdline.txt
-echo "Creating default cmdline.txt..."
+echo -n "Creating default cmdline.txt... "
 echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/boot/cmdline.txt
+echo "OK"
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
