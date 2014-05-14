@@ -44,7 +44,7 @@ sanitize_inputfile()
     then
         echo "No input file specified!"
     else
-        inputfile = $1
+        inputfile=$1
         # convert line endings to unix
         dos2unix $inputfile
     fi
