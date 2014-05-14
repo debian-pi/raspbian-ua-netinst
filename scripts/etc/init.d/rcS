@@ -38,6 +38,18 @@ fail()
     sh
 }
 
+sanitize_inputfile()
+{
+    if [ -z "$1" ]
+    then
+        echo "No input file specified!"
+    else
+        inputfile = $1
+        # convert line endings to unix
+        dos2unix $inputfile
+    fi
+}
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /boot
@@ -98,8 +110,7 @@ echo "OK"
 
 if [ -e /bootfs/installer-config.txt ]; then
     echo "Reading installer-config.txt..."
-    # convert line endings to unix
-    dos2unix /bootfs/installer-config.txt
+    sanitize_inputfile /bootfs/installer-config.txt
     source /bootfs/installer-config.txt
 fi
 
@@ -185,8 +196,7 @@ if [ "$online_config" != "" ]; then
     echo "OK"
 
     echo "Reading online-config.txt..."
-    # convert line endings to unix
-    dos2unix /online-config.txt
+    sanitize_inputfile /online-config.txt
     source /online-config.txt
 fi
 
@@ -478,8 +488,7 @@ echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/bo
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
     echo "Running post-install.txt..."
-    # convert line endings to unix
-    dos2unix /bootfs/post-install.txt
+    sanitize_inputfile /bootfs/post-install.txt
     source /bootfs/post-install.txt
 fi
 
