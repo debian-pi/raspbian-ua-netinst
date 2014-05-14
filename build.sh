@@ -88,10 +88,6 @@ cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
 cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
 cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
 
-# conversion tools for config files created on windows
-cp tmp/usr/bin/dos2unix rootfs/usr/bin/dos2unix
-cp -d tmp/usr/bin/mac2unix rootfs/usr/bin/mac2unix
-
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..
 
