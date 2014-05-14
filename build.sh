@@ -90,9 +90,7 @@ cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
 
 # conversion tools for config files created on windows
 cp tmp/usr/bin/dos2unix rootfs/usr/bin/dos2unix
-cp tmp/usr/bin/mac2unix rootfs/usr/bin/mac2unix
-cp tmp/usr/bin/unix2dos rootfs/usr/bin/unix2dos
-cp tmp/usr/bin/unix2mac rootfs/usr/bin/unix2mac
+cp -d tmp/usr/bin/mac2unix rootfs/usr/bin/mac2unix
 
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..
