@@ -71,6 +71,7 @@ mdev -s
 
 klogd -c 1
 
+echo ""
 echo "==========================================="
 echo "raspbian-ua-netinst"
 echo "==========================================="
@@ -109,9 +110,10 @@ umount /boot || fail
 echo "OK"
 
 if [ -e /bootfs/installer-config.txt ]; then
-    echo "Reading installer-config.txt..."
+    echo -n "Reading installer-config.txt... "
     sanitize_inputfile /bootfs/installer-config.txt
     source /bootfs/installer-config.txt
+    echo "OK"
 fi
 
 case "$rootfstype" in
@@ -155,7 +157,6 @@ for i in `seq 1 10`; do
 
     ifconfig eth0 &>/dev/null
     if [ $? -eq 0 ]; then
-        echo "OK"
         break
     fi
 
@@ -175,7 +176,6 @@ if [ "$ip_addr" = "dhcp" ]; then
     udhcpc -i eth0 &>/dev/null
     if [ $? -eq 0 ]; then
         ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
-        echo "OK"
     else
         echo "FAILED"
         fail
@@ -196,9 +196,10 @@ if [ "$online_config" != "" ]; then
     wget -q -O /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
-    echo "Reading online-config.txt..."
+    echo -n "Reading online-config.txt... "
     sanitize_inputfile /online-config.txt
     source /online-config.txt
+    echo "OK"
 fi
 
 # configure different kinds of presets
@@ -246,7 +247,7 @@ fi
 
 if [ "$usbroot" != "" ]; then
     rootdev=/dev/sda
-    echo -n "Loading USB modules ..."
+    echo -n "Loading USB modules... "
     modprobe sd_mod &> /dev/null || fail
     modprobe usb-storage &> /dev/null || fail
     echo "OK"
@@ -397,10 +398,13 @@ echo "Starting install process..."
 cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
 
 # allow root login
-echo "Configuring installed system..."
+echo "Configuring installed system:"
+echo -n "  Setting root password... "
 echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
+echo "OK"
 
 # default mounts
+echo -n "  Configuring /etc/fstab... "
 echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
 if [ "$rootfstype" = "f2fs" ]; then
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
@@ -409,11 +413,15 @@ elif [ "$rootfstype" = "btrfs" ]; then
 else
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
 fi
+echo "OK"
 
 # use ram tmpfs by default
+echo -n "  Configuring tmpfs to use RAM... "
 echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+echo "OK"
 
 # default hostname
+echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
 echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
 if [ "$domainname" = "" ]; then
@@ -421,8 +429,10 @@ if [ "$domainname" = "" ]; then
 else
      echo "127.0.1.1	$hostname.$domainname	$hostname" >> /rootfs/etc/hosts || fail
 fi
+echo "OK"
 
 # networking
+echo -n "  Configuring network settings... "
 echo "auto lo" > /rootfs/etc/network/interfaces || fail
 echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
 echo "" >>  /rootfs/etc/network/interfaces || fail
@@ -440,6 +450,8 @@ else
 
     cp /etc/resolv.conf /rootfs/etc/ || fail
 fi
+echo "OK"
+echo ""
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
@@ -449,7 +461,7 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
 if [ "$kernel_module" = true ] ; then
   # use latest kernel with initramfs in first boot
-  echo -n "Install new kernel and initramfs..."
+  echo -n "Install new kernel and initramfs... "
   cp /rootfs/vmlinuz /rootfs/boot/kernel.img
   echo "OK"
   echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
@@ -500,9 +512,16 @@ echo "Saving current time for fake-hwclock..."
 sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
 
-echo "Unmounting filesystems..."
+echo -n "Unmounting filesystems... "
 umount /rootfs/boot
 umount /rootfs
+echo "OK"
 
-echo "Finished! Rebooting to installed system."
+echo -n "Finished! Rebooting to installed system in 5 seconds..."
+for i in `seq 5 -1 1`; do
+    sleep 1
+
+    echo -n "$i.. "
+done
+echo " rebooting now"
 reboot
