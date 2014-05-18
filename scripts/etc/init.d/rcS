@@ -451,6 +451,14 @@ else
     cp /etc/resolv.conf /rootfs/etc/ || fail
 fi
 echo "OK"
+
+# openssh-server in jessie doesn't allow root to login using password anymore
+# this hack does allow it (until a proper solution is implemented)
+if [ "$release" = "jessie" ] ; then
+    echo -n "  Allowing root to login with password... "
+    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+    echo "OK"
+fi
 echo ""
 
 # there is no hw clock on rpi
