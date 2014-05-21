@@ -491,7 +491,7 @@ echo "deb http://archive.raspberrypi.org/debian $release main" >> /rootfs/etc/ap
 wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 echo -n "Updating package lists... "
-chroot /rootfs /usr/bin/apt-get update &>/dev/null || fail
+chroot /rootfs /usr/bin/apt-get update &>/dev/null
 echo "OK"
 # firmware package can't be installed during cdebootstrap fase, so do so now
 if [ "$kernel_module" = true ] ; then
