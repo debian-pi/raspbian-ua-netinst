@@ -7,7 +7,7 @@ This project provides [Raspbian][1] power users the possibility to install a min
 
 The installer with default settings configures eth0 with DHCP to get Internet connectivity and completely wipes the SD card from any previous installation.
 
-There are different kinds of "presets" that define the default packages that are going to be installed. Currently, the default one is called _server_ which installs only the essential base system packages including _OpenNTPd_ and _OpenSSH_ to provide a sane minimal base system that you can immediately after install ssh in and continue installing your software.
+There are different kinds of "presets" that define the default packages that are going to be installed. Currently, the default one is called _server_ which installs only the essential base system packages including _NTP_ and _OpenSSH_ to provide a sane minimal base system that you can immediately after install ssh in and continue installing your software.
 
 Other presets include _minimal_ which has even less packages (no logging, no text editor, no cron) and _base_ which doesn't even have networking. You can customize the installed packages by adding a small configuration file to your SD card before booting up.
 
