@@ -30,13 +30,17 @@ allfound() {
     return 0
 }
 
+download_package_lists() {
+    echo "Downloading package list..."
+    wget -O - $mirror/dists/$release/firmware/binary-armhf/Packages.bz2 | bunzip2 -c > Packages
+    wget -O - $mirror/dists/$release/main/binary-armhf/Packages.bz2 | bunzip2 -c >> Packages
+}
+
 rm -rf packages/
 mkdir packages
 cd packages
 
-echo "Downloading package list..."
-wget -O - $mirror/dists/$release/firmware/binary-armhf/Packages.bz2 | bunzip2 -c > Packages
-wget -O - $mirror/dists/$release/main/binary-armhf/Packages.bz2 | bunzip2 -c >> Packages
+download_package_lists
 
 echo "Searching for required packages..."
 while read k v
