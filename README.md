@@ -66,17 +66,16 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 
 The default **root** password is **raspbian**.
 
-> Set new root password: `passwd`
-> Configure your default locale: `dpkg-reconfigure locales`
-> Configure your timezone: `dpkg-reconfigure tzdata`
-
+> Set new root password: `passwd`  
+> Configure your default locale: `dpkg-reconfigure locales`  
+> Configure your timezone: `dpkg-reconfigure tzdata`  
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
 Also, when a new kernel becomes available in the archives, you have to tell the system to use the new kernel by doing:
 `cp /vmlinuz /boot/kernel.img`
 
-> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.
+> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
 > Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.
 
 Reinstalling or replacing an existing system
