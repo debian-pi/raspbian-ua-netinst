@@ -496,8 +496,12 @@ echo "OK"
 # firmware package can't be installed during cdebootstrap fase, so do so now
 if [ "$kernel_module" = true ] ; then
   echo -n "Installing bootloader package (=firmware)... "
-  chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null || fail
-  echo "OK"
+  chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
+  if [ $? -eq 0 ]; then
+    echo "OK"
+  else
+    echo "FAILED !"
+  fi
 fi
 
 # add reasonable default modules, works only after kernel is properly installed
