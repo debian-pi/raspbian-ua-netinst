@@ -31,9 +31,38 @@ allfound() {
 }
 
 download_package_lists() {
-    echo "Downloading package list..."
-    wget -O - $mirror/dists/$release/firmware/binary-armhf/Packages.bz2 | bunzip2 -c > Packages
-    wget -O - $mirror/dists/$release/main/binary-armhf/Packages.bz2 | bunzip2 -c >> Packages
+    baseurl=$mirror/dists/$release/main/binary-armhf/Packages
+    extension=""
+    decompressor=""
+
+    # First test which extension is supported
+    extensions="xz bz2 gz"
+    for i in $extensions
+    do
+        echo -n "Does '${baseurl}.${i}' exists... "
+        wget -q --spider ${baseurl}.${i}
+        if [ $? -eq 0 ] ; then
+            echo "YES"
+	    extension=".${i}"
+	    break
+        else
+            echo "NO"
+        fi
+    done
+
+    # Based on the extension, set the decompressor
+    if [ $extension = ".bz2" ] ; then
+        decompressor="bunzip2 -c "
+    elif [ $extension = ".xz" ] ; then
+        decompressor="xzcat "
+    elif [ $extension = ".gz" ] ; then
+        decompressor="gunzip -c "
+    fi
+
+    echo "Using extension '${extension}' and decompressor '${decompressor}' to download packages..."
+
+    wget -O - $mirror/dists/$release/firmware/binary-armhf/Packages${extension} | ${decompressor} > Packages
+    wget -O - $mirror/dists/$release/main/binary-armhf/Packages${extension} | ${decompressor} >> Packages
 }
 
 rm -rf packages/
