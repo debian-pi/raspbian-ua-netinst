@@ -105,7 +105,7 @@ The format of the file and the current defaults:
     rootpw=raspbian
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to fdisk
-    rootsize=     # / partition size, leave empty to use all free space
+    rootsize=     # / partition size in megabytes, leave empty to use all free space
     timeserver=time.nist.gov
     ip_addr=dhcp
     ip_netmask=0.0.0.0
