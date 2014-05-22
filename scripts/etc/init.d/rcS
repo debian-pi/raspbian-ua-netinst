@@ -467,16 +467,17 @@ echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
-if [ "$kernel_module" = true ] ; then
+if [ -f /rootfs/vmlinuz ] ; then
   # use latest kernel with initramfs in first boot
   echo -n "Install new kernel and initramfs... "
   cp /rootfs/vmlinuz /rootfs/boot/kernel.img
   echo "OK"
   echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
 else
-  echo "THIS SHOULD NOT HAPPEN, kernel_module = false !!!"
+  echo -n "Copying installer kernel to installed system... "
   # use install kernel in first boot
   cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
+  echo "OK"
 fi
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
