@@ -1,5 +1,7 @@
 #!/bin/busybox sh
 
+KERNEL_VERSION=3.10-3-rpi
+
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
@@ -472,7 +474,7 @@ if [ -f /rootfs/vmlinuz ] ; then
   echo -n "Install new kernel and initramfs... "
   cp /rootfs/vmlinuz /rootfs/boot/kernel.img
   echo "OK"
-  echo "initramfs initrd.img-3.10-3-rpi" > /rootfs/boot/config.txt
+  echo "initramfs initrd.img-${KERNEL_VERSION}" > /rootfs/boot/config.txt
 else
   echo -n "Copying installer kernel to installed system... "
   # use install kernel in first boot
