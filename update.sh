@@ -7,6 +7,7 @@ release=jessie
 packages="busybox-static libc6 cdebootstrap-static e2fslibs e2fsprogs libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-${KERNEL_VERSION} raspberrypi-bootloader-nokernel f2fs-tools btrfs-tools zlib1g liblzo2-2"
 packages_found=
 packages_debs=
+packages_sha256=
 
 required() {
     for i in $packages; do
@@ -28,6 +29,24 @@ allfound() {
     done
 
     return 0
+}
+
+download_package_list() {
+    # Download and verify package list for $package_section, then add to Packages file
+    # Assume that the repository's base Release file is present
+    wget -O tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
+    # Assume that the last checksums in the Release file are SHA256 sums
+    if [ $(grep ${package_section}/binary-armhf/Packages${extension} Release | tail -n1 | awk '{print $1}') != \
+         $(sha256sum tmp${extension} | awk '{print $1}') ]; then
+        echo "WARNING: The checksum of the ${package_section}/binary-armhf/Packages${extension} file doesn't match."
+        read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
+        if [ "$ignore_verification" != "y" ]; then
+            cd ..
+            exit 1
+        fi
+    fi
+    ${decompressor} tmp${extension} >> Packages
+    rm tmp${extension}
 }
 
 download_package_lists() {
@@ -61,8 +80,23 @@ download_package_lists() {
 
     echo "Using extension '${extension}' and decompressor '${decompressor}' to download packages..."
 
-    wget -O - $mirror/dists/$release/firmware/binary-armhf/Packages${extension} | ${decompressor} > Packages
-    wget -O - $mirror/dists/$release/main/binary-armhf/Packages${extension} | ${decompressor} >> Packages
+    # Download and verify the base Release file
+    wget $mirror/dists/$release/Release $mirror/dists/$release/Release.gpg
+    if ! gpg --verify Release.gpg Release; then
+        echo "WARNING: Cannot verify GPG signature of Release file."
+        read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
+        if [ "$ignore_verification" != "y" ]; then
+            cd ..
+            exit 1
+        fi
+    fi
+
+    # Get, verify, extract, and concatenate the Packages files
+    echo -n > Packages
+    package_section=firmware
+    download_package_list
+    package_section=main
+    download_package_list
 }
 
 rm -rf packages/
@@ -82,10 +116,15 @@ do
         current_filename=$v
     fi
 
+    if [ "$k" = "SHA256:" ]; then
+        current_sha256=$v
+    fi
+
     if [ "$k" = "" ]; then
         if required $current_package; then
             printf "  %-32s %s\n" $current_package `basename $current_filename`
             packages_debs="${mirror}${current_filename} ${packages_debs}"
+            packages_sha256="${current_sha256}  $(basename ${current_filename})\n${packages_sha256}"
             packages_found="$current_package $packages_found"
             allfound && break
         fi
@@ -98,4 +137,9 @@ done < Packages
 allfound || exit
 
 wget $packages_debs
+
+echo "Verifying checksums of downloaded .deb packages..."
+echo -ne "${packages_sha256}" > SHA256SUMS
+sha256sum --quiet -c SHA256SUMS
+
 cd ..
