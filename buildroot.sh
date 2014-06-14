@@ -1,11 +1,13 @@
 #!/bin/bash
 
+set -e
+
 IMG=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.img
 
 rm -f $IMG
 rm -f $IMG.xz
 
-dd if=/dev/zero of=$IMG bs=1M count=32 || exit
+dd if=/dev/zero of=$IMG bs=1M count=32
 
 fdisk $IMG <<EOF
 n
@@ -30,23 +32,23 @@ fi
 
 if [ $losetup_lt_2_22 ] ; then
 
-kpartx -as $IMG || exit
-mkfs.vfat /dev/mapper/loop0p1 || exit
-mount /dev/mapper/loop0p1 /mnt || exit
-cp bootfs/* /mnt/ || exit
-umount /mnt || exit
-kpartx -d $IMG
+kpartx -as $IMG
+mkfs.vfat /dev/mapper/loop0p1
+mount /dev/mapper/loop0p1 /mnt
+cp bootfs/* /mnt/
+umount /mnt
+kpartx -d $IMG || true
 
 else
 
-losetup -D || exit
-
-losetup -P /dev/loop0 $IMG || exit
-mkfs.vfat /dev/loop0p1 || exit
-mount /dev/loop0p1 /mnt || exit
-cp bootfs/* /mnt/ || exit
-umount /mnt || exit
 losetup -D
+
+losetup -P /dev/loop0 $IMG
+mkfs.vfat /dev/loop0p1
+mount /dev/loop0p1 /mnt
+cp bootfs/* /mnt/
+umount /mnt
+losetup -D || true
 
 fi
 
