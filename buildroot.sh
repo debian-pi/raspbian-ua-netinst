@@ -28,7 +28,7 @@ else
   losetup_lt_2_22=false
 fi
 
-if [ $losetup_lt_2_22 ] ; then
+if [ "$losetup_lt_2_22" = "true" ] ; then
 
 kpartx -as $IMG || exit
 mkfs.vfat /dev/mapper/loop0p1 || exit
