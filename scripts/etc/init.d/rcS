@@ -397,7 +397,7 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 echo "Starting install process..."
-cdebootstrap-static --arch=armhf --allow-unauthenticated $cdebootstrap_cmdline $release /rootfs $mirror || fail
+cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
 # allow root login
 echo "Configuring installed system:"

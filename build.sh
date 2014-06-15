@@ -68,6 +68,16 @@ mkdir -p rootfs/usr/bin/
 cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
 cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
 
+# install raspbian-archive-keyring (for cdebootstrap)
+mkdir -p rootfs/usr/share/keyrings/
+cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+# install gpgv (for cdebootstrap)
+cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+# install libbz2-1.0 (for gpgv)
+cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
+
 # libs for mkfs
 cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
 cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2

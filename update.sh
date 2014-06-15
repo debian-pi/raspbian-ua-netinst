@@ -4,7 +4,7 @@ KERNEL_VERSION=3.10-3-rpi
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
-packages="busybox-static libc6 cdebootstrap-static e2fslibs e2fsprogs libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-${KERNEL_VERSION} raspberrypi-bootloader-nokernel f2fs-tools btrfs-tools zlib1g liblzo2-2"
+packages="busybox-static libc6 cdebootstrap-static raspbian-archive-keyring e2fslibs e2fsprogs gpgv libbz2-1.0 libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-${KERNEL_VERSION} raspberrypi-bootloader-nokernel f2fs-tools btrfs-tools zlib1g liblzo2-2"
 packages_found=
 packages_debs=
 
