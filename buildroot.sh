@@ -20,9 +20,7 @@ b
 w
 EOF
 
-losetup --version > /dev/null 2>&1
-
-if [ $? -ne 0 ] ; then
+if ! losetup --version &> /dev/null ; then
   losetup_lt_2_22=true
 elif [ $(echo $(losetup --version | rev|cut -f1 -d' '|rev|cut -d'.' -f-2)'<'2.22 | bc -l) -ne 0 ]; then
   losetup_lt_2_22=true
