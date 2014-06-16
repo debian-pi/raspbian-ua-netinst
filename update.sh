@@ -34,51 +34,45 @@ allfound() {
 download_package_list() {
     # Download and verify package list for $package_section, then add to Packages file
     # Assume that the repository's base Release file is present
-    wget -O tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
-    # Assume that the last checksums in the Release file are SHA256 sums
-    if [ $(grep ${package_section}/binary-armhf/Packages${extension} Release | tail -n1 | awk '{print $1}') != \
-         $(sha256sum tmp${extension} | awk '{print $1}') ]; then
-        echo "WARNING: The checksum of the ${package_section}/binary-armhf/Packages${extension} file doesn't match."
-        read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
-        if [ "$ignore_verification" != "y" ]; then
-            cd ..
-            exit 1
+
+    extensions=( '.xz' '.bz2' '.gz' '' )
+    for extension in "${extensions[@]}" ; do
+
+        # Check that this extension is available
+        if grep -q ${package_section}/binary-armhf/Packages${extension} Release ; then
+
+            # Download Packages file
+            wget -O tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
+
+            # Verify the checksum of the Packages file, assuming that the last checksums in the Release file are SHA256 sums
+            if [ $(grep ${package_section}/binary-armhf/Packages${extension} Release | tail -n1 | awk '{print $1}') != \
+                 $(sha256sum tmp${extension} | awk '{print $1}') ]; then
+                echo "WARNING: The checksum of the ${package_section}/binary-armhf/Packages${extension} file doesn't match."
+                read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
+                if [ "$ignore_verification" != "y" ]; then
+                    cd ..
+                    exit 1
+                fi
+            fi
+
+            # Decompress the Packages file
+            if [ $extension = ".bz2" ] ; then
+                decompressor="bunzip2 -c "
+            elif [ $extension = ".xz" ] ; then
+                decompressor="xzcat "
+            elif [ $extension = ".gz" ] ; then
+                decompressor="gunzip -c "
+            elif [ $extension = "" ] ; then
+                decompressor="cat "
+            fi
+            ${decompressor} tmp${extension} >> Packages
+            rm tmp${extension}
+            break
         fi
-    fi
-    ${decompressor} tmp${extension} >> Packages
-    rm tmp${extension}
+    done
 }
 
 download_package_lists() {
-    baseurl=$mirror/dists/$release/main/binary-armhf/Packages
-    extension=""
-    decompressor=""
-
-    # First test which extension is supported
-    extensions="xz bz2 gz"
-    for i in $extensions
-    do
-        echo -n "Does '${baseurl}.${i}' exists... "
-        wget -q --spider ${baseurl}.${i}
-        if [ $? -eq 0 ] ; then
-            echo "YES"
-	    extension=".${i}"
-	    break
-        else
-            echo "NO"
-        fi
-    done
-
-    # Based on the extension, set the decompressor
-    if [ $extension = ".bz2" ] ; then
-        decompressor="bunzip2 -c "
-    elif [ $extension = ".xz" ] ; then
-        decompressor="xzcat "
-    elif [ $extension = ".gz" ] ; then
-        decompressor="gunzip -c "
-    fi
-
-    echo "Using extension '${extension}' and decompressor '${decompressor}' to download packages..."
 
     # Download and verify the base Release file
     wget $mirror/dists/$release/Release $mirror/dists/$release/Release.gpg
