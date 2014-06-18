@@ -154,7 +154,11 @@ do
     fi
 done < Packages
 
-allfound || exit
+if ! allfound ; then
+    echo "ERROR: Unable to find all required packages in package list!"
+    cd ..
+    exit 1
+fi
 
 echo -e "\nDownloading packages..."
 curl -# --remote-name-all $packages_debs
