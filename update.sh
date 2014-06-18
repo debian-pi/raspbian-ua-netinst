@@ -74,9 +74,27 @@ download_package_list() {
 
 download_package_lists() {
 
+    echo "Downloading and verifying GPG keys..."
+    mkdir -p gnupg
+    chmod 0700 gnupg
+    wget https://archive.raspbian.org/raspbian.public.key
+    gpg --homedir gnupg --import raspbian.public.key
+    if ! gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
+        echo "ERROR: Bad GPG key fingerprint for raspbian.org"
+        cd ..
+        exit 1
+    fi
+    wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+    gpg --homedir gnupg --import raspberrypi.gpg.key
+    if ! gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
+        echo "ERROR: Bad GPG key fingerprint for raspberrypi.org"
+        cd ..
+        exit 1
+    fi
+
     # Download and verify the base Release file
     wget $mirror/dists/$release/Release $mirror/dists/$release/Release.gpg
-    if ! gpg --verify Release.gpg Release; then
+    if ! gpg --homedir gnupg --verify Release.gpg Release; then
         echo "WARNING: Cannot verify GPG signature of Release file."
         read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
         if [ "$ignore_verification" != "y" ]; then
