@@ -42,17 +42,18 @@ download_package_list() {
         if grep -q ${package_section}/binary-armhf/Packages${extension} Release ; then
 
             # Download Packages file
-            wget -O tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
+            echo -e "\nDownloading ${package_section} package list..."
+            curl -# -o tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
 
             # Verify the checksum of the Packages file, assuming that the last checksums in the Release file are SHA256 sums
-            if [ $(grep ${package_section}/binary-armhf/Packages${extension} Release | tail -n1 | awk '{print $1}') != \
+            echo -n "Verifying ${package_section} package list... "
+            if [ $(grep ${package_section}/binary-armhf/Packages${extension} Release | tail -n1 | awk '{print $1}') = \
                  $(sha256sum tmp${extension} | awk '{print $1}') ]; then
-                echo "WARNING: The checksum of the ${package_section}/binary-armhf/Packages${extension} file doesn't match."
-                read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
-                if [ "$ignore_verification" != "y" ]; then
-                    cd ..
-                    exit 1
-                fi
+                echo "OK"
+            else
+                echo -e "ERROR\nThe checksum of the ${package_section}/binary-armhf/Packages${extension} file doesn't match!"
+                cd ..
+                exit 1
             fi
 
             # Decompress the Packages file
@@ -74,36 +75,42 @@ download_package_list() {
 
 download_package_lists() {
 
-    echo "Downloading and verifying GPG keys..."
     mkdir -p gnupg
     chmod 0700 gnupg
-    wget https://archive.raspbian.org/raspbian.public.key
-    gpg --homedir gnupg --import raspbian.public.key
-    if ! gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
-        echo "ERROR: Bad GPG key fingerprint for raspbian.org"
+    echo "Downloading and importing raspbian.public.key..."
+    curl -# -O https://archive.raspbian.org/raspbian.public.key
+    gpg -q --homedir gnupg --import raspbian.public.key
+    echo -n "Verifying raspbian.public.key... "
+    if gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
+        echo "OK"
+    else
+        echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
         cd ..
         exit 1
     fi
-    wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
-    gpg --homedir gnupg --import raspberrypi.gpg.key
-    if ! gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
-        echo "ERROR: Bad GPG key fingerprint for raspberrypi.org"
+    echo -e "\nDownloading and importing raspberrypi.gpg.key..."
+    curl -# -O http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+    gpg -q --homedir gnupg --import raspberrypi.gpg.key
+    echo -n "Verifying raspberrypi.gpg.key... "
+    if gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
+        echo "OK"
+    else
+        echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
         cd ..
         exit 1
     fi
 
-    # Download and verify the base Release file
-    wget $mirror/dists/$release/Release $mirror/dists/$release/Release.gpg
-    if ! gpg --homedir gnupg --verify Release.gpg Release; then
-        echo "WARNING: Cannot verify GPG signature of Release file."
-        read -p "Ignore and continue (not recommended) [y/n]? " ignore_verification
-        if [ "$ignore_verification" != "y" ]; then
-            cd ..
-            exit 1
-        fi
+    echo -e "\nDownloading Release file and its signature..."
+    curl -# -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
+    echo -n "Verifying Release file... "
+    if gpg --homedir gnupg --verify Release.gpg Release &> /dev/null ; then
+        echo "OK"
+    else
+        echo -e "ERROR\nBroken GPG signature on Release file!"
+        cd ..
+        exit 1
     fi
 
-    # Get, verify, extract, and concatenate the Packages files
     echo -n > Packages
     package_section=firmware
     download_package_list
@@ -117,7 +124,7 @@ cd packages
 
 download_package_lists
 
-echo "Searching for required packages..."
+echo -e "\nSearching for required packages..."
 while read k v
 do
     if [ "$k" = "Package:" ]; then
@@ -149,10 +156,17 @@ done < Packages
 
 allfound || exit
 
-wget $packages_debs
+echo -e "\nDownloading packages..."
+curl -# --remote-name-all $packages_debs
 
-echo "Verifying checksums of downloaded .deb packages..."
+echo -n "Verifying downloaded packages... "
 echo -ne "${packages_sha256}" > SHA256SUMS
-sha256sum --quiet -c SHA256SUMS
+if sha256sum --quiet -c SHA256SUMS ; then
+    echo "OK"
+else
+    echo -e "ERROR\nThe checksums of the downloaded packages don't match the package lists!"
+    cd ..
+    exit 1
+fi
 
 cd ..
