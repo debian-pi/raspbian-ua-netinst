@@ -521,7 +521,7 @@ echo "OK"
 echo -n "Configuring apt... "
 echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
 echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
-wget -q -O - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null

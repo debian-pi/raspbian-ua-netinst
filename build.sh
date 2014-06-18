@@ -75,6 +75,9 @@ cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings
 # install gpgv (for cdebootstrap)
 cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
+# install raspberrypi.org GPG key (for apt-key add)
+cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
+
 # install libbz2-1.0 (for gpgv)
 cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
 
