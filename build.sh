@@ -108,6 +108,7 @@ cp installer.cpio bootfs/
 
 echo "kernel=kernel_install.img" > bootfs/config.txt
 echo "initramfs installer.cpio" >> bootfs/config.txt
+echo "gpu_mem=16" >> bootfs/config.txt
 echo "consoleblank=0" > bootfs/cmdline.txt
 
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
