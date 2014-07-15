@@ -133,7 +133,7 @@ case "$rootfstype" in
     kernel_module=true
     rootfs_mkfs_options=${rootfs_mkfs_options:-''}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
 esac
 
