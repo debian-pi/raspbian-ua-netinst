@@ -1,7 +1,5 @@
 #!/bin/busybox sh
 
-KERNEL_VERSION=3.10-3-rpi
-
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
@@ -496,21 +494,6 @@ echo ""
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
-echo "Configuring bootloader to start the installed system..."
-mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
-
-if [ -f /rootfs/vmlinuz ] ; then
-  # use latest kernel with initramfs in first boot
-  echo -n "Install new kernel and initramfs... "
-  cp /rootfs/vmlinuz /rootfs/boot/kernel.img
-  echo "OK"
-  echo "initramfs initrd.img-${KERNEL_VERSION}" > /rootfs/boot/config.txt
-else
-  echo -n "Copying installer kernel to installed system... "
-  # use install kernel in first boot
-  cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
-  echo "OK"
-fi
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... " 
@@ -539,6 +522,28 @@ fi
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
+
+echo "Configuring bootloader to start the installed system..."
+mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
+
+# find kernel/initramfs version
+KERNEL_VERSION=$(sed -n -e '/^Package: linux-image-rpi-rpfv$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi\).*$/\1/p}' /rootfs/var/lib/dpkg/status)
+echo "Kernel version: '${KERNEL_VERSION}'"
+
+if [ -f /rootfs/vmlinuz ] ; then
+  # use latest kernel with initramfs in first boot
+  echo -n "Copying new kernel to installed system... "
+  cp /rootfs/vmlinuz /rootfs/boot/kernel.img
+  echo "OK"
+  echo -n "Specify new initramfs in config.txt... "
+  echo "initramfs initrd.img-${KERNEL_VERSION}" > /rootfs/boot/config.txt
+  echo "OK"
+else
+  echo -n "Copying installer kernel to installed system... "
+  # use install kernel in first boot
+  cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
+  echo "OK"
+fi
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
