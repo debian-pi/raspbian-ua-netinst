@@ -1,6 +1,8 @@
 raspbian-ua-netinst build instructions
 ======================================
 
+The Required packages are zip, kpartx (sudo apt-get install zip kpartx).
+
 The following scripts are used to build the raspbian-ua-netinst installer, listed in the same order they would be used:
 
  - update.sh - Downloads latest Raspbian packages that will be used to build the installer.
