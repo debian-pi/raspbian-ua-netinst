@@ -1,7 +1,16 @@
 raspbian-ua-netinst build instructions
 ======================================
 
-The Required packages are zip, kpartx (sudo apt-get install zip kpartx).
+To create an image yourself, you need to have various packages installed on the host machine.
+On a Debian system those are the following, excluding packages with priority essential and required:
+- git
+- curl
+- bzip2
+- zip
+- xz-utils
+- gnupg
+- kpartx
+- dosfstools
 
 The following scripts are used to build the raspbian-ua-netinst installer, listed in the same order they would be used:
 
