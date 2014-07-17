@@ -39,7 +39,7 @@ Obtaining installer files on Windows and Mac
 --------------------------------------------
 Installer archive is around **9MB** and contains all firmware files and the installer.
 
-Go to https://github.com/hifi/raspbian-ua-netinst/releases/latest and download the .zip file.
+Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .zip file.
 
 Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
 
@@ -47,7 +47,7 @@ SD card image for Linux
 -----------------------
 Prebuilt image is around **6MB** xz compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
-Go to https://github.com/hifi/raspbian-ua-netinst/releases/latest and download the .img.xz file.
+Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .img.xz file.
 
 To flash your SD card on Linux:
 
