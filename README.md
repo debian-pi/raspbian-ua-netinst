@@ -4,7 +4,7 @@ raspbian-ua-netinst
 The minimal Raspbian unattended netinstaller for Raspberry Pi Model B.  
 Some have reported that installing on the new Model B+ works, while others have reported issues.  
 If you encounter problems, see [issue #73](https://github.com/debian-pi/raspbian-ua-netinst/issues/73) for a possible workaround.  
-So if you encounter issues (or not) with the Model B+ and you could add your experiences/issues to it, that would be much appreciated.
+So, if you encounter issues (or not) with the Model B+ and you could add your experiences/issues to to that issue, that would be much appreciated.
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
