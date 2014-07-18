@@ -554,7 +554,7 @@ echo "OK"
 if [ -e /bootfs/post-install.txt ]; then
     echo "Running post-install.txt..."
     sanitize_inputfile /bootfs/post-install.txt
-    source /bootfs/post-install.txt
+    source /bootfs/post-install.txt 2>&1 | tee -a post-install.log
 fi
 
 # save current time if fake-hwclock
