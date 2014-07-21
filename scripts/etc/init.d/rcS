@@ -1,5 +1,7 @@
 #!/bin/busybox sh
 
+LOGFILE=/tmp/raspbian-ua-netinst.log
+
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
@@ -34,6 +36,20 @@ fail()
     echo "Oh noes, something went wrong!"
     echo "You have 10 seconds to hit ENTER to get a shell..."
 
+    # copy logfile to /boot/ partition to preserve it.
+    # test whether the sd card is still mounted on /boot and if not, mount it.
+    if [ ! -f /boot/bootcode.bin ] ; then
+        mount $bootpartition /boot
+        fail_boot_mounted=true
+    fi
+    cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
+    sync
+    
+    # if we mounted /boot in the fail command, unmount it.
+    if [ "$fail_boot_mounted" = true ] ; then
+        umount /boot
+    fi
+
     read -t 10 || reboot && exit
     sh
 }
@@ -58,6 +74,7 @@ mkdir -p /usr/sbin
 mkdir -p /var/run
 mkdir -p /rootfs/boot
 mkdir -p /bootfs
+mkdir -p /tmp/
 
 /bin/busybox --install
 
@@ -70,6 +87,13 @@ echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 klogd -c 1
+
+# redirect stdout and stderr also to logfile
+# http://stackoverflow.com/questions/3173131/redirect-copy-of-stdout-to-log-file-from-within-bash-script-itself/6635197#6635197
+mkfifo ${LOGFILE}.pipe
+tee < ${LOGFILE}.pipe $LOGFILE &
+exec &> ${LOGFILE}.pipe
+rm ${LOGFILE}.pipe
 
 echo ""
 echo "================================================="
@@ -95,6 +119,10 @@ cp /boot/bootcode.bin \
     /boot/start.elf \
     /boot/start_x.elf /bootfs/ || fail
 
+    if [ -f /boot/raspbian-ua-netinst* ] ; then
+        cp /boot/raspbian-ua-netinst* /bootfs/
+    fi
+    
 if [ -f /boot/installer-config.txt ]; then
     cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
 fi
@@ -110,10 +138,12 @@ umount /boot || fail
 echo "OK"
 
 if [ -e /bootfs/installer-config.txt ]; then
-    echo -n "Reading installer-config.txt... "
+    echo "================================================="
+    echo "=== Start executing installer-config.txt. ==="
     sanitize_inputfile /bootfs/installer-config.txt
     source /bootfs/installer-config.txt
-    echo "OK"
+    echo "=== Finished executing installer-config.txt. ==="
+    echo "================================================="
 fi
 
 case "$rootfstype" in
@@ -225,10 +255,12 @@ if [ "$online_config" != "" ]; then
     wget -q -O /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
-    echo -n "Reading online-config.txt... "
+    echo "================================================="
+    echo "=== Start executing online-config.txt. ==="
     sanitize_inputfile /online-config.txt
     source /online-config.txt
-    echo "OK"
+    echo "=== Finished executing online-config.txt. ==="
+    echo "================================================="
 fi
 
 # configure different kinds of presets
@@ -541,9 +573,12 @@ echo "OK"
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
-    echo "Running post-install.txt..."
+    echo "================================================="
+    echo "=== Start executing post-install.txt. ==="
     sanitize_inputfile /bootfs/post-install.txt
     source /bootfs/post-install.txt
+    echo "=== Finished executing post-install.txt. ==="
+    echo "================================================="
 fi
 
 # save current time if fake-hwclock
@@ -552,6 +587,8 @@ sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
 
 echo -n "Unmounting filesystems... "
+# copy logfile to standard log directory
+cp $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
 umount /rootfs/boot
 umount /rootfs
 echo "OK"
