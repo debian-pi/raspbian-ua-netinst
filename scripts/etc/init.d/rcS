@@ -191,6 +191,35 @@ else
     echo "OK"
 fi
 
+date_set=false
+if [ "$date_set" = "false" ] ; then
+    # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
+    timeservers=$timeserver
+    timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
+    timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
+    timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
+    timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
+    timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
+    timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
+    timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
+    timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
+    for ts in $timeservers
+    do
+        rdate $ts &>/dev/null
+        if [ $? -eq 0 ]; then
+            echo -n "Time set using timeserver '$ts' to... "
+            date
+            date_set=true
+            break
+        else
+            echo "Failed to set time using timeserver '$ts'."
+        fi
+    done
+fi
+if [ "$date_set" = "false" ] ; then
+    echo "FAILED to set the date, so things are likely to fail now ..."
+fi
+
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
     wget -q -O /online-config.txt $online_config &>/dev/null || fail
@@ -283,46 +312,6 @@ echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
 echo
-
-date_set=false
-#if [ "$timeserver" != "" ]; then
-#    echo -n "Configuring the clock using rdate... "
-#    rdate $timeserver &>/dev/null
-#    if [ $? -eq 0 ]; then
-#        date
-#        date_set=true
-#    else
-#        echo "failed (not fatal)"
-#    fi
-#fi
-
-if [ "$date_set" = "false" ] ; then
-    # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
-    timeservers=$timeserver
-    timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
-    timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
-    timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
-    timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
-    timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
-    timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
-    timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
-    timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
-    for ts in $timeservers
-    do
-        rdate $ts &>/dev/null
-        if [ $? -eq 0 ]; then
-            echo -n "Time set using timeserver '$ts' to... "
-            date
-            date_set=true
-            break
-        else
-            echo "Failed to set time using timeserver '$ts'."
-        fi
-    done
-fi
-if [ "$date_set" = "false" ] ; then
-    echo "FAILED to set the date, so things are likely to fail now ..."
-fi
 
 echo -n "Waiting for $rootdev... "
 for i in `seq 1 10`; do
