@@ -1,10 +1,6 @@
 # raspbian-ua-netinst
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model B.  
-
-Some have reported that installing on the new Model B+ works, while others have reported issues.  
-If you encounter problems, see [issue #73](https://github.com/debian-pi/raspbian-ua-netinst/issues/73) for a possible workaround.  
-So, if you encounter issues (or not) with the Model B+ and you could add your experiences/issues to that issue, that would be much appreciated.
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model B and Model B+.  
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -29,7 +25,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - option to install root to USB drive
 
 ## Requirements
- - a Raspberry Pi Model B
+ - a Raspberry Pi Model B or Model B+
  - SD card of at least 512MB (or at least 64MB for USB root install)
  - working Ethernet with Internet connectivity
 
@@ -57,6 +53,11 @@ In normal circumstances, you can just power on your Pi and cross your fingers.
 If you don't have a display attached you can monitor the Ethernet card leds to guess activity. When it finally reboots after installing everything you will see them going out and on a few times when Raspbian configures it on boot.
 
 If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
+
+### Logging
+The output of the installation process is now also logged to file.  
+When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
+When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
 
 ## First boot
 The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
