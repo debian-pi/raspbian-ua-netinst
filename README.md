@@ -127,6 +127,8 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
+A logfile of installation 'raspbian-ua-netinst.log' is available in the first vfat partition in case of failure, or in the /var/log/ directory in the ext4 partition if it is a success.
+
 There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. 
 
 ## Disclaimer
