@@ -113,6 +113,14 @@ echo "kernel=kernel_install.img" > bootfs/config.txt
 echo "initramfs installer.cpio" >> bootfs/config.txt
 echo "consoleblank=0" > bootfs/cmdline.txt
 
+if [ -f installer-config.txt ]; then
+    cp installer-config.txt bootfs/installer-config.txt
+fi
+
+if [ -f post-install.txt ]; then
+    cp post-install.txt bootfs/post-install.txt
+fi
+
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
 rm -f $ZIPFILE
 
