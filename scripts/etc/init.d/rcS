@@ -527,9 +527,20 @@ echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > 
 echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
+
+# add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
+# otherwise the one from raspberrypi.org archives get installed which conflicts with 
+# raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
+echo -n "Creating preferences file for libraspberrypi-bin... "
+echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
+echo "Pin: release o=Raspbian,n=$release" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
+echo "Pin-Priority: 800" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
+echo "OK"
+
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
 echo "OK"
+
 # firmware package can't be installed during cdebootstrap fase, so do so now
 if [ "$kernel_module" = true ] ; then
   echo -n "Installing bootloader package (=firmware)... "
@@ -539,6 +550,15 @@ if [ "$kernel_module" = true ] ; then
   else
     echo "FAILED !"
   fi
+fi
+
+# install libraspberrypi-bin to provide vcgencmd functionality
+echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
 fi
 
 # add reasonable default modules, works only after kernel is properly installed
