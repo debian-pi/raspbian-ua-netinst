@@ -78,7 +78,7 @@ mkdir -p /tmp/
 
 /bin/busybox --install
 
-export PATH=/bin:/sbin:/usr/bin
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 mount -t proc none /proc
 mount -t sysfs none /sys
