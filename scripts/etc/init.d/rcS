@@ -503,6 +503,12 @@ else
 fi
 echo "OK"
 
+# enable serial console on installed system
+echo -n "  Enabling serial console... "
+echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
+echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
+echo "OK"
+
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
 if [ "$release" = "jessie" ] ; then
