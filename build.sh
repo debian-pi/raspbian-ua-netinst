@@ -111,7 +111,7 @@ cp installer.cpio bootfs/
 
 echo "kernel=kernel_install.img" > bootfs/config.txt
 echo "initramfs installer.cpio" >> bootfs/config.txt
-echo "consoleblank=0" > bootfs/cmdline.txt
+echo "consoleblank=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200" > bootfs/cmdline.txt
 
 if [ -f installer-config.txt ]; then
     cp installer-config.txt bootfs/installer-config.txt
