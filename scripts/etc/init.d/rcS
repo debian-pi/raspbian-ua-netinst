@@ -221,6 +221,9 @@ else
     echo "OK"
 fi
 
+# This will record the time to get to this point
+PRE_NETWORK_DURATION=$(date +%s)
+
 date_set=false
 if [ "$date_set" = "false" ] ; then
     # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
@@ -249,6 +252,15 @@ fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
 fi
+
+# Record the time now that the time is set to a correct value
+STARTTIME=$(date +%s)
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
+# REAL starting time.
+REAL_STARTTIME=$(($STARTTIME - $PRE_NETWORK_DURATION))
+echo ""
+echo "Installation started at $(date --date="@$REAL_STARTTIME" --utc)."
+echo ""
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
@@ -611,6 +623,11 @@ fi
 echo "Saving current time for fake-hwclock..."
 sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
+
+ENDTIME=$(date +%s)
+DURATION=$(($ENDTIME - $REAL_STARTTIME))
+echo -n "Installation finished at $(date --date="@$ENDTIME" --utc)"
+echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
 
 echo -n "Unmounting filesystems... "
 # copy logfile to standard log directory
