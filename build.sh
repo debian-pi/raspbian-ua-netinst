@@ -42,6 +42,7 @@ mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sg.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
+cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
 
 # install scripts
