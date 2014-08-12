@@ -1,6 +1,9 @@
 #!/bin/bash
 
+set -e
+
 KERNEL_VERSION=3.12-1-rpi
+INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko kernel/fs/btrfs/btrfs.ko kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/sg.ko kernel/drivers/scsi/sd_mod.ko"
 
 if [ ! -d packages ]; then
     . ./update.sh
@@ -26,25 +29,48 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 rm -rf rootfs
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/fs
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/fs/f2fs rootfs/lib/modules/${KERNEL_VERSION}/kernel/fs/f2fs
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/fs/btrfs rootfs/lib/modules/${KERNEL_VERSION}/kernel/fs/btrfs
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/libcrc32c.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/crc-t10dif.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/raid6 rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib/raid6
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/zlib_deflate rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib/zlib_deflate
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/xor.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/crct10dif_common.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/crct10dif_generic.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage/usb-storage.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sg.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
-cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
+mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
 cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
+
+# calculate module dependencies
+depmod_file=$(tempfile)
+depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+
+modules=(${INSTALL_MODULES})
+
+function containsElement {
+    local elem
+    for elem in "${@:2}"; do [[ "${elem}" == "$1" ]] && return 0; done
+    return 1
+}
+
+function check_dependencies {
+    mods=("${@}")
+    local new_found=()
+    for mod in ${mods[@]}; do
+        deps=($(cat "${depmod_file}" | grep "^${mod}" | cut -d':' -f2))
+        for dep in ${deps[@]}; do
+            containsElement "${dep}" "${modules[@]}" || new_found[${#new_found[@]}]="${dep}"
+        done
+    done
+    modules=("${modules[@]}" "${new_found[@]}")
+    new_count=${#new_found[@]}
+}
+
+new_count=${#modules[@]}
+until [ "${new_count}" == 0 ]; do
+    check_dependencies "${modules[@]:$((${#modules[@]}-${new_count}))}"
+done
+
+# do some cleanup
+rm -f ${depmod_file}
+
+for module in ${modules[@]}; do
+    dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
+    [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
+    cp -a "tmp/lib/modules/${KERNEL_VERSION}/${module}" "${dstdir}"
+done
+
 /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
 
 # install scripts
