@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KERNEL_VERSION=3.10-3-rpi
+KERNEL_VERSION=3.12-1-rpi
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
