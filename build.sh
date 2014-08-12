@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KERNEL_VERSION=3.10-3-rpi
+KERNEL_VERSION=3.12-1-rpi
 
 if [ ! -d packages ]; then
     . ./update.sh
@@ -36,12 +36,15 @@ cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/raid6 rootfs/lib/modules/${KE
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/lib/zlib_deflate rootfs/lib/modules/${KERNEL_VERSION}/kernel/lib/zlib_deflate
 mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/xor.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
+cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/crct10dif_common.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
+cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/crypto/crct10dif_generic.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/crypto
 mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage/usb-storage.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/usb/storage
 mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sg.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/sd_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
 cp -a tmp/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi/scsi_mod.ko rootfs/lib/modules/${KERNEL_VERSION}/kernel/drivers/scsi
+cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
 
 # install scripts
