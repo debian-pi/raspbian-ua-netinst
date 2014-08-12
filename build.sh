@@ -65,6 +65,7 @@ done
 # do some cleanup
 rm -f ${depmod_file}
 
+# copy the needed kernel modules to the rootfs (create directories as needed)
 for module in ${modules[@]}; do
     dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
     [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
