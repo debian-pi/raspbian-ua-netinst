@@ -103,9 +103,9 @@ The format of the file and the current defaults:
     bootsize=+50M # /boot partition size as given to fdisk
     rootsize=     # / partition size in megabytes, leave empty to use all free space
     timeserver=time.nist.gov
-    timezone=Etc/UTC
-    locale=C.UTF-8
-    language=POSIX
+    timezone=Etc/UTC  # set to desired timezone (e.g. Europe/Ljubljana)
+    locale=C.UTF-8    # set to desired locale (e.g. en_US.UTF-8)
+    language=         # set to desired language (e.g. en_US:en)
     ip_addr=dhcp
     ip_netmask=0.0.0.0
     ip_broadcast=0.0.0.0
