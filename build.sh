@@ -38,27 +38,51 @@ depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
 
 modules=(${INSTALL_MODULES})
 
-function containsElement {
+# checks if first parameter is contained in the array passed as the second parameter
+#   use: contains_element "search_for" "${some_array[@]}" || do_if_not_found
+function contains_element {
     local elem
     for elem in "${@:2}"; do [[ "${elem}" == "$1" ]] && return 0; done
     return 1
 }
 
+# expects an array with kernel modules as a parameter, checks each module for dependencies
+# and if a dependency isn't already in the $modules array, adds it to it (through a temporary
+# local array).
+# in addition sets the global $new_count variable to the number of dependencies added, so
+# that the newly added dependencies can be checked as well
+#   use: check_dependencies "${modules[@]:${index}}"
 function check_dependencies {
+    # collect the parameters into an array
     mods=("${@}")
-    local new_found=()
+    # temp array to hold the newly found dependencies
+    local -a new_found
+    # temp array to hold the found dependencies for a single module
+    local -a deps
+    local mod
+    local dep
+    # iterate over the passed modules
     for mod in ${mods[@]}; do
+        # find the modules dependencies, convert into array
         deps=($(cat "${depmod_file}" | grep "^${mod}" | cut -d':' -f2))
+        # iterate over the found dependencies
         for dep in ${deps[@]}; do
-            containsElement "${dep}" "${modules[@]}" || new_found[${#new_found[@]}]="${dep}"
+            # check if the dependency is in $modules, if not, add to temp array
+            contains_element "${dep}" "${modules[@]}" || new_found[${#new_found[@]}]="${dep}"
         done
     done
+    # add the newly found dependencies to the end of the $modules array
     modules=("${modules[@]}" "${new_found[@]}")
+    # set the global variable to the number of newly found dependencies
     new_count=${#new_found[@]}
 }
 
+# new_count contains the number of new elements in the $modules array for each iteration
 new_count=${#modules[@]}
+# repeat the hunt for dependencies until no new ones are found (the loop takes care
+# of finding nested dependencies)
 until [ "${new_count}" == 0 ]; do
+    # check the dependencies for the modules in the last $new_count elements
     check_dependencies "${modules[@]:$((${#modules[@]}-${new_count}))}"
 done
 
@@ -67,7 +91,9 @@ rm -f ${depmod_file}
 
 # copy the needed kernel modules to the rootfs (create directories as needed)
 for module in ${modules[@]}; do
+    # calculate the target dir, just so the following line of code is shorter :)
     dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
+    # check if destination dir exist, create it otherwise
     [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
     cp -a "tmp/lib/modules/${KERNEL_VERSION}/${module}" "${dstdir}"
 done
