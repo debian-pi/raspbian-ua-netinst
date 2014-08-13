@@ -34,7 +34,7 @@ cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modul
 
 # calculate module dependencies
 depmod_file=$(tempfile)
-depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+/sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
 
 modules=(${INSTALL_MODULES})
 
