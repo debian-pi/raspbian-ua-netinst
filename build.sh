@@ -3,7 +3,11 @@
 set -e
 
 KERNEL_VERSION=3.12-1-rpi
-INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko kernel/fs/btrfs/btrfs.ko kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/sg.ko kernel/drivers/scsi/sd_mod.ko"
+INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/fs/btrfs/btrfs.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/usb/storage/usb-storage.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sd_mod.ko"
 
 if [ ! -d packages ]; then
     . ./update.sh
