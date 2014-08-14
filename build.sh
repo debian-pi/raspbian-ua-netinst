@@ -9,39 +9,6 @@ INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/usb/storage/usb-storage.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sd_mod.ko"
 
-if [ ! -d packages ]; then
-    . ./update.sh
-fi
-
-rm -rf tmp
-mkdir tmp
-
-# extract debs
-for i in packages/*.deb; do
-    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
-done
-
-# initialize bootfs
-rm -rf bootfs
-mkdir -p bootfs
-cp tmp/boot/* bootfs/
-rm bootfs/System*
-rm bootfs/config-*
-mv bootfs/vmlinuz* bootfs/kernel_install.img
-
-# initialize rootfs
-rm -rf rootfs
-mkdir -p rootfs/bin/
-mkdir -p rootfs/lib/
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
-cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
-
-# calculate module dependencies
-depmod_file=$(tempfile)
-/sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
-
-modules=(${INSTALL_MODULES})
-
 # checks if first parameter is contained in the array passed as the second parameter
 #   use: contains_element "search_for" "${some_array[@]}" || do_if_not_found
 function contains_element {
@@ -80,6 +47,40 @@ function check_dependencies {
     # set the global variable to the number of newly found dependencies
     new_count=${#new_found[@]}
 }
+
+
+if [ ! -d packages ]; then
+    . ./update.sh
+fi
+
+rm -rf tmp
+mkdir tmp
+
+# extract debs
+for i in packages/*.deb; do
+    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
+done
+
+# initialize bootfs
+rm -rf bootfs
+mkdir -p bootfs
+cp tmp/boot/* bootfs/
+rm bootfs/System*
+rm bootfs/config-*
+mv bootfs/vmlinuz* bootfs/kernel_install.img
+
+# initialize rootfs
+rm -rf rootfs
+mkdir -p rootfs/bin/
+mkdir -p rootfs/lib/
+mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
+cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
+
+# calculate module dependencies
+depmod_file=$(tempfile)
+/sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+
+modules=(${INSTALL_MODULES})
 
 # new_count contains the number of new elements in the $modules array for each iteration
 new_count=${#modules[@]}
