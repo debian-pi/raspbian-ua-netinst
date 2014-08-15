@@ -11,6 +11,10 @@ hostname=pi
 domainname=
 rootpw=raspbian
 rootssh=
+create_user=
+userpw=
+userssh=
+user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
@@ -65,6 +69,18 @@ sanitize_inputfile()
         # convert line endings to unix
         dos2unix $inputfile
     fi
+}
+
+make_boolean()
+{
+    case $1 in
+    [yY] | [yY][eE][sS] | [tT] | [tT][rR][uU][eE])
+        echo "true" ;;
+    [nN] | [nN][oO] | [fF] | [fF][aA][lL][sS][eE])
+        echo "false" ;;
+    *)
+        echo "Invalid input!" ;;
+    esac
 }
 
 mkdir -p /proc
@@ -276,6 +292,15 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+# check if we need the sudo package and add it if so
+if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+    if [ -z "$packages" ]; then
+        packages="sudo"
+    else
+        packages="$packages,sudo"
+    fi        
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
@@ -345,6 +370,10 @@ echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  rootssh=$rootssh"
+echo "  create_user=$create_user"
+echo "  userpw=$userpw"
+echo "  userssh=$userssh"
+echo "  user_is_admin=$user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
@@ -476,6 +505,48 @@ if [ ! -z "$rootssh" ]; then
         echo "$rootssh" > /rootfs/root/.ssh/authorized_keys
     if [ $? -eq 0 ]; then
         echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
+# add system user
+if [ ! -z "$create_user" ]; then
+    echo -n "  Creating user... "
+    groups="users"
+    if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+        # TODO: check for the needed groups
+        groups="$groups,sudo"
+    fi
+    chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$create_user"
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        echo -n "  Setting user password... "
+        echo -n $create_user:$userpw | chroot /rootfs /usr/sbin/chpasswd
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAILED !"
+        fi
+        if [ ! -z "$userssh" ]; then
+            echo -n "  Setting user SSH key... "
+            ssh_dir="/rootfs/home/$create_user/.ssh"
+            mkdir -p "$ssh_dir" && \
+                chmod 700 "$ssh_dir" && \
+                echo "$userssh" > "$ssh_dir/authorized_keys"
+            if [ $? -eq 0 ]; then
+                echo "OK"
+                echo -n "  Setting owner on SSH key... "
+                chroot /rootfs /bin/chown -R "$create_user:$create_user" "$ssh_dir"
+                if [ $? -eq 0 ]; then
+                    echo "OK"
+                else
+                    echo "FAILED !"
+                fi
+            else
+                echo "FAILED !"
+            fi
+        fi
     else
         echo "FAILED !"
     fi

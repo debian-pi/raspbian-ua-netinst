@@ -100,6 +100,10 @@ The format of the file and the current defaults:
     domainname=
     rootpw=raspbian
     rootssh= # public SSH key for root; SSH password login will be disabled for root if set
+    create_user= # the username of the system user to create
+    userpw= # password to use for created user
+    userssh= # public SSH key for created user
+    user_is_admin= # set to true/yes to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to fdisk
     rootsize=     # / partition size in megabytes, leave empty to use all free space
