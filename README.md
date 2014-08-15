@@ -104,6 +104,7 @@ The format of the file and the current defaults:
     rootsize=     # / partition size in megabytes, leave empty to use all free space
     timeserver=time.nist.gov
     timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
+    locale=C.UTF-8 # set to desired locale (e.g. en_US.UTF-8)
     ip_addr=dhcp
     ip_netmask=0.0.0.0
     ip_broadcast=0.0.0.0

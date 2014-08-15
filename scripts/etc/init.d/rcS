@@ -15,6 +15,7 @@ bootsize=+50M
 rootsize=
 timeserver=time.nist.gov
 timezone=Etc/UTC
+locale=C.UTF-8
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
@@ -349,6 +350,7 @@ echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
 echo "  timezone = $timezone"
+echo "  locale = $locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -527,6 +529,17 @@ echo "OK"
 echo -n "  Configuring tzdata, setting timezone to $timezone... "
 echo "$timezone" > /rootfs/etc/timezone
 chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# set locale and generate locale data
+echo -n "  Configuring locale... "
+sed -i "s/^# \($locale.*\)/\1/" /rootfs/etc/locale.gen
+echo -e "LANG=\"$locale\"\nLC_ALL=\"$locale\"\n" > /rootfs/etc/default/locale
+chroot /rootfs /usr/sbin/locale-gen --purge $locale &> /dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
 else
