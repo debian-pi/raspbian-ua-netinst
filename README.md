@@ -103,6 +103,7 @@ The format of the file and the current defaults:
     bootsize=+50M # /boot partition size as given to fdisk
     rootsize=     # / partition size in megabytes, leave empty to use all free space
     timeserver=time.nist.gov
+    timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
     ip_addr=dhcp
     ip_netmask=0.0.0.0
     ip_broadcast=0.0.0.0
