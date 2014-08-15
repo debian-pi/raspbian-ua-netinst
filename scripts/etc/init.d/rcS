@@ -10,6 +10,7 @@ release=wheezy
 hostname=pi
 domainname=
 rootpw=raspbian
+rootssh=
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
@@ -343,6 +344,7 @@ echo "  release = $release"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
+echo "  rootssh=$rootssh"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
@@ -466,6 +468,19 @@ echo -n "  Setting root password... "
 echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
 echo "OK"
 
+# add SSH key for root (if provided)
+if [ ! -z "$rootssh" ]; then
+    echo -n "  Setting root SSH key... "
+    mkdir -p /rootfs/root/.ssh && \
+        chmod 700 /rootfs/root/.ssh && \
+        echo "$rootssh" > /rootfs/root/.ssh/authorized_keys
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
 # default mounts
 echo -n "  Configuring /etc/fstab... "
 echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
@@ -523,12 +538,14 @@ echo "OK"
 
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] ; then
-    echo -n "  Allowing root to login with password... "
-    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-    echo "OK"
+if [ -z "$rootssh" ]; then # only do this if no SSH key is provided for root
+    if [ "$release" = "jessie" ] ; then
+        echo -n "  Allowing root to login with password... "
+        sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+        echo "OK"
+    fi
+    echo ""
 fi
-echo ""
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail

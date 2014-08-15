@@ -99,6 +99,7 @@ The format of the file and the current defaults:
     hostname=pi
     domainname=
     rootpw=raspbian
+    rootssh= # public SSH key for root; SSH password login will be disabled for root if set
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to fdisk
     rootsize=     # / partition size in megabytes, leave empty to use all free space
