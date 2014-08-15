@@ -16,6 +16,7 @@ rootsize=
 timeserver=time.nist.gov
 timezone=Etc/UTC
 locale=C.UTF-8
+language=
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
@@ -351,6 +352,7 @@ echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
 echo "  timezone = $timezone"
 echo "  locale = $locale"
+echo "  language = $language"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -544,6 +546,13 @@ if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
+fi
+
+# set language if provided
+if [ ! -z "$language" ]; then
+    echo -n "  Configuring language... "
+    echo -e "\nLANGUAGE=\"$language\"\n" >> /rootfs/etc/default/locale
+    echo "OK"
 fi
 
 # openssh-server in jessie doesn't allow root to login using password anymore
