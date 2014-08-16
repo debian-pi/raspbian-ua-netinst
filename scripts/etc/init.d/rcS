@@ -390,11 +390,12 @@ echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
 echo
 
-echo -n "Waiting 5 seconds in case you change your mind... "
+echo -n "Waiting 5 seconds"
 for i in `seq 1 5`; do
-    echo -n "$i... "
+    echo -n "$."
     sleep 1
 done
+echo
 
 echo -n "Waiting for $rootdev... "
 for i in `seq 1 10`; do
@@ -628,8 +629,9 @@ if [ -z "$rootssh" ]; then
             echo "OK"
         fi
     fi
-    echo ""
 fi
+
+echo ""
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
