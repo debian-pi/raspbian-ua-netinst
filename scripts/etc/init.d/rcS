@@ -37,7 +37,7 @@ rootdev=/dev/mmcblk0
 rootpartition=
 
 # some additional settings that shouldn't need to be changed
-user_groups="dialout,cdrom,audio,video,plugdev,games,users,netdev,input,spi,gpio"
+user_groups="dialout,cdrom,audio,video,plugdev,games,users"
 admin_groups="adm,sudo"
 
 fail()
