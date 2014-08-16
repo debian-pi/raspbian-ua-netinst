@@ -66,6 +66,10 @@ sanitize_inputfile()
     fi
 }
 
+# set screen blank period to an hour
+# hopefully the install should be done by then
+echo -en '\033[9;60]'
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /boot
