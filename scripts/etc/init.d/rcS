@@ -548,7 +548,7 @@ if [ ! -z "$create_user" ]; then
             if [ $? -eq 0 ]; then
                 echo "OK"
                 echo -n "  Setting owner on SSH key... "
-                chroot /rootfs /bin/chown -R "$create_user:$create_user" "/rootfs$ssh_dir"
+                chroot /rootfs /bin/chown -R "$create_user:$create_user" "$ssh_dir"
                 if [ $? -eq 0 ]; then
                     echo "OK"
                 else
