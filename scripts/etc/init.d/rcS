@@ -36,6 +36,10 @@ bootpartition=/dev/mmcblk0p1
 rootdev=/dev/mmcblk0
 rootpartition=
 
+# some additional settings that shouldn't need to be changed
+user_groups="dialout,cdrom,audio,video,plugdev,games,users,netdev,input,spi,gpio"
+admin_groups="adm,sudo"
+
 fail()
 {
     echo
@@ -524,10 +528,10 @@ fi
 # add system user
 if [ ! -z "$create_user" ]; then
     echo -n "  Creating user... "
-    groups="users"
+    groups="$user_groups"
     if [ "$(make_boolean $user_is_admin)" = "true" ]; then
         # TODO: check for the needed groups
-        groups="$groups,sudo"
+        groups="$groups,$admin_groups"
     fi
     chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$create_user"
     if [ $? -eq 0 ]; then
