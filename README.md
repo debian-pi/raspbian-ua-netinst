@@ -100,6 +100,7 @@ The format of the file and the current defaults:
     domainname=
     rootpw=raspbian
     rootssh= # public SSH key for root; SSH password login will be disabled for root if set
+    disable_root= # set to Yes/True to disable root login (and password) altogether
     create_user= # the username of the system user to create
     userpw= # password to use for created user
     userssh= # public SSH key for created user
