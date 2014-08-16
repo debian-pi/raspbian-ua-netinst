@@ -530,7 +530,6 @@ if [ ! -z "$create_user" ]; then
     echo -n "  Creating user... "
     groups="$user_groups"
     if [ "$(make_boolean $user_is_admin)" = "true" ]; then
-        # TODO: check for the needed groups
         groups="$groups,$admin_groups"
     fi
     chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$create_user"
