@@ -541,14 +541,14 @@ if [ ! -z "$create_user" ]; then
         fi
         if [ ! -z "$userssh" ]; then
             echo -n "  Setting user SSH key... "
-            ssh_dir="/rootfs/home/$create_user/.ssh"
-            mkdir -p "$ssh_dir" && \
-                chmod 700 "$ssh_dir" && \
-                echo "$userssh" > "$ssh_dir/authorized_keys"
+            ssh_dir="/home/$create_user/.ssh"
+            mkdir -p "/rootfs$ssh_dir" && \
+                chmod 700 "/rootfs$ssh_dir" && \
+                echo "$userssh" > "/rootfs$ssh_dir/authorized_keys"
             if [ $? -eq 0 ]; then
                 echo "OK"
                 echo -n "  Setting owner on SSH key... "
-                chroot /rootfs /bin/chown -R "$create_user:$create_user" "$ssh_dir"
+                chroot /rootfs /bin/chown -R "$create_user:$create_user" "/rootfs$ssh_dir"
                 if [ $? -eq 0 ]; then
                     echo "OK"
                 else
