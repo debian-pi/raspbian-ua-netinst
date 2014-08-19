@@ -65,8 +65,8 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 The default **root** password is **raspbian**.
 
 > Set new root password: `passwd`  
-> Configure your default locale: `dpkg-reconfigure locales`  
-> Configure your timezone: `dpkg-reconfigure tzdata`  
+> Configure your default locale: `dpkg-reconfigure locales` (can also be set during installation using **locale** and/or **language** in [installer-config.txt](#installer-customization))  
+> Configure your timezone: `dpkg-reconfigure tzdata` (can also be set during installation using **timezone** in [installer-config.txt](#installer-customization))
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
