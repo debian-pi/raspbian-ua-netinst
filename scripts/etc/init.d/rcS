@@ -541,7 +541,7 @@ fi
 echo -n "  Configuring locale... "
 sed -i "s/^# \($locale.*\)/\1/" /rootfs/etc/locale.gen
 echo -e "LANG=\"$locale\"\nLC_ALL=\"$locale\"\n" > /rootfs/etc/default/locale
-chroot /rootfs /usr/sbin/locale-gen --purge $locale &> /dev/null
+chroot /rootfs /usr/sbin/locale-gen $locale &> /dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
 else
