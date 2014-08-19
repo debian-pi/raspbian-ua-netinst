@@ -64,7 +64,7 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 
 The default **root** password is **raspbian**.
 
-> Set new root password: `passwd`  (can also be set during installation using **passwd** in [installer-config.txt](#installer-customization))  
+> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
 > Configure your default locale: `dpkg-reconfigure locales`  
 > Configure your timezone: `dpkg-reconfigure tzdata`  
 
