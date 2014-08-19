@@ -15,6 +15,7 @@ bootsize=+50M
 rootsize=
 timeserver=time.nist.gov
 timezone=Etc/UTC
+locale=
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
@@ -353,6 +354,7 @@ echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
 echo "  timezone = $timezone"
+echo "  locale = $locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -535,6 +537,18 @@ if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
+fi
+
+# set locale and generate locale data
+if [ "$locale" != "" ] ; then
+    echo -n "  Configuring locale... "
+    sed -i "s/^# \($locale.*\)/\1/" /rootfs/etc/locale.gen
+    chroot /rootfs /usr/sbin/locale-gen &> /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
 fi
 
 # openssh-server in jessie doesn't allow root to login using password anymore
