@@ -542,7 +542,7 @@ else
 fi
 
 # generate locale data
-if [ ! -z "$locales" ]; then
+if [ "$locales" != "" ]; then
     echo -n "  Enabling locales... "
     for locale in $locales; do
         if [ $(grep -c $locale /etc/locale.gen) -gt 0 ]; then
@@ -559,7 +559,7 @@ if [ ! -z "$locales" ]; then
 fi
 
 # set system default locale
-if [ ! -z "$system_default_locale" ]; then
+if [ "$system_default_locale" != "" ]; then
     echo -n "  Setting system default locale... "
     chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
     if [ $? -eq 0 ]; then
