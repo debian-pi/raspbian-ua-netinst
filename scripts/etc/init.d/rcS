@@ -545,8 +545,8 @@ fi
 if [ "$locales" != "" ]; then
     echo -n "  Enabling locales... "
     for locale in $locales; do
-        if [ $(grep -c $locale /etc/locale.gen) -gt 0 ]; then
-            sed -i "s/^# \($locale.*\)/\1/" /rootfs/etc/locale.gen
+        if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
+            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
         else
             echo -n "$locale NOT found... "
         fi
