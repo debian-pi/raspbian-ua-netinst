@@ -10,7 +10,7 @@ release=wheezy
 hostname=pi
 domainname=
 rootpw=raspbian
-rootssh=
+root_ssh_pubkey=
 disable_root=
 username=
 userpw=
@@ -374,7 +374,7 @@ echo "  release = $release"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
-echo "  rootssh = $rootssh"
+echo "  root_ssh_pubkey = $root_ssh_pubkey"
 echo "  disable_root = $disable_root"
 echo "  username = $username"
 echo "  userpw = $userpw"
@@ -513,11 +513,11 @@ if [ ! "$(make_boolean $disable_root)" = "true" ]; then
 fi
 
 # add SSH key for root (if provided)
-if [ ! -z "$rootssh" ]; then
+if [ ! -z "$root_ssh_pubkey" ]; then
     echo -n "  Setting root SSH key... "
     mkdir -p /rootfs/root/.ssh && \
         chmod 700 /rootfs/root/.ssh && \
-        echo "$rootssh" > /rootfs/root/.ssh/authorized_keys
+        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
     if [ $? -eq 0 ]; then
         echo "OK"
     else
@@ -624,7 +624,7 @@ echo "OK"
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
 # only do this if no SSH key is provided for root and disabling root isn't requested
-if [ -z "$rootssh" ]; then
+if [ -z "$root_ssh_pubkey" ]; then
     if [ ! "$(make_boolean $disable_root)" = "true" ]; then
         if [ "$release" = "jessie" ] ; then
             echo -n "  Allowing root to login with password... "
