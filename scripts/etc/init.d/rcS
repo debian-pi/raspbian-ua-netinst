@@ -592,21 +592,6 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 KERNEL_VERSION=$(sed -n -e '/^Package: linux-image-rpi-rpfv$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi\).*$/\1/p}' /rootfs/var/lib/dpkg/status)
 echo "Kernel version: '${KERNEL_VERSION}'"
 
-if [ -f /rootfs/vmlinuz ] ; then
-  # use latest kernel with initramfs in first boot
-  echo -n "Copying new kernel to installed system... "
-  cp /rootfs/vmlinuz /rootfs/boot/kernel.img
-  echo "OK"
-  echo -n "Specify new initramfs in config.txt... "
-  echo "initramfs initrd.img-${KERNEL_VERSION}" > /rootfs/boot/config.txt
-  echo "OK"
-else
-  echo -n "Copying installer kernel to installed system... "
-  # use install kernel in first boot
-  cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
-  echo "OK"
-fi
-
 # create the kernel upgrade handler script
 echo -n "Creating kernel upgrade handler script... "
 (
