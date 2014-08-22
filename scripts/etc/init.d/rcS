@@ -637,7 +637,7 @@ fi
 
 # run the kernel upgrade handler script
 chroot /rootfs /etc/kernel/postinst.d/raspbian-ua-netinst \
-    "${KERNEL_VERSION}" "/boot/vmlinux-${KERNEL_VERSION}"
+    "${KERNEL_VERSION}" "/boot/vmlinuz-${KERNEL_VERSION}"
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
