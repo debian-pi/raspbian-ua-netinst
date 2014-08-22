@@ -12,7 +12,7 @@ domainname=
 rootpw=raspbian
 rootssh=
 disable_root=
-create_user=
+username=
 userpw=
 userssh=
 user_is_admin=
@@ -376,7 +376,7 @@ echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  rootssh = $rootssh"
 echo "  disable_root = $disable_root"
-echo "  create_user = $create_user"
+echo "  username = $username"
 echo "  userpw = $userpw"
 echo "  userssh = $userssh"
 echo "  user_is_admin = $user_is_admin"
@@ -526,17 +526,17 @@ if [ ! -z "$rootssh" ]; then
 fi
 
 # add system user
-if [ ! -z "$create_user" ]; then
+if [ ! -z "$username" ]; then
     echo -n "  Creating user... "
     groups="$user_groups"
     if [ "$(make_boolean $user_is_admin)" = "true" ]; then
         groups="$groups,$admin_groups"
     fi
-    chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$create_user"
+    chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$username"
     if [ $? -eq 0 ]; then
         echo "OK"
         echo -n "  Setting user password... "
-        echo -n $create_user:$userpw | chroot /rootfs /usr/sbin/chpasswd
+        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
         if [ $? -eq 0 ]; then
             echo "OK"
         else
@@ -544,14 +544,14 @@ if [ ! -z "$create_user" ]; then
         fi
         if [ ! -z "$userssh" ]; then
             echo -n "  Setting user SSH key... "
-            ssh_dir="/home/$create_user/.ssh"
+            ssh_dir="/home/$username/.ssh"
             mkdir -p "/rootfs$ssh_dir" && \
                 chmod 700 "/rootfs$ssh_dir" && \
                 echo "$userssh" > "/rootfs$ssh_dir/authorized_keys"
             if [ $? -eq 0 ]; then
                 echo "OK"
                 echo -n "  Setting owner on SSH key... "
-                chroot /rootfs /bin/chown -R "$create_user:$create_user" "$ssh_dir"
+                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
                 if [ $? -eq 0 ]; then
                     echo "OK"
                 else
