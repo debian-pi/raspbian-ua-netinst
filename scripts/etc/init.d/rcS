@@ -537,34 +537,6 @@ echo ""
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
-# create the kernel upgrade handler script
-echo -n "Creating kernel upgrade handler script... "
-(
-cat <<-EOScript
-    #!/bin/sh -e
-
-    version="$1"
-    boot_dir=$(dirname "$2")
-
-    config_file="$boot_dir/config.txt"
-
-    cp --remove-destination "$boot_dir/vmlinuz-$version" "$boot_dir/kernel.img"
-    cp --remove-destination "$boot_dir/initrd.img-$version" "$boot_dir/initrd.img"
-
-    (
-    cat <<-EOConfig
-        kernel=kernel.img
-        initramfs initrd.img followkernel
-    EOConfig
-    ) > $config_file    
-EOScript
-) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
-if [ $? -eq 0 ]; then
-    echo "OK"
-else
-    echo "FAILED !"
-fi
-
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... " 
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
@@ -634,6 +606,38 @@ else
   cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
   echo "OK"
 fi
+
+# create the kernel upgrade handler script
+echo -n "Creating kernel upgrade handler script... "
+(
+cat <<-EOScript
+    #!/bin/sh -e
+
+    version="$1"
+    boot_dir=$(dirname "$2")
+
+    config_file="$boot_dir/config.txt"
+
+    cp --remove-destination "$boot_dir/vmlinuz-$version" "$boot_dir/kernel.img"
+    cp --remove-destination "$boot_dir/initrd.img-$version" "$boot_dir/initrd.img"
+
+    (
+    cat <<-EOConfig
+        kernel=kernel.img
+        initramfs initrd.img followkernel
+    EOConfig
+    ) > $config_file    
+EOScript
+) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# run the kernel upgrade handler script
+chroot /rootfs /etc/kernel/postinst.d/raspbian-ua-netinst \
+    "${KERNEL_VERSION}" "/boot/vmlinux-${KERNEL_VERSION}"
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
