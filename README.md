@@ -99,7 +99,7 @@ The format of the file and the current defaults:
     hostname=pi
     domainname=
     rootpw=raspbian
-    root_ssh_pubkey= # public SSH key for root; SSH password login will be disabled for root if set
+    root_ssh_pubkey= # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for root if set
     disable_root= # set to Yes/True to disable root login (and password) altogether
     username= # username of the user to create
     userpw= # password to use for created user
