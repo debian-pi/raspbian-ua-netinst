@@ -103,7 +103,7 @@ The format of the file and the current defaults:
     disable_root= # set to Yes/True to disable root login (and password) altogether
     username= # username of the user to create
     userpw= # password to use for created user
-    userssh= # public SSH key for created user
+    user_ssh_pubkey= # public SSH key for created user
     user_is_admin= # set to true/yes to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
     bootsize=+50M # /boot partition size as given to fdisk

@@ -14,7 +14,7 @@ root_ssh_pubkey=
 disable_root=
 username=
 userpw=
-userssh=
+user_ssh_pubkey=
 user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+50M
@@ -378,7 +378,7 @@ echo "  root_ssh_pubkey = $root_ssh_pubkey"
 echo "  disable_root = $disable_root"
 echo "  username = $username"
 echo "  userpw = $userpw"
-echo "  userssh = $userssh"
+echo "  user_ssh_pubkey = $user_ssh_pubkey"
 echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
@@ -542,12 +542,12 @@ if [ ! -z "$username" ]; then
         else
             echo "FAILED !"
         fi
-        if [ ! -z "$userssh" ]; then
+        if [ ! -z "$user_ssh_pubkey" ]; then
             echo -n "  Setting user SSH key... "
             ssh_dir="/home/$username/.ssh"
             mkdir -p "/rootfs$ssh_dir" && \
                 chmod 700 "/rootfs$ssh_dir" && \
-                echo "$userssh" > "/rootfs$ssh_dir/authorized_keys"
+                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
             if [ $? -eq 0 ]; then
                 echo "OK"
                 echo -n "  Setting owner on SSH key... "
