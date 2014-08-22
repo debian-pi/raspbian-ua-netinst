@@ -611,25 +611,26 @@ fi
 echo -n "Creating kernel upgrade handler script... "
 (
 cat <<-EOScript
-    #!/bin/sh -e
+	#!/bin/sh -e
 
-    version="$1"
-    boot_dir=$(dirname "$2")
+	version="\$1"
+	boot_dir=\$(dirname "\$2")
 
-    config_file="$boot_dir/config.txt"
+	config_file="\$boot_dir/config.txt"
 
-    cp --remove-destination "$boot_dir/vmlinuz-$version" "$boot_dir/kernel.img"
-    cp --remove-destination "$boot_dir/initrd.img-$version" "$boot_dir/initrd.img"
+	cp --remove-destination "\$boot_dir/vmlinuz-\$version" "\$boot_dir/kernel.img"
+	cp --remove-destination "\$boot_dir/initrd.img-\$version" "\$boot_dir/initrd.img"
 
-    (
-    cat <<-EOConfig
-        kernel=kernel.img
-        initramfs initrd.img followkernel
-    EOConfig
-    ) > $config_file    
+	(
+	cat <<-EOConfig
+		kernel=kernel.img
+		initramfs initrd.img followkernel
+	EOConfig
+	) > \$config_file
 EOScript
 ) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
 if [ $? -eq 0 ]; then
+	chmod +x /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
     echo "OK"
 else
     echo "FAILED !"
