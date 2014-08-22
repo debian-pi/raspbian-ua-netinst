@@ -630,7 +630,7 @@ cat <<-EOScript
 EOScript
 ) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
 if [ $? -eq 0 ]; then
-	chmod +x /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
+    chmod +x /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
     echo "OK"
 else
     echo "FAILED !"
