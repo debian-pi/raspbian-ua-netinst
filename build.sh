@@ -66,7 +66,7 @@ function create_tempfile {
             if [[ $(mktemp --version 2> /dev/null | grep -c GNU) -gt 0 ]]; then
                 mktemp
             else
-                mktemp "/tmp/raspbian-ua-netinst.XXXX"
+                mktemp -t raspbian-ua-netinst
             fi
         fi
     else
