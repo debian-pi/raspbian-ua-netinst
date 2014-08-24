@@ -51,7 +51,7 @@ function check_dependencies {
 # creates the file passed as an argument and sets permissions
 function touch_tempfile {
     [[ -z "${1}" ]] && return 1
-    touch ${1} && chmod 600 ${1}
+    touch "${1}" && chmod 600 "${1}"
     echo "${1}"
 }
 
@@ -59,7 +59,7 @@ function touch_tempfile {
 #   the function checks for different commands and uses the appropriate one
 #   it will fallback to creating a file in /tmp
 function create_tempfile {
-    local tmp_ptrn="/tmp/${0}.${$}"
+    local tmp_ptrn="/tmp/$(basename "${0}").${$}"
     if type mktemp &> /dev/null; then
         mktemp 2> /dev/null || \
             mktemp -t raspbian-ua-netinst 2> /dev/null || \
