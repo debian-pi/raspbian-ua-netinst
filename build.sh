@@ -52,6 +52,7 @@ function check_dependencies {
 function touch_tempfile {
     [[ -z "${1}" ]] && return 1
     touch ${1} && chmod 600 ${1}
+    echo "${1}"
 }
 
 # creates a temporary file and returns (echos) its filename
