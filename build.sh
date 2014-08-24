@@ -48,6 +48,30 @@ function check_dependencies {
     new_count=${#new_found[@]}
 }
 
+# creates the file passed as an argument and sets permissions
+function touch_tempfile {
+    [[ -z "${1}" ]] && return 1
+    touch "${1}" && chmod 600 "${1}"
+    echo "${1}"
+}
+
+# creates a temporary file and returns (echos) its filename
+#   the function checks for different commands and uses the appropriate one
+#   it will fallback to creating a file in /tmp
+function create_tempfile {
+    local tmp_ptrn="/tmp/$(basename "${0}").${$}"
+    if type mktemp &> /dev/null; then
+        mktemp 2> /dev/null || \
+            mktemp -t raspbian-ua-netinst 2> /dev/null || \
+            touch_tempfile "${tmp_ptrn}"
+    else
+        if type tempfile &> /dev/null; then
+            tempfile
+        else
+            touch_tempfile "${tmp_ptrn}"
+        fi
+    fi
+}
 
 if [ ! -d packages ]; then
     . ./update.sh
@@ -77,7 +101,7 @@ mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
 cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
 # calculate module dependencies
-depmod_file=$(tempfile)
+depmod_file=$(create_tempfile)
 /sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
 
 modules=(${INSTALL_MODULES})
