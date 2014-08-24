@@ -57,20 +57,18 @@ function touch_tempfile {
 # creates a temporary file and returns (echos) its filename
 #   the function checks for different commands and uses the appropriate one
 #   it will fallback to creating a file in /tmp
-#     TODO: check environment variables and use different dir if needed
 function create_tempfile {
-    if ! type tempfile &> /dev/null; then
-        if ! type mktemp &> /dev/null; then
-            touch_tempfile "/tmp/${0}.${$}"
-        else
-            if [[ $(mktemp --version 2> /dev/null | grep -c GNU) -gt 0 ]]; then
-                mktemp
-            else
-                mktemp -t raspbian-ua-netinst
-            fi
-        fi
+    local tmp_ptrn="/tmp/${0}.${$}"
+    if type mktemp &> /dev/null; then
+        mktemp 2> /dev/null || \
+            mktemp -t raspbian-ua-netinst 2> /dev/null || \
+            touch_tempfile "${tmp_ptrn}"
     else
-        tempfile
+        if type tempfile &> /dev/null; then
+            tempfile
+        else
+            touch_tempfile "${tmp_ptrn}"
+        fi
     fi
 }
 
