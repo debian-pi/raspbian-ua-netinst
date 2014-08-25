@@ -5,6 +5,7 @@ LOGFILE=/tmp/raspbian-ua-netinst.log
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
+apt_sources=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
@@ -312,15 +313,6 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             ;;
     esac
 
-    # add extra packages
-    if [ "$packages" != "" ]; then
-        if [ "$preset" = "base" ]; then
-            cdebootstrap_cmdline="$cdebootstrap_cmdline --include=$packages"
-        else
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,$packages"
-        fi
-    fi
-
 else
     preset=none
 fi
@@ -345,6 +337,7 @@ echo
 echo "Installer configuration:"
 echo "  preset = $preset"
 echo "  packages = $packages"
+echo "  apt_sources = $apt_sources"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
@@ -594,6 +587,14 @@ echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 
+# add custom apt sources to /etc/apt/sources.list.d/raspbian-ua-netinst.list
+if [ "${apt_sources}" != "" ]; then
+    echo -n "Configuring additional apt sources"
+    # just in case
+    mkdir -p /rootfs/etc/apt/sources.list.d
+    echo "${apt_sources}" > /rootfs/etc/apt/sources.list.d/raspbian-ua-netinst.list
+fi
+
 # add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
 # otherwise the one from raspberrypi.org archives get installed which conflicts with 
 # raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
@@ -625,6 +626,12 @@ if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
+fi
+
+# install additional packages
+if [ "${packages}" != "" ]; then
+    echo "Installing additional packages"
+    chroot /rootfs /usr/bin/apt-get -y install "${packages}"
 fi
 
 # add reasonable default modules, works only after kernel is properly installed

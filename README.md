@@ -94,6 +94,7 @@ The format of the file and the current defaults:
 
     preset=server
     packages= # comma separated list of extra packages
+    apt_sources= # newline separated list of apt sources to use ([more info](#apt-sources))
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=wheezy
     hostname=pi
@@ -131,6 +132,19 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
 There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. 
+
+## Apt sources
+
+Using the *apt_sources* configuration option, it is possible to add additional apt sources during installation, in which case the *packages* configuration option can install packages that aren't hosted in the standard raspbian repository (or are part of the non-free tree). The *apt_sources* option can list several additional sources, as long as they are newline separated.
+
+Adding the non-free package repository:
+
+    apt_sources="deb http://mirrordirector.raspbian.org/raspbian wheezy non-free"
+
+Adding both the non-free packages repository as well as the sources for it:
+
+    apt_sources="deb http://mirrordirector.raspbian.org/raspbian wheezy non-free
+    deb-src http://mirrordirector.raspbian.org/raspbian wheezy main contrib non-free"
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
