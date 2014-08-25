@@ -95,6 +95,7 @@ The format of the file and the current defaults:
     preset=server
     packages= # comma separated list of extra packages
     apt_sources= # newline separated list of apt sources to use ([more info](#apt-sources))
+    apt_keys= # space delimited list of gpg key URLs that should be added to the system ([more info](#apt-sources))
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=wheezy
     hostname=pi
@@ -145,6 +146,8 @@ Adding both the non-free packages repository as well as the sources for it:
 
     apt_sources="deb http://mirrordirector.raspbian.org/raspbian wheezy non-free
     deb-src http://mirrordirector.raspbian.org/raspbian wheezy main contrib non-free"
+
+In case additional keys are needed to access repositories listed in *apt_sources*, these can be added through the use of *apt_keys*. The configuration option *apt_keys* accepts a space delimited list of URLs that point to GPG keys. These will in turn be downloaded and added to the installed system through apt-key.
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
