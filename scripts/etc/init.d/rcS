@@ -650,7 +650,7 @@ fi
 # install additional packages
 if [ "${packages}" != "" ]; then
     echo "Installing additional packages"
-    chroot /rootfs /usr/bin/apt-get -y install "${packages}"
+    chroot /rootfs /usr/bin/apt-get -y install $(echo "${packages}" | tr "," " ")
 fi
 
 # add reasonable default modules, works only after kernel is properly installed
