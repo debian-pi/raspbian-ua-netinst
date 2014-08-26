@@ -20,6 +20,9 @@ cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
 timeserver=time.nist.gov
+timezone=Etc/UTC
+locales=
+system_default_locale=
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
@@ -87,6 +90,10 @@ make_boolean()
         echo "Invalid input!" ;;
     esac
 }
+
+# set screen blank period to an hour
+# hopefully the install should be done by then
+echo -en '\033[9;60]'
 
 mkdir -p /proc
 mkdir -p /sys
@@ -384,6 +391,9 @@ echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
+echo "  timezone = $timezone"
+echo "  locales = $locales"
+echo "  system_default_locale = $system_default_locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -620,6 +630,44 @@ echo -n "  Enabling serial console... "
 echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
 echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
 echo "OK"
+
+# set timezone and reconfigure tzdata package
+echo -n "  Configuring tzdata, setting timezone to $timezone... "
+echo "$timezone" > /rootfs/etc/timezone
+chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# generate locale data
+if [ "$locales" != "" ]; then
+    echo -n "  Enabling locales... "
+    for locale in $locales; do
+        if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
+            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
+        else
+            echo -n "$locale NOT found... "
+        fi
+    done
+    echo
+    chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
+    if [ $? -ne 0 ]; then
+        echo "  ERROR while generating locales !"
+    fi
+fi
+
+# set system default locale
+if [ "$system_default_locale" != "" ]; then
+    echo -n "  Setting system default locale... "
+    chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
 
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
