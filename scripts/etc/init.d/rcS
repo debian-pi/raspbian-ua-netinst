@@ -535,7 +535,7 @@ if [ ! -z "$root_ssh_pubkey" ]; then
     fi
 fi
 
-# add system user
+# add user to system
 if [ ! -z "$username" ]; then
     echo -n "  Creating user... "
     groups="$user_groups"
