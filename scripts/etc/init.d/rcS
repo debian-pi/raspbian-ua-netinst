@@ -39,10 +39,6 @@ bootpartition=/dev/mmcblk0p1
 rootdev=/dev/mmcblk0
 rootpartition=
 
-# some additional settings that shouldn't need to be changed
-user_groups="dialout,cdrom,audio,video,plugdev,games,users"
-admin_groups="adm,sudo"
-
 fail()
 {
     echo
@@ -538,11 +534,7 @@ fi
 # add user to system
 if [ ! -z "$username" ]; then
     echo -n "  Creating user... "
-    groups="$user_groups"
-    if [ "$(make_boolean $user_is_admin)" = "true" ]; then
-        groups="$groups,$admin_groups"
-    fi
-    chroot /rootfs /usr/sbin/useradd -s /bin/bash -m -G "$groups" "$username"
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
     if [ $? -eq 0 ]; then
         echo "OK"
         echo -n "  Setting user password... "
@@ -570,6 +562,9 @@ if [ ! -z "$username" ]; then
             else
                 echo "FAILED !"
             fi
+        fi
+        if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
         fi
     else
         echo "FAILED !"
