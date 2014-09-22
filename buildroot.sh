@@ -50,4 +50,10 @@ losetup -D || true
 
 fi
 
-xz -9 $IMG
+{
+  cat $IMG | xz -9 > $IMG.xz
+} || {
+  echo "WARNING: Could not create '$IMG.xz' variant." >&2
+}
+# As a courtesy to OS X users :)
+cat $IMG | bzip2 -9 > $IMG.bz2
