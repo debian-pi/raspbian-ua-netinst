@@ -50,4 +50,7 @@ losetup -D || true
 
 fi
 
-xz -9 $IMG
+if ! xz -9 --keep $IMG ; then
+  # This happens e.g. on Raspberry Pi because xz runs out of memory.
+  echo "WARNING: Could not create '$IMG.xz' variant." >&2
+fi
