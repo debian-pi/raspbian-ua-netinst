@@ -1,5 +1,6 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 set -e
 
 KERNEL_VERSION=3.12-1-rpi
@@ -74,7 +75,7 @@ function create_tempfile {
 }
 
 if [ ! -d packages ]; then
-    . ./update.sh
+    . "$DIR"/update.sh
 fi
 
 rm -rf tmp
