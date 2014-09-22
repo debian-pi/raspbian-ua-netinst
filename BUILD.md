@@ -1,6 +1,8 @@
 raspbian-ua-netinst build instructions
 ======================================
 
+_Note: The following notes are also implemented in `./autobuild.sh`. If you like to use Docker, use `./autobuild-docker.sh` instead._
+
 To create an image yourself, you need to have various packages installed on the host machine.
 On a Debian system those are the following, excluding packages with priority essential and required:
 - git

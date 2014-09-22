@@ -1,6 +1,9 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 set -e
+
+. "$DIR"/curl.fn.sh
 
 KERNEL_VERSION=3.12-1-rpi
 
@@ -45,7 +48,7 @@ download_package_list() {
 
             # Download Packages file
             echo -e "\nDownloading ${package_section} package list..."
-            curl -# -o tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
+            CURL -o tmp${extension} $mirror/dists/$release/$package_section/binary-armhf/Packages${extension}
 
             # Verify the checksum of the Packages file, assuming that the last checksums in the Release file are SHA256 sums
             echo -n "Verifying ${package_section} package list... "
@@ -80,7 +83,7 @@ download_package_lists() {
     mkdir -p gnupg
     chmod 0700 gnupg
     echo "Downloading and importing raspbian.public.key..."
-    curl -# -O https://archive.raspbian.org/raspbian.public.key
+    CURL -O https://archive.raspbian.org/raspbian.public.key
     gpg -q --homedir gnupg --import raspbian.public.key
     echo -n "Verifying raspbian.public.key... "
     if gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
@@ -91,7 +94,7 @@ download_package_lists() {
         exit 1
     fi
     echo -e "\nDownloading and importing raspberrypi.gpg.key..."
-    curl -# -O http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+    CURL -O http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
     gpg -q --homedir gnupg --import raspberrypi.gpg.key
     echo -n "Verifying raspberrypi.gpg.key... "
     if gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
@@ -103,7 +106,7 @@ download_package_lists() {
     fi
 
     echo -e "\nDownloading Release file and its signature..."
-    curl -# -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
+    CURL -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
     echo -n "Verifying Release file... "
     if gpg --homedir gnupg --verify Release.gpg Release &> /dev/null ; then
         echo "OK"
@@ -163,7 +166,7 @@ if ! allfound ; then
 fi
 
 echo -e "\nDownloading packages..."
-curl -# --remote-name-all $packages_debs
+CURL --remote-name-all $packages_debs
 
 echo -n "Verifying downloaded packages... "
 echo -ne "${packages_sha256}" > SHA256SUMS
