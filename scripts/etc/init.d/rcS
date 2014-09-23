@@ -606,7 +606,7 @@ cat <<-EOScript
 	cp --remove-destination "\$boot_dir/vmlinuz-\$version" "\$boot_dir/kernel.img"
 	cp --remove-destination "\$boot_dir/initrd.img-\$version" "\$boot_dir/initrd.img"
 
-    sed -i 's/^kernel=.*$/kernel=kernel.img/;s/^initramfs .*$/initramfs initrd.img followkernel/'
+    sed -i 's/^kernel=.*$/kernel=kernel.img/;s/^initramfs .*$/initramfs initrd.img followkernel/' "$config_file"
 EOScript
 ) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
 if [ $? -eq 0 ]; then
