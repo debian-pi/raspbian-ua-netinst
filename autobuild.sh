@@ -34,7 +34,9 @@ if [ "$(sudo losetup -f)" != '/dev/loop0' ] ; then
     exit 1
 fi
 
-CMD "$DIR"/build.sh  # calls update.sh if needed
+CMD "$DIR"/update.sh
+CMD "$DIR"/issue-80-workaround-busybox-static-1.20.0-7.sh
+CMD "$DIR"/build.sh
 
 CMD sudo "$DIR"/buildroot.sh
 
