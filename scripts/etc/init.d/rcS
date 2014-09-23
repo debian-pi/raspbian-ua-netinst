@@ -634,6 +634,11 @@ fi
 chroot /rootfs /etc/kernel/postinst.d/raspbian-ua-netinst \
  "${KERNEL_VERSION}" "/boot/vmlinuz-${KERNEL_VERSION}"
 
+# make sure there is a /boot/kernel.img present
+if [ ! -f /rootfs/boot/kernel.img ] ; then
+    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/kernel.img
+fi
+
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
 echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/boot/cmdline.txt
