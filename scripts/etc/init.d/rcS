@@ -631,12 +631,24 @@ else
 fi
 
 # run the kernel upgrade handler script
+echo -n "Running the kernel upgrade script... "
 chroot /rootfs /etc/kernel/postinst.d/raspbian-ua-netinst \
  "${KERNEL_VERSION}" "/boot/vmlinuz-${KERNEL_VERSION}"
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
 
 # make sure there is a /boot/kernel.img present
 if [ ! -f /rootfs/boot/kernel.img ] ; then
+    echo -n "Copying kernel to /boot/kernel.img... "
     cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/kernel.img
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
 fi
 
 # default cmdline.txt
