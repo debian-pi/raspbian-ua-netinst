@@ -609,7 +609,7 @@ if [ -f \$config_file ] ; then
     if grep -l 'kernel=' \$config_file >/dev/null ; then
         sed -i "s/kernel=.*/kernel=vmlinuz-\$version/" \$config_file
     else
-        echo "kernel=vmlinuz-\$version" >> \$config_file
+        echo "\nkernel=vmlinuz-\$version" >> \$config_file
     fi
 else
     echo "kernel=vmlinuz-\$version" > \$config_file
