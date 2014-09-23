@@ -10,6 +10,12 @@ release=wheezy
 hostname=pi
 domainname=
 rootpw=raspbian
+root_ssh_pubkey=
+disable_root=
+username=
+userpw=
+user_ssh_pubkey=
+user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
@@ -67,6 +73,18 @@ sanitize_inputfile()
         # convert line endings to unix
         dos2unix $inputfile
     fi
+}
+
+make_boolean()
+{
+    case $1 in
+    [yY] | [yY][eE][sS] | [tT] | [tT][rR][uU][eE])
+        echo "true" ;;
+    [nN] | [nN][oO] | [fF] | [fF][aA][lL][sS][eE])
+        echo "false" ;;
+    *)
+        echo "Invalid input!" ;;
+    esac
 }
 
 # set screen blank period to an hour
@@ -282,6 +300,15 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+# check if we need the sudo package and add it if so
+if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+    if [ -z "$packages" ]; then
+        packages="sudo"
+    else
+        packages="$packages,sudo"
+    fi        
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
@@ -350,6 +377,12 @@ echo "  release = $release"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
+echo "  root_ssh_pubkey = $root_ssh_pubkey"
+echo "  disable_root = $disable_root"
+echo "  username = $username"
+echo "  userpw = $userpw"
+echo "  user_ssh_pubkey = $user_ssh_pubkey"
+echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
@@ -365,6 +398,13 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
+echo
+
+echo -n "Waiting 5 seconds"
+for i in `seq 1 5`; do
+    echo -n "."
+    sleep 1
+done
 echo
 
 echo -n "Waiting for $rootdev... "
@@ -472,9 +512,64 @@ cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror 
 
 # allow root login
 echo "Configuring installed system:"
-echo -n "  Setting root password... "
-echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-echo "OK"
+if [ ! "$(make_boolean $disable_root)" = "true" ]; then
+    echo -n "  Setting root password... "
+    echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
+    echo "OK"
+fi
+
+# add SSH key for root (if provided)
+if [ ! -z "$root_ssh_pubkey" ]; then
+    echo -n "  Setting root SSH key... "
+    mkdir -p /rootfs/root/.ssh && \
+        chmod 700 /rootfs/root/.ssh && \
+        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
+# add user to system
+if [ ! -z "$username" ]; then
+    echo -n "  Creating user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        echo -n "  Setting user password... "
+        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAILED !"
+        fi
+        if [ ! -z "$user_ssh_pubkey" ]; then
+            echo -n "  Setting user SSH key... "
+            ssh_dir="/home/$username/.ssh"
+            mkdir -p "/rootfs$ssh_dir" && \
+                chmod 700 "/rootfs$ssh_dir" && \
+                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
+            if [ $? -eq 0 ]; then
+                echo "OK"
+                echo -n "  Setting owner on SSH key... "
+                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
+                if [ $? -eq 0 ]; then
+                    echo "OK"
+                else
+                    echo "FAILED !"
+                fi
+            else
+                echo "FAILED !"
+            fi
+        fi
+        if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+        fi
+    else
+        echo "FAILED !"
+    fi
+fi
 
 # default mounts
 echo -n "  Configuring /etc/fstab... "
@@ -571,11 +666,17 @@ fi
 
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] ; then
-    echo -n "  Allowing root to login with password... "
-    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-    echo "OK"
+# only do this if no SSH key is provided for root and disabling root isn't requested
+if [ -z "$root_ssh_pubkey" ]; then
+    if [ ! "$(make_boolean $disable_root)" = "true" ]; then
+        if [ "$release" = "jessie" ] ; then
+            echo -n "  Allowing root to login with password... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+    fi
 fi
+
 echo ""
 
 # there is no hw clock on rpi
