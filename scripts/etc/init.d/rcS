@@ -255,6 +255,7 @@ if [ "$date_set" = "false" ] ; then
 fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
+    echo "Make sure that rdate port 37 is not blocked by your firewall."
 fi
 
 # Record the time now that the time is set to a correct value
