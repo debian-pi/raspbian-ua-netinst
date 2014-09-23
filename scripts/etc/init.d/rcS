@@ -537,7 +537,6 @@ echo ""
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
-
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... " 
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
@@ -593,20 +592,33 @@ mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 KERNEL_VERSION=$(sed -n -e '/^Package: linux-image-rpi-rpfv$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi\).*$/\1/p}' /rootfs/var/lib/dpkg/status)
 echo "Kernel version: '${KERNEL_VERSION}'"
 
-if [ -f /rootfs/vmlinuz ] ; then
-  # use latest kernel with initramfs in first boot
-  echo -n "Copying new kernel to installed system... "
-  cp /rootfs/vmlinuz /rootfs/boot/kernel.img
-  echo "OK"
-  echo -n "Specify new initramfs in config.txt... "
-  echo "initramfs initrd.img-${KERNEL_VERSION}" > /rootfs/boot/config.txt
-  echo "OK"
+# create the kernel upgrade handler script
+echo -n "Creating kernel upgrade handler script... "
+(
+cat <<-EOScript
+	#!/bin/sh -e
+
+	version="\$1"
+	boot_dir=\$(dirname "\$2")
+
+	config_file="\$boot_dir/config.txt"
+
+	cp --remove-destination "\$boot_dir/vmlinuz-\$version" "\$boot_dir/kernel.img"
+	cp --remove-destination "\$boot_dir/initrd.img-\$version" "\$boot_dir/initrd.img"
+
+    sed -i 's/^kernel=.*\$/kernel=kernel.img/;s/^initramfs .*\$/initramfs initrd.img followkernel/' "\$config_file"
+EOScript
+) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
+if [ $? -eq 0 ]; then
+    chmod +x /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
+    echo "OK"
 else
-  echo -n "Copying installer kernel to installed system... "
-  # use install kernel in first boot
-  cp /rootfs/boot/kernel_install.img /rootfs/boot/kernel.img || fail
-  echo "OK"
+    echo "FAILED !"
 fi
+
+# run the kernel upgrade handler script
+chroot /rootfs /etc/kernel/postinst.d/raspbian-ua-netinst \
+    "${KERNEL_VERSION}" "/boot/vmlinuz-${KERNEL_VERSION}"
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
