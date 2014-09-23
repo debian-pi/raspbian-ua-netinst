@@ -679,6 +679,8 @@ echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
 echo -n "Unmounting filesystems... "
 # copy logfile to standard log directory
 cp $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
+chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
+
 umount /rootfs/boot
 umount /rootfs
 echo "OK"
