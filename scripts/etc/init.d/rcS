@@ -75,18 +75,6 @@ sanitize_inputfile()
     fi
 }
 
-make_boolean()
-{
-    case $1 in
-    [yY] | [yY][eE][sS] | [tT] | [tT][rR][uU][eE])
-        echo "true" ;;
-    [nN] | [nN][oO] | [fF] | [fF][aA][lL][sS][eE])
-        echo "false" ;;
-    *)
-        echo "Invalid input!" ;;
-    esac
-}
-
 # set screen blank period to an hour
 # hopefully the install should be done by then
 echo -en '\033[9;60]'
@@ -302,7 +290,7 @@ if [ "$online_config" != "" ]; then
 fi
 
 # check if we need the sudo package and add it if so
-if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+if [ "$user_is_admin" = "1" ]; then
     if [ -z "$packages" ]; then
         packages="sudo"
     else
@@ -353,7 +341,7 @@ else
     preset=none
 fi
 
-if [ "$usbroot" != "" ]; then
+if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
     modprobe sd_mod &> /dev/null || fail
@@ -513,7 +501,7 @@ cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror 
 
 # allow root login
 echo "Configuring installed system:"
-if [ ! "$(make_boolean $disable_root)" = "true" ]; then
+if [ ! "$disable_root" = "1" ]; then
     echo -n "  Setting root password... "
     echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
     echo "OK"
@@ -564,7 +552,7 @@ if [ ! -z "$username" ]; then
                 echo "FAILED !"
             fi
         fi
-        if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+        if [ "$user_is_admin" = "1" ]; then
             chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
         fi
     else
@@ -669,7 +657,7 @@ fi
 # this hack does allow it (until a proper solution is implemented)
 # only do this if no SSH key is provided for root and disabling root isn't requested
 if [ -z "$root_ssh_pubkey" ]; then
-    if [ ! "$(make_boolean $disable_root)" = "true" ]; then
+    if [ ! "$disable_root" = "1" ]; then
         if [ "$release" = "jessie" ] ; then
             echo -n "  Allowing root to login with password... "
             sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
