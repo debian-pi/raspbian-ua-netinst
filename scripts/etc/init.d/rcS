@@ -565,7 +565,9 @@ if [ ! -z "$username" ]; then
             fi
         fi
         if [ "$(make_boolean $user_is_admin)" = "true" ]; then
+            echo -n "  Adding $username to sudo group... "
             chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+            echo "OK"
         fi
     else
         echo "FAILED !"
