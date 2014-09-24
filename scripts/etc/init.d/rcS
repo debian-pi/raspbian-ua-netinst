@@ -724,7 +724,7 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
-echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
