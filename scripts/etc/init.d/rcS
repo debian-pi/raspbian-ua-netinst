@@ -641,13 +641,14 @@ fi
 if [ "$locales" != "" ]; then
     echo -n "  Enabling locales... "
     for locale in $locales; do
+        echo -n "$locale... "
         if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
             sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
         else
-            echo -n "$locale NOT found... "
+            echo -n "NOT found... "
         fi
     done
-    echo
+    echo "OK"
     chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
     if [ $? -ne 0 ]; then
         echo "  ERROR while generating locales !"
