@@ -553,7 +553,9 @@ if [ ! -z "$username" ]; then
             fi
         fi
         if [ "$user_is_admin" = "1" ]; then
+            echo -n "  Adding $username to sudo group... "
             chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+            echo "OK"
         fi
     else
         echo "FAILED !"
@@ -629,13 +631,14 @@ fi
 if [ "$locales" != "" ]; then
     echo -n "  Enabling locales... "
     for locale in $locales; do
+        echo -n "$locale... "
         if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
             sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
         else
-            echo -n "$locale NOT found... "
+            echo -n "NOT found... "
         fi
     done
-    echo
+    echo "OK"
     chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
     if [ $? -ne 0 ]; then
         echo "  ERROR while generating locales !"
@@ -709,7 +712,7 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
-echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
