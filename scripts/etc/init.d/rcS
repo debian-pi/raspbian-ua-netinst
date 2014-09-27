@@ -75,6 +75,11 @@ sanitize_inputfile()
     fi
 }
 
+issue_6_workaround_static_time_2014()
+{
+    date -s '2014-09-27 08:00'  # whatever
+}
+
 # set screen blank period to an hour
 # hopefully the install should be done by then
 echo -en '\033[9;60]'
@@ -265,6 +270,9 @@ fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
     echo "Make sure that rdate port 37 is not blocked by your firewall."
+
+    issue_6_workaround_static_time_2014
+    echo "(Workaround for issue 6: date set to `date`)"
 fi
 
 # Record the time now that the time is set to a correct value
