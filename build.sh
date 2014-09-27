@@ -81,9 +81,13 @@ rm -rf tmp
 mkdir tmp
 
 # extract debs
-for i in packages/*.deb; do
-    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
+cd tmp
+for i in ../packages/*.deb; do
+    ar x $i
+    tar -xf data.tar.*
+    rm data.tar.*
 done
+cd -
 
 # initialize bootfs
 rm -rf bootfs
