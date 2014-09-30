@@ -82,7 +82,7 @@ mkdir tmp
 
 # extract debs
 for i in packages/*.deb; do
-    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
+    cd tmp && tar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
 done
 
 # initialize bootfs
