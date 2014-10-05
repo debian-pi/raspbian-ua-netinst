@@ -10,10 +10,19 @@ release=wheezy
 hostname=pi
 domainname=
 rootpw=raspbian
+root_ssh_pubkey=
+disable_root=
+username=
+userpw=
+user_ssh_pubkey=
+user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
 timeserver=time.nist.gov
+timezone=Etc/UTC
+locales=
+system_default_locale=
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
@@ -44,7 +53,7 @@ fail()
     fi
     cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
     sync
-    
+
     # if we mounted /boot in the fail command, unmount it.
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
@@ -64,6 +73,11 @@ sanitize_inputfile()
         # convert line endings to unix
         dos2unix $inputfile
     fi
+}
+
+issue_6_workaround_static_time_2014()
+{
+    date -s '2014-09-27 08:00'  # whatever
 }
 
 # set screen blank period to an hour
@@ -126,7 +140,7 @@ cp /boot/bootcode.bin \
     if ls /boot/raspbian-ua-netinst* > /dev/null 2>&1 ; then
         cp /boot/raspbian-ua-netinst* /bootfs/
     fi
-    
+
 if [ -f /boot/installer-config.txt ]; then
     cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
 fi
@@ -256,11 +270,14 @@ fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
     echo "Make sure that rdate port 37 is not blocked by your firewall."
+
+    issue_6_workaround_static_time_2014
+    echo "(Workaround for issue 6: date set to `date`)"
 fi
 
 # Record the time now that the time is set to a correct value
 STARTTIME=$(date +%s)
-# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the
 # REAL starting time.
 REAL_STARTTIME=$(($STARTTIME - $PRE_NETWORK_DURATION))
 echo ""
@@ -280,6 +297,15 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+# check if we need the sudo package and add it if so
+if [ "$user_is_admin" = "1" ]; then
+    if [ -z "$packages" ]; then
+        packages="sudo"
+    else
+        packages="$packages,sudo"
+    fi
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
@@ -291,7 +317,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
         cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
     fi
 
-    # add latest kernel if rootfstype requires a module. 
+    # add latest kernel if rootfstype requires a module.
     # Changed it so it is always installed.
     # Firmware can't be installed just yet, we'll do so at the end
     if [ "$kernel_module" = true ] ; then
@@ -323,7 +349,7 @@ else
     preset=none
 fi
 
-if [ "$usbroot" != "" ]; then
+if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
     modprobe sd_mod &> /dev/null || fail
@@ -348,10 +374,19 @@ echo "  release = $release"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
+echo "  root_ssh_pubkey = $root_ssh_pubkey"
+echo "  disable_root = $disable_root"
+echo "  username = $username"
+echo "  userpw = $userpw"
+echo "  user_ssh_pubkey = $user_ssh_pubkey"
+echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
+echo "  timezone = $timezone"
+echo "  locales = $locales"
+echo "  system_default_locale = $system_default_locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -360,6 +395,13 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
+echo
+
+echo -n "Waiting 5 seconds"
+for i in `seq 1 5`; do
+    echo -n "."
+    sleep 1
+done
 echo
 
 echo -n "Waiting for $rootdev... "
@@ -467,9 +509,66 @@ cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror 
 
 # allow root login
 echo "Configuring installed system:"
-echo -n "  Setting root password... "
-echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-echo "OK"
+if [ ! "$disable_root" = "1" ]; then
+    echo -n "  Setting root password... "
+    echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
+    echo "OK"
+fi
+
+# add SSH key for root (if provided)
+if [ ! -z "$root_ssh_pubkey" ]; then
+    echo -n "  Setting root SSH key... "
+    mkdir -p /rootfs/root/.ssh && \
+        chmod 700 /rootfs/root/.ssh && \
+        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
+# add user to system
+if [ ! -z "$username" ]; then
+    echo -n "  Creating user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        echo -n "  Setting user password... "
+        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAILED !"
+        fi
+        if [ ! -z "$user_ssh_pubkey" ]; then
+            echo -n "  Setting user SSH key... "
+            ssh_dir="/home/$username/.ssh"
+            mkdir -p "/rootfs$ssh_dir" && \
+                chmod 700 "/rootfs$ssh_dir" && \
+                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
+            if [ $? -eq 0 ]; then
+                echo "OK"
+                echo -n "  Setting owner on SSH key... "
+                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
+                if [ $? -eq 0 ]; then
+                    echo "OK"
+                else
+                    echo "FAILED !"
+                fi
+            else
+                echo "FAILED !"
+            fi
+        fi
+        if [ "$user_is_admin" = "1" ]; then
+            echo -n "  Adding $username to sudo group... "
+            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+            echo "OK"
+        fi
+    else
+        echo "FAILED !"
+    fi
+fi
 
 # default mounts
 echo -n "  Configuring /etc/fstab... "
@@ -485,7 +584,7 @@ echo "OK"
 
 # use ram tmpfs by default
 echo -n "  Configuring tmpfs to use RAM... "
-echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs
 echo "OK"
 
 # default hostname
@@ -526,13 +625,58 @@ echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
 echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
 echo "OK"
 
+# set timezone and reconfigure tzdata package
+echo -n "  Configuring tzdata, setting timezone to $timezone... "
+echo "$timezone" > /rootfs/etc/timezone
+chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# generate locale data
+if [ "$locales" != "" ]; then
+    echo -n "  Enabling locales... "
+    for locale in $locales; do
+        echo -n "$locale... "
+        if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
+            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
+        else
+            echo -n "NOT found... "
+        fi
+    done
+    echo "OK"
+    chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
+    if [ $? -ne 0 ]; then
+        echo "  ERROR while generating locales !"
+    fi
+fi
+
+# set system default locale
+if [ "$system_default_locale" != "" ]; then
+    echo -n "  Setting system default locale... "
+    chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] ; then
-    echo -n "  Allowing root to login with password... "
-    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-    echo "OK"
+# only do this if no SSH key is provided for root and disabling root isn't requested
+if [ -z "$root_ssh_pubkey" ]; then
+    if [ ! "$disable_root" = "1" ]; then
+        if [ "$release" = "jessie" ] ; then
+            echo -n "  Allowing root to login with password... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+    fi
 fi
+
 echo ""
 
 # there is no hw clock on rpi
@@ -540,7 +684,7 @@ echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
-echo -n "Removing cdebootstrap-helper-rc.d... " 
+echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
@@ -552,7 +696,7 @@ cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key ad
 echo "OK"
 
 # add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
+# otherwise the one from raspberrypi.org archives get installed which conflicts with
 # raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
 echo -n "Creating preferences file for libraspberrypi-bin... "
 echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
@@ -576,7 +720,7 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
-echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
