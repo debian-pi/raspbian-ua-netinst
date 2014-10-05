@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 KERNEL_VERSION=3.12-1-rpi
 
 mirror=http://archive.raspbian.org/raspbian/
