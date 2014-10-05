@@ -53,7 +53,7 @@ fail()
     fi
     cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
     sync
-    
+
     # if we mounted /boot in the fail command, unmount it.
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
@@ -135,7 +135,7 @@ cp /boot/bootcode.bin \
     if ls /boot/raspbian-ua-netinst* > /dev/null 2>&1 ; then
         cp /boot/raspbian-ua-netinst* /bootfs/
     fi
-    
+
 if [ -f /boot/installer-config.txt ]; then
     cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
 fi
@@ -269,7 +269,7 @@ fi
 
 # Record the time now that the time is set to a correct value
 STARTTIME=$(date +%s)
-# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the
 # REAL starting time.
 REAL_STARTTIME=$(($STARTTIME - $PRE_NETWORK_DURATION))
 echo ""
@@ -295,7 +295,7 @@ if [ "$user_is_admin" = "1" ]; then
         packages="sudo"
     else
         packages="$packages,sudo"
-    fi        
+    fi
 fi
 
 # configure different kinds of presets
@@ -309,7 +309,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
         cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
     fi
 
-    # add latest kernel if rootfstype requires a module. 
+    # add latest kernel if rootfstype requires a module.
     # Changed it so it is always installed.
     # Firmware can't be installed just yet, we'll do so at the end
     if [ "$kernel_module" = true ] ; then
@@ -576,7 +576,7 @@ echo "OK"
 
 # use ram tmpfs by default
 echo -n "  Configuring tmpfs to use RAM... "
-echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs
 echo "OK"
 
 # default hostname
@@ -676,7 +676,7 @@ echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
-echo -n "Removing cdebootstrap-helper-rc.d... " 
+echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
@@ -688,7 +688,7 @@ cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key ad
 echo "OK"
 
 # add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
+# otherwise the one from raspberrypi.org archives get installed which conflicts with
 # raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
 echo -n "Creating preferences file for libraspberrypi-bin... "
 echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
