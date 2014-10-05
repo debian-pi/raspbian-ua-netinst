@@ -30,23 +30,23 @@ fi
 
 if [ "$losetup_lt_2_22" = "true" ] ; then
 
-kpartx -as $IMG
-mkfs.vfat /dev/mapper/loop0p1
-mount /dev/mapper/loop0p1 /mnt
-cp bootfs/* /mnt/
-umount /mnt
-kpartx -d $IMG || true
+  kpartx -as $IMG
+  mkfs.vfat /dev/mapper/loop0p1
+  mount /dev/mapper/loop0p1 /mnt
+  cp bootfs/* /mnt/
+  umount /mnt
+  kpartx -d $IMG || true
 
 else
 
-losetup -D
+  losetup -D
 
-losetup -P /dev/loop0 $IMG
-mkfs.vfat /dev/loop0p1
-mount /dev/loop0p1 /mnt
-cp bootfs/* /mnt/
-umount /mnt
-losetup -D || true
+  losetup -P /dev/loop0 $IMG
+  mkfs.vfat /dev/loop0p1
+  mount /dev/loop0p1 /mnt
+  cp bootfs/* /mnt/
+  umount /mnt
+  losetup -D || true
 
 fi
 
