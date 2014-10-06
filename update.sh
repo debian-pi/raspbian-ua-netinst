@@ -78,7 +78,7 @@ download_package_lists() {
     mkdir -p gnupg
     chmod 0700 gnupg
     echo "Downloading and importing raspbian.public.key..."
-    curl -# -O https://archive.raspbian.org/raspbian.public.key
+    curl -# -O http://archive.raspbian.org/raspbian.public.key
     gpg -q --homedir gnupg --import raspbian.public.key
     echo -n "Verifying raspbian.public.key... "
     if gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
