@@ -1,6 +1,6 @@
 # raspbian-ua-netinst
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model B and Model B+.  
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model B and Model B+.
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -55,8 +55,8 @@ If you don't have a display attached you can monitor the Ethernet card leds to g
 If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
 
 ### Logging
-The output of the installation process is now also logged to file.  
-When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
+The output of the installation process is now also logged to file.
+When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.
 When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
 
 ## First boot
@@ -64,15 +64,15 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 
 The default **root** password is **raspbian**.
 
-> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales` (can also be configured during installation using **locales** and **system_default_locale** in [installer-config.txt](#installer-customization))  
-> Configure your timezone: `dpkg-reconfigure tzdata` (can also be set during installation using **timezone** in [installer-config.txt](#installer-customization)  
+> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))
+> Configure your default locale: `dpkg-reconfigure locales` (can also be configured during installation using **locales** and **system_default_locale** in [installer-config.txt](#installer-customization))
+> Configure your timezone: `dpkg-reconfigure tzdata` (can also be set during installation using **timezone** in [installer-config.txt](#installer-customization)
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
 When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
 
-> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
+> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.
 > Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.
 
 ## Reinstalling or replacing an existing system
@@ -84,10 +84,10 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file _installer-config.txt_ from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
+While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
 See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh').
 
-Easiest way to do this is to first _xzcat_ the image to your SD card and then mount the first partition to add your configuration file.
+If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
 
 The format of the file and the current defaults:
 
@@ -124,9 +124,9 @@ The format of the file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-All of the configuration options should be clear. You can override any of these in your _installer-config.txt_.  
-The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
-**Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.  
+All of the configuration options should be clear. You can override any of these in your _installer-config.txt_.
+The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.
+**Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.
 All non-provided options will use the defaults as mentioned above.
 
 Available presets: _server_, _minimal_ and _base_.
@@ -135,7 +135,7 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
-There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. 
+There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically. (Remember that stuff goes under `/rootfs`.)
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
