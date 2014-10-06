@@ -135,7 +135,7 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
-There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically.
+There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically. (Remember that stuff goes under `/rootfs`.)
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
