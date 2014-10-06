@@ -84,10 +84,10 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file _installer-config.txt_ from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
+While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
 See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh').
 
-Easiest way to do this is to first _xzcat_ the image to your SD card and then mount the first partition to add your configuration file.
+If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
 
 The format of the file and the current defaults:
 
@@ -126,7 +126,7 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
-There's also a post-install script support which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. The script should reside in the first vfat partition and have a name of _post-install.txt_. 
+There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically.
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
