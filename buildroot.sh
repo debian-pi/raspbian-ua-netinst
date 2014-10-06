@@ -5,6 +5,7 @@ set -e
 IMG=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.img
 
 rm -f $IMG
+rm -f $IMG.bz2
 rm -f $IMG.xz
 
 dd if=/dev/zero of=$IMG bs=1M count=32
@@ -54,3 +55,5 @@ if ! xz -9 --keep $IMG ; then
   # This happens e.g. on Raspberry Pi because xz runs out of memory.
   echo "WARNING: Could not create '$IMG.xz' variant." >&2
 fi
+
+cat $IMG | bzip2 -9 > $IMG.bz2
