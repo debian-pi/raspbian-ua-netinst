@@ -135,6 +135,10 @@ if [ -f /boot/post-install.txt ]; then
     cp /boot/post-install.txt /bootfs/post-install.txt || fail
 fi
 
+if [ -d /boot/config ] ; then
+    cp -r /boot/config /bootfs/ || fail
+fi
+
 # if installation aborts it will restart
 cp /boot/config.txt /bootfs/config.txt || fail
 
@@ -451,7 +455,7 @@ mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
 echo -n "Copying /boot files in... "
-cp /bootfs/* /rootfs/boot || fail
+cp -r /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
