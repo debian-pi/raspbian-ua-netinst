@@ -39,9 +39,9 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 ## Alternative method for Mac, writing image to SD card
 Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
-Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .bz2 file.
+Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .img.bz2 file.
 
-Extract the .img file from the archive with `bunzip2 raspbian-ua-netinst-<latest-version-number>.bz2`.  
+Extract the .img file from the archive with `bunzip2 raspbian-ua-netinst-<latest-version-number>.img.bz2`.  
 Find the _/dev/diskX_ device you want to write to using `diskutil list`. It will probably be 1 or 2.  
 
 To flash your SD card on Mac:
