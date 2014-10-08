@@ -723,6 +723,13 @@ do
     fi
 done
 # iterate through all the *.key files and add them to apt-key
+for keyfile in $(ls *.key)
+do
+    echo -n "  Adding key $keyfile to apt... "
+    cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
+    echo "OK"
+done
+
 cd $old_dir
 
 
