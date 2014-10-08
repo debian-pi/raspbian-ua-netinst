@@ -692,6 +692,7 @@ echo "OK"
 echo -n "  Replacing __RELEASE__ with $release... "
 sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
 echo "OK"
+echo -n "  Adding raspberrypi.org gpg key to apt-key... "
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 
