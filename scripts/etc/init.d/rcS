@@ -698,7 +698,7 @@ cd /rootfs/boot/config/apt/
 for listfile in $(ls *.list)
 do
     if [ $listfile != "sources.list" ] ; then
-        echo -n "  Copying $listfile to sources.list.d/... "
+        echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
         cp $listfile /rootfs/etc/apt/sources.list.d/
         echo "OK"
 
