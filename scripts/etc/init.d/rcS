@@ -685,10 +685,13 @@ chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
 # add firmware to default apt sources
-echo -n "Configuring apt... "
+echo "Configuring apt:"
+echo -n "  Copying raspbian repo to sources.list... "
 cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
+echo "OK"
+echo -n "  Replacing __RELEASE__ with $release... "
 sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
-echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
+echo "OK"
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
 
