@@ -714,18 +714,21 @@ do
     fi
 done
 # iterate through all the *.pref files and add them to /etc/apt/preferences.d
+for preffile in $(ls *.pref)
+do
+    echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+    cp $preffile /rootfs/etc/apt/preferences.d/
+    echo "OK"
+
+    if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
+        echo -n "  Replacing __RELEASE__ with $release in $preffile... "
+        sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
+        echo "OK"
+    fi
+done
 # iterate through all the *.key files and add them to apt-key
 cd $old_dir
 
-
-# add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
-# raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
-echo -n "Creating preferences file for libraspberrypi-bin... "
-echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin: release o=Raspbian,n=$release" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin-Priority: 800" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "OK"
 
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
