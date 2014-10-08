@@ -682,7 +682,8 @@ echo "OK"
 
 # add firmware to default apt sources
 echo -n "Configuring apt... "
-echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
+cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
+sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
 echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
