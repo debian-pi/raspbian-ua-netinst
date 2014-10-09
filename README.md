@@ -32,14 +32,14 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
 ## Obtaining installer files on Windows and Mac
 Installer archive is around **9MB** and contains all firmware files and the installer.
 
-Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .zip file.
+Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
 Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
 
 ## Alternative method for Mac, writing image to SD card
 Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
-Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .img.bz2 file.
+Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
 Extract the .img file from the archive with `bunzip2 raspbian-ua-netinst-<latest-version-number>.img.bz2`.  
 Find the _/dev/diskX_ device you want to write to using `diskutil list`. It will probably be 1 or 2.  
@@ -55,7 +55,7 @@ _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up 
 ## SD card image for Linux
 Prebuilt image is around **6MB** xz compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
-Go to https://github.com/debian-pi/raspbian-ua-netinst/releases/latest and download the .img.xz file.
+Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
 To flash your SD card on Linux:
 
