@@ -95,9 +95,14 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 
 # initialize rootfs
 rm -rf rootfs
+# create all the directories needed to copy the various components into place
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
 mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
+mkdir -p rootfs/sbin/
+mkdir -p rootfs/usr/bin/
+mkdir -p rootfs/usr/share/
+mkdir -p rootfs/usr/share/keyrings/
 cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
 # calculate module dependencies
@@ -136,6 +141,7 @@ cp -r scripts/* rootfs/
 sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
 sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
 
+
 # install busybox
 cp tmp/bin/busybox rootfs/bin
 cd rootfs && ln -s bin/busybox init; cd ..
@@ -148,13 +154,10 @@ cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
 cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
 
 # install cdebootstrap
-mkdir -p rootfs/usr/share/
-mkdir -p rootfs/usr/bin/
 cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
 cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
 
 # install raspbian-archive-keyring (for cdebootstrap)
-mkdir -p rootfs/usr/share/keyrings/
 cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
 
 # install gpgv (for cdebootstrap)
@@ -174,7 +177,6 @@ cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
 cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 
 # filesystem utils
-mkdir -p rootfs/sbin/
 cp tmp/sbin/mkfs.vfat rootfs/sbin/
 cp tmp/sbin/mkfs.ext4 rootfs/sbin/
 cp tmp/sbin/mkfs.f2fs rootfs/sbin/
