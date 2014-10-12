@@ -251,7 +251,7 @@ if [ "$date_set" = "false" ] ; then
     timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
     for ts in $timeservers
     do
-        rdate $ts &>/dev/null
+        ntpd -q -p $ts &>/dev/null
         if [ $? -eq 0 ]; then
             echo -n "Time set using timeserver '$ts' to... "
             date
@@ -264,7 +264,6 @@ if [ "$date_set" = "false" ] ; then
 fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
-    echo "Make sure that rdate port 37 is not blocked by your firewall."
 fi
 
 # Record the time now that the time is set to a correct value
@@ -510,8 +509,8 @@ fi
 # add SSH key for root (if provided)
 if [ ! -z "$root_ssh_pubkey" ]; then
     echo -n "  Setting root SSH key... "
-    mkdir -p /rootfs/root/.ssh && \
-        chmod 700 /rootfs/root/.ssh && \
+    umask 0077 && \
+        mkdir -p /rootfs/root/.ssh && \
         echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
     if [ $? -eq 0 ]; then
         echo "OK"
@@ -536,8 +535,8 @@ if [ ! -z "$username" ]; then
         if [ ! -z "$user_ssh_pubkey" ]; then
             echo -n "  Setting user SSH key... "
             ssh_dir="/home/$username/.ssh"
-            mkdir -p "/rootfs$ssh_dir" && \
-                chmod 700 "/rootfs$ssh_dir" && \
+            umask 0077 && \
+                mkdir -p "/rootfs$ssh_dir" && \
                 echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
             if [ $? -eq 0 ]; then
                 echo "OK"
