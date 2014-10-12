@@ -509,8 +509,8 @@ fi
 # add SSH key for root (if provided)
 if [ ! -z "$root_ssh_pubkey" ]; then
     echo -n "  Setting root SSH key... "
-    mkdir -p /rootfs/root/.ssh && \
-        chmod 700 /rootfs/root/.ssh && \
+    umask 0077 && \
+        mkdir -p /rootfs/root/.ssh && \
         echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
     if [ $? -eq 0 ]; then
         echo "OK"
@@ -535,8 +535,8 @@ if [ ! -z "$username" ]; then
         if [ ! -z "$user_ssh_pubkey" ]; then
             echo -n "  Setting user SSH key... "
             ssh_dir="/home/$username/.ssh"
-            mkdir -p "/rootfs$ssh_dir" && \
-                chmod 700 "/rootfs$ssh_dir" && \
+            umask 0077 && \
+                mkdir -p "/rootfs$ssh_dir" && \
                 echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
             if [ $? -eq 0 ]; then
                 echo "OK"
