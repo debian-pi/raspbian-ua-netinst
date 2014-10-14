@@ -6,6 +6,8 @@ mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
 # programs
+packages="$packages raspberrypi-bootloader-nokernel"
+packages="$packages linux-image-${KERNEL_VERSION}"
 packages="$packages btrfs-tools"
 packages="$packages busybox-static"
 packages="$packages cdebootstrap-static"
@@ -14,8 +16,6 @@ packages="$packages e2fslibs"
 packages="$packages e2fsprogs"
 packages="$packages f2fs-tools"
 packages="$packages gpgv"
-packages="$packages linux-image-${KERNEL_VERSION}"
-packages="$packages raspberrypi-bootloader-nokernel"
 packages="$packages raspbian-archive-keyring"
 
 # libraries
