@@ -34,7 +34,9 @@ Installer archive is around **9MB** and contains all firmware files and the inst
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
-Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
+Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.  
+_Note: If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
+Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/_
 
 ## Alternative method for Mac, writing image to SD card
 Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
