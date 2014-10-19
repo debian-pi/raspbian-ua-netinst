@@ -35,8 +35,8 @@ Installer archive is around **9MB** and contains all firmware files and the inst
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
 Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.  
-_Note: If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
-Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/_
+**Note:** If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
+Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
 Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
@@ -72,7 +72,7 @@ If you don't have a display attached you can monitor the Ethernet card leds to g
 
 If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
 
-_Note: During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless._
+**Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
 
 ### Logging
 The output of the installation process is now also logged to file.  
