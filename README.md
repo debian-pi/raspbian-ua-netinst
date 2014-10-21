@@ -34,7 +34,9 @@ Installer archive is around **9MB** and contains all firmware files and the inst
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
-Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.
+Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installer files in.  
+**Note:** If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
+Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
 Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
@@ -69,6 +71,8 @@ In normal circumstances, you can just power on your Pi and cross your fingers.
 If you don't have a display attached you can monitor the Ethernet card leds to guess activity. When it finally reboots after installing everything you will see them going out and on a few times when Raspbian configures it on boot.
 
 If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
+
+**Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
 
 ### Logging
 The output of the installation process is now also logged to file.  
@@ -121,8 +125,8 @@ The format of the file and the current defaults:
     user_ssh_pubkey= # public SSH key for created user; the public SSH key must be on a single line, enclosed in quotes
     user_is_admin= # set to 1 to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
-    bootsize=+50M # /boot partition size as given to fdisk
-    rootsize=     # / partition size in megabytes, leave empty to use all free space
+    bootsize=+50M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
+    rootsize=     # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
     timeserver=time.nist.gov
     timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
     locales=  # a space delimited list of locales that will be generated during install (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
