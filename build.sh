@@ -88,6 +88,8 @@ done
 # initialize bootfs
 rm -rf bootfs
 mkdir -p bootfs
+
+# raspberrypi-bootloader-nokernel components and kernel
 cp tmp/boot/* bootfs/
 rm bootfs/System*
 rm bootfs/config-*
@@ -95,9 +97,16 @@ mv bootfs/vmlinuz* bootfs/kernel_install.img
 
 # initialize rootfs
 rm -rf rootfs
+mkdir -p rootfs
+# create all the directories needed to copy the various components into place
 mkdir -p rootfs/bin/
 mkdir -p rootfs/lib/
 mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
+mkdir -p rootfs/sbin/
+mkdir -p rootfs/usr/bin/
+mkdir -p rootfs/usr/share/
+mkdir -p rootfs/usr/share/keyrings/
+
 cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
 # calculate module dependencies
@@ -132,59 +141,74 @@ done
 # install scripts
 cp -r scripts/* rootfs/
 
-# update version
+# update version and date
 sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
 sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
 
-# install busybox
+
+# btrfs-tools components
+cp tmp/sbin/mkfs.btrfs rootfs/sbin/
+cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
+
+# busybox-static components
 cp tmp/bin/busybox rootfs/bin
 cd rootfs && ln -s bin/busybox init; cd ..
 
-# install libc6 (for DNS and filesystem utils)
+# cdebootstrap-static components
+cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
+cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+
+# dosfstools components
+cp tmp/sbin/mkfs.vfat rootfs/sbin/
+
+# e2fslibs components
+cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
+cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
+
+# e2fsprogs components
+cp tmp/sbin/mkfs.ext4 rootfs/sbin/
+
+# f2fs-tools components
+cp tmp/sbin/mkfs.f2fs rootfs/sbin/
+cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
+
+# gpgv components
+cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+# raspberrypi.org GPG key 
+cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
+
+# raspbian-archive-keyring components
+cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+# libblkid1 components
+cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
+
+# libbz2-1.0 components
+cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
+
+# libc6 components
 cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
 cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
+cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
 cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
 cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
 cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
 
-# install cdebootstrap
-mkdir -p rootfs/usr/share/
-mkdir -p rootfs/usr/bin/
-cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
-cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
-
-# install raspbian-archive-keyring (for cdebootstrap)
-mkdir -p rootfs/usr/share/keyrings/
-cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
-
-# install gpgv (for cdebootstrap)
-cp tmp/usr/bin/gpgv rootfs/usr/bin/
-
-# install raspberrypi.org GPG key (for apt-key add)
-cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
-
-# install libbz2-1.0 (for gpgv)
-cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
-
-# libs for mkfs
+# libcomerr2 components
 cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
-cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
-cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
-cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
+
+# libgcc1 components
 cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 
-# filesystem utils
-mkdir -p rootfs/sbin/
-cp tmp/sbin/mkfs.vfat rootfs/sbin/
-cp tmp/sbin/mkfs.ext4 rootfs/sbin/
-cp tmp/sbin/mkfs.f2fs rootfs/sbin/
-cp tmp/sbin/mkfs.btrfs rootfs/sbin/
-cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
-cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
-cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
-cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
-cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
+# liblzo2-2 components
 cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
+
+# libuuid1 components
+cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
+
+# zlib1g components
+cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
 
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..
