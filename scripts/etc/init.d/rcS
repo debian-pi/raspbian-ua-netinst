@@ -680,56 +680,85 @@ echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
-# add firmware to default apt sources
+# copy apt's sources.list to the target system
 echo "Configuring apt:"
 echo -n "  Copying raspbian repo to sources.list... "
 cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
 echo "OK"
 echo -n "  Replacing __RELEASE__ with $release... "
 sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
-echo "OK"
-echo -n "  Adding raspberrypi.org gpg key to apt-key... "
-cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
-echo "OK"
+# if __RELEASE__ is still present, something went wrong
+if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list >/dev/null ; then
+    echo "FAILED"
+else
+    echo "OK"
+fi
 
+echo "  Adding raspberrypi.org gpg key to apt-key."
+cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+
+# save the current location so that we can go back to it later on
 old_dir=$(pwd)
 cd /rootfs/boot/config/apt/
+
 # iterate through all the *.list files and add them to /etc/apt/sources.list.d
 for listfile in $(ls *.list)
 do
     if [ $listfile != "sources.list" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
         cp $listfile /rootfs/etc/apt/sources.list.d/
-        echo "OK"
+        # verify the file is indeed present in its target location
+        if [ -f /rootfs/etc/apt/sources.list.d/$listfile ] ; then
+            echo "OK"
+        else
+            echo "FAILED"
+        fi
 
         if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
             echo -n "  Replacing __RELEASE__ with $release in $listfile... "
             sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list.d/$listfile
-            echo "OK"
+            # if __RELEASE__ is still present, something went wrong
+            if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+                echo "FAILED"
+            else
+                echo "OK"
+            fi
         fi
     fi
 done
+
 # iterate through all the *.pref files and add them to /etc/apt/preferences.d
 for preffile in $(ls *.pref)
 do
     echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
     cp $preffile /rootfs/etc/apt/preferences.d/
-    echo "OK"
+    # verify the file is indeed present in its target location
+    if [ -f /rootfs/etc/apt/preferences.d/$listfile ] ; then
+        echo "OK"
+    else
+        echo "FAILED"
+    fi
 
     if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
         echo -n "  Replacing __RELEASE__ with $release in $preffile... "
         sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
-        echo "OK"
+        # if __RELEASE__ is still present, something went wrong
+        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+            echo "FAILED"
+        else
+            echo "OK"
+        fi
     fi
 done
+
 # iterate through all the *.key files and add them to apt-key
 for keyfile in $(ls *.key)
 do
-    echo -n "  Adding key $keyfile to apt... "
+    echo "  Adding key $keyfile to apt."
     cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
-    echo "OK"
 done
 
+# return to the old location for the rest of the processing
 cd $old_dir
 
 
