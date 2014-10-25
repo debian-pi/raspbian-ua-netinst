@@ -5,6 +5,8 @@ LOGFILE=/tmp/raspbian-ua-netinst.log
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
+apt_sources=
+apt_keys=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
@@ -328,15 +330,6 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             ;;
     esac
 
-    # add extra packages
-    if [ "$packages" != "" ]; then
-        if [ "$preset" = "base" ]; then
-            cdebootstrap_cmdline="$cdebootstrap_cmdline --include=$packages"
-        else
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,$packages"
-        fi
-    fi
-
 else
     preset=none
 fi
@@ -361,6 +354,8 @@ echo
 echo "Installer configuration:"
 echo "  preset = $preset"
 echo "  packages = $packages"
+echo "  apt_sources = $apt_sources"
+echo "  apt_keys = $apt_keys"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
@@ -680,12 +675,37 @@ echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
+# add GPG keys to installed system
+if [ "${apt_keys}" != "" ]; then
+    echo -n "Installing GPG keys... "
+    failed=no
+    for URL in ${apt_keys}; do
+        wget -qO - ${URL} | chroot /rootfs /usr/bin/apt-key add - &> /dev/null
+        if [ $? -ne 0 ]; then
+            echo "  Failed adding ${URL}"
+            failed=yes
+        fi
+    done
+    if [ "${failed}" == "no" ]; then
+        echo "OK"
+    fi
+fi
+
 # add firmware to default apt sources
 echo -n "Configuring apt... "
 echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
 echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
 echo "OK"
+
+# add custom apt sources to /etc/apt/sources.list.d/raspbian-ua-netinst.list
+if [ "${apt_sources}" != "" ]; then
+    echo -n "Configuring additional apt sources"
+    # just in case
+    mkdir -p /rootfs/etc/apt/sources.list.d
+    echo "${apt_sources}" > /rootfs/etc/apt/sources.list.d/raspbian-ua-netinst.list
+    echo "OK"
+fi
 
 # add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
 # otherwise the one from raspberrypi.org archives get installed which conflicts with 
@@ -718,6 +738,12 @@ if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
+fi
+
+# install additional packages
+if [ "${packages}" != "" ]; then
+    echo "Installing additional packages"
+    chroot /rootfs /usr/bin/apt-get -y install $(echo "${packages}" | tr "," " ")
 fi
 
 # add reasonable default modules, works only after kernel is properly installed
