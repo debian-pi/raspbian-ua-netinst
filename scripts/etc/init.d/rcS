@@ -24,8 +24,9 @@ ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
 usbroot=
-cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=noop"
 rootfstype=ext4
+rootfs_mkfs_options="-E stride=2,stripe-width=1024 -b 4096"
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
