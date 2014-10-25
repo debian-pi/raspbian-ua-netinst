@@ -15,6 +15,7 @@ rootpw=raspbian
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
+rootoffset=$(( 64 * 1024 * (1024/512) ))
 timeserver=time.nist.gov
 ip_addr=dhcp
 ip_netmask=0.0.0.0
@@ -344,7 +345,9 @@ echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
+echo "  bootoffset = $bootoffset"
 echo "  rootsize = $rootsize"
+echo "  rootoffset = $rootoffset"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
@@ -377,18 +380,19 @@ done
 if [ "$rootdev" = "$bootdev" ]; then
     echo -n "Applying new partition table... "
     dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null <<EOF
+    fdisk $bootdev <<EOF
+u
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
 n
 p
 2
-
+$rootoffset
 $rootsize
 w
 EOF
@@ -400,7 +404,7 @@ else
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
@@ -414,7 +418,7 @@ EOF
 n
 p
 1
-
+$rootoffset
 $rootsize
 w
 EOF
