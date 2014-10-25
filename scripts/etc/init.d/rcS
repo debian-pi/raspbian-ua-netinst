@@ -422,6 +422,8 @@ EOF
 
 fi
 
+fdisk -l
+
 echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
