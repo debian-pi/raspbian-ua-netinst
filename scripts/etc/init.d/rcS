@@ -234,14 +234,6 @@ date_set=false
 if [ "$date_set" = "false" ] ; then
     # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
     timeservers=$timeserver
-    timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
-    timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
-    timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
-    timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
-    timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
-    timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
-    timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
-    timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
     for ts in $timeservers
     do
         rdate $ts &>/dev/null
