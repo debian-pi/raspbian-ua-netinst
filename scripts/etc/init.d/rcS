@@ -1,4 +1,6 @@
 #!/bin/busybox sh
+#
+set -x
 
 LOGFILE=/tmp/raspbian-ua-netinst.log
 
