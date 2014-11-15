@@ -702,7 +702,7 @@ old_dir=$(pwd)
 cd /rootfs/boot/config/apt/
 
 # iterate through all the *.list files and add them to /etc/apt/sources.list.d
-for listfile in $(ls *.list)
+for listfile in *.list
 do
     if [ $listfile != "sources.list" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
@@ -728,7 +728,7 @@ do
 done
 
 # iterate through all the *.pref files and add them to /etc/apt/preferences.d
-for preffile in $(ls *.pref)
+for preffile in *.pref
 do
     echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
     cp $preffile /rootfs/etc/apt/preferences.d/
@@ -752,7 +752,7 @@ do
 done
 
 # iterate through all the *.key files and add them to apt-key
-for keyfile in $(ls *.key)
+for keyfile in *.key
 do
     echo "  Adding key $keyfile to apt."
     cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
