@@ -680,21 +680,85 @@ echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
-# add firmware to default apt sources
-echo -n "Configuring apt... "
-echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
-echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
-cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+# copy apt's sources.list to the target system
+echo "Configuring apt:"
+echo -n "  Copying raspbian repo to sources.list... "
+cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
 echo "OK"
+echo -n "  Replacing __RELEASE__ with $release... "
+sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
+# if __RELEASE__ is still present, something went wrong
+if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list >/dev/null ; then
+    echo "FAILED"
+else
+    echo "OK"
+fi
 
-# add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
-# raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
-echo -n "Creating preferences file for libraspberrypi-bin... "
-echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin: release o=Raspbian,n=$release" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin-Priority: 800" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "OK"
+echo "  Adding raspberrypi.org gpg key to apt-key."
+cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/apt/
+
+# iterate through all the *.list files and add them to /etc/apt/sources.list.d
+for listfile in *.list
+do
+    if [ $listfile != "sources.list" ] ; then
+        echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
+        cp $listfile /rootfs/etc/apt/sources.list.d/
+        if [ $? -eq ] ; then
+            echo "OK"
+        else
+            echo "FAILED"
+        fi
+
+        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+            echo -n "  Replacing __RELEASE__ with $release in $listfile... "
+            sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list.d/$listfile
+            # if __RELEASE__ is still present, something went wrong
+            if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+                echo "FAILED"
+            else
+                echo "OK"
+            fi
+        fi
+    fi
+done
+
+# iterate through all the *.pref files and add them to /etc/apt/preferences.d
+for preffile in *.pref
+do
+    echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+    cp $preffile /rootfs/etc/apt/preferences.d/
+    if [ $? -eq 0 ] ; then
+        echo "OK"
+    else
+        echo "FAILED"
+    fi
+
+    if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
+        echo -n "  Replacing __RELEASE__ with $release in $preffile... "
+        sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
+        # if __RELEASE__ is still present, something went wrong
+        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+            echo "FAILED"
+        else
+            echo "OK"
+        fi
+    fi
+done
+
+# iterate through all the *.key files and add them to apt-key
+for keyfile in *.key
+do
+    echo "  Adding key $keyfile to apt."
+    cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir
+
 
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
