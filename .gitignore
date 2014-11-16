@@ -2,5 +2,6 @@
 /packages/
 /installer.cpio*
 /raspbian-ua-netinst-*.zip
+/raspbian-ua-netinst-*.img
 /raspbian-ua-netinst-*.img.xz
-/raspbian-ua-netinst-*.bz2
+/raspbian-ua-netinst-*.img.bz2

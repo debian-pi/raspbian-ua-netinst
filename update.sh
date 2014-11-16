@@ -4,7 +4,30 @@ KERNEL_VERSION=3.12-1-rpi
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
-packages="busybox-static libc6 cdebootstrap-static raspbian-archive-keyring e2fslibs e2fsprogs gpgv libbz2-1.0 libcomerr2 libblkid1 libuuid1 libgcc1 dosfstools linux-image-${KERNEL_VERSION} raspberrypi-bootloader-nokernel f2fs-tools btrfs-tools zlib1g liblzo2-2"
+
+# programs
+packages="$packages raspberrypi-bootloader-nokernel"
+packages="$packages linux-image-${KERNEL_VERSION}"
+packages="$packages btrfs-tools"
+packages="$packages busybox-static"
+packages="$packages cdebootstrap-static"
+packages="$packages dosfstools"
+packages="$packages e2fslibs"
+packages="$packages e2fsprogs"
+packages="$packages f2fs-tools"
+packages="$packages gpgv"
+packages="$packages raspbian-archive-keyring"
+
+# libraries
+packages="$packages libblkid1"
+packages="$packages libbz2-1.0"
+packages="$packages libc6"
+packages="$packages libcomerr2"
+packages="$packages libgcc1"
+packages="$packages liblzo2-2"
+packages="$packages libuuid1"
+packages="$packages zlib1g"
+
 packages_found=
 packages_debs=
 packages_sha256=
