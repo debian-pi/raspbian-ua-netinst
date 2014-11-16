@@ -26,7 +26,7 @@ Furthermore, it helps if you provide the configuration files you used, such as `
 ## Submitting Pull Requests
 We currently have 2 development branches, v1.0.x and v1.1.x. 
 The master branch is currently synched with the v1.0.x branch.
-Since we follow [semantic versioning](http://semver.org/), that means that pull request that require a new (configuration) parameter need to be submitted to the v1.1.x branch. Pull request that don't need a new parameter, such as a bug-fix, should be submitted to the v1.0.x branch.
+Since we follow [semantic versioning](http://semver.org/), that means that pull requests that require a new (configuration) parameter need to be submitted to the v1.1.x branch. Pull requests that don't need a new parameter, such as a bug-fix, should be submitted to the v1.0.x branch.
 
 When you want to create an pull request, the best way to do that is by creating a [topic branch](https://github.com/dchelimsky/rspec/wiki/topic-branches) on your forked repository with a name describing what the branch is about. When you're writing the code for your pull request, we prefer smaller (atomic) commits over 1 commit with a lot of 'unrelated' changes. 
 Each commit should have a clear message saying what has changed. If you want to provide more context to your commit, that's an excellent candidate for the second line of your commit message. 
