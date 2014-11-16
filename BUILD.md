@@ -17,5 +17,5 @@ The following scripts are used to build the raspbian-ua-netinst installer, liste
 
  - update.sh - Downloads latest Raspbian packages that will be used to build the installer.
  - build.sh - Builds the installer initramfs and .zip package for Windows/Mac SD card extraction method.
- - buildroot.sh - Builds the installer SD card image, it requires root priviledges and it makes some assumptions like not having any other loop devices in use.
+ - buildroot.sh - Builds the installer SD card image, it requires root priviledges and it makes some assumptions like not having any other loop devices in use. **NOTE**: This script may not be needed if the result of the `build.sh` script is directly transferred to a FAT32 formatted SD card.
  - clean.sh - Remove everything created by above scripts.
