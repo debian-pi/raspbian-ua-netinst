@@ -58,7 +58,7 @@ download_package_list() {
     # Download and verify package list for $package_section, then add to Packages file
     # Assume that the repository's base Release file is present
 
-    extensions=( '.xz' '.bz2' '.gz' '' )
+    extensions=( '.bz2' '.gz' '.xz' '' )
     for extension in "${extensions[@]}" ; do
 
         # Check that this extension is available
