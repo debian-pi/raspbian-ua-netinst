@@ -196,4 +196,10 @@ else
     exit 1
 fi
 
+# ugly workaround for non-working busybox-static in jessie
+echo -n "Copying older, but working, version of busybox as a workaround... "
+rm busybox-static_*
+curl -s -o busybox-static_1.20.0-7_armhf.deb https://github.com/debian-pi/general/raw/master/workarounds/busybox-static_1.20.0-7_armhf.deb
+echo "OK"
+
 cd ..
