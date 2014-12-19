@@ -199,7 +199,16 @@ fi
 # ugly workaround for non-working busybox-static in jessie
 echo -n "Copying older, but working, version of busybox as a workaround... "
 rm busybox-static_*
-curl -s -o busybox-static_1.20.0-7_armhf.deb https://github.com/debian-pi/general/raw/master/workarounds/busybox-static_1.20.0-7_armhf.deb
-echo "OK"
+bbfilename=busybox-static_1.20.0-7_armhf.deb
+curl -s -o $bbfilename https://raw.githubusercontent.com/debian-pi/general/master/workarounds/busybox-static_1.20.0-7_armhf.deb
+# test whether the file exists and it's size is > 100k
+if [ -f $bbfilename ] && [ $(wc -c < $bbfilename) -gt 100000 ] ; then
+    echo "OK"
+else
+    echo "FAILED"
+    echo -e "ERROR\nThe download of busybox-static failed, thus the rest will also fail!"
+    cd ..
+    exit 1
+fi
 
 cd ..
