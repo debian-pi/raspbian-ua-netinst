@@ -7,7 +7,7 @@ This release also adds the following new functionality:
 - Addition of the following commands: vcgencmd, edidparser, tvservice, vcdbg
 and vchiq_test.  
 
-The libraspberrypi-bin package is installed from the raspbian archive, thus available where ever you are, without additional configuration. This fixes issue #65.
+The libraspberrypi-bin package is installed from the raspbian archive, thus available where ever you are, without additional configuration. This fixes [issue 65](https://github.com/debian-pi/raspbian-ua-netinst/issues/65).
 
 See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.5/README.md) for features/installation instruction/etc for this release.
 
@@ -16,7 +16,7 @@ See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.5/RE
 
 This release fixes the following issues:
 - Raspberry Pi Model B+ is now also supported.  
-Thanks to plugwash for packaging the updated firmware files. This fixes issue #73.
+Thanks to plugwash for packaging the updated firmware files. This fixes [issue 73](https://github.com/debian-pi/raspbian-ua-netinst/issues/73).
 
 This release also adds the following new functionality:
 - Logging of the installation process.
@@ -31,11 +31,11 @@ This release fixes the following issues:
 are now included in the installer. This means that the '--allow-unauthenticated' parameter 
 of debootstrap is now removed :-) 
 Thanks a lot to Jim Turner for providing the pull request which implemented this!  
-This closes issues #55 and #66.
-- Removed an invalid mount parameter for f2fs. This closes issue #67.
+This closes [issue 55](https://github.com/debian-pi/raspbian-ua-netinst/issues/55) and [issue 66](https://github.com/debian-pi/raspbian-ua-netinst/issues/66).
+- Removed an invalid mount parameter for f2fs. This closes [issue 67](https://github.com/debian-pi/raspbian-ua-netinst/issues/67).
 - The kernel version and thereby the initramfs version is now dynamically
 determined at install time, so that a new kernel version won't break the
-installer anymore. This fixes issue #68.
+installer anymore. This fixes [issue 68](https://github.com/debian-pi/raspbian-ua-netinst/issues/68).
 - Fixed the check for the losetup version.
 - Made retrieving/setting the date/time more resilient.
 - Update the project URL as displayed during install.
@@ -63,12 +63,12 @@ See the [README](https://github.com/hifi/raspbian-ua-netinst/blob/v1.0.2/README.
 
 This release fixes the following issues:
 - Unable to boot the system when installing / (root) on usb and ext4 was used
-as filesystem (fixes #47). Fixed by always installing latest kernel package.
-- Configuration file not working as expected (fixes #50). This appears to be
+as filesystem (fixes [issue 47](https://github.com/debian-pi/raspbian-ua-netinst/issues/47)). Fixed by always installing latest kernel package.
+- Configuration file not working as expected (fixes [issue 50](https://github.com/debian-pi/raspbian-ua-netinst/issues/50)). This appears to be
 related to creating/modifying configuration files on windows, which has a
 different line ending then linux. Fixed by pushing the configuration file
 through dos2unix before using it.
-- Unable to login to the system when jessie was used as release (fixes #45).
+- Unable to login to the system when jessie was used as release (fixes [issue 45](https://github.com/debian-pi/raspbian-ua-netinst/issues/45)).
 This was caused by a change in default configuration of openssh-server, which
 now disables password login by root. Fixed by re-enabling that for jessie.
 
