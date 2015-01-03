@@ -106,6 +106,7 @@ mkdir -p rootfs/sbin/
 mkdir -p rootfs/usr/bin/
 mkdir -p rootfs/usr/share/
 mkdir -p rootfs/usr/share/keyrings/
+mkdir -p rootfs/drivers/wireless
 
 cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
@@ -200,6 +201,7 @@ cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
 
 # libgcc1 components
 cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
+cp tmp/lib/*/librt.so.1 rootfs/lib/
 
 # liblzo2-2 components
 cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
@@ -209,6 +211,30 @@ cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 
 # zlib1g components
 cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
+
+# wpa_supplicant components
+cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
+cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
+
+# firmware realtek
+cp tmp/lib/modules/*/kernel/drivers/net/wireless/rtl8192cu/8192cu.ko rootfs/drivers/wireless/8192cu.ko
+
+# libssl components
+cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/lib/libssl.so.1.0.0
+cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/lib/libcrypto.so.1.0.0
+
+# libdbus components
+cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
+cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
+
+# libnl components
+cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
+
+# libnl-genl components
+cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
+
+# libpcsclite components
+cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
 
 cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
 cd ..

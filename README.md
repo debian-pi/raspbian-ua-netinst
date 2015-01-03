@@ -131,11 +131,13 @@ The format of the file and the current defaults:
     timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
     locales=  # a space delimited list of locales that will be generated during install (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
     system_default_locale= # the default system locale to set (using the LANG environment variable)
+    ifname=eth0
     ip_addr=dhcp
     ip_netmask=0.0.0.0
     ip_broadcast=0.0.0.0
     ip_gateway=0.0.0.0
     ip_nameservers=
+    wlandriver=
     online_config= # URL to extra config that will be executed after installer-config.txt
     usbroot= # set to 1 to install to first USB disk
     cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"

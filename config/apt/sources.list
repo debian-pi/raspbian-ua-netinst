@@ -1,1 +1,1 @@
-deb http://mirrordirector.raspbian.org/raspbian __RELEASE__ main firmware
+deb http://mirrordirector.raspbian.org/raspbian __RELEASE__ main firmware non-free
