@@ -1,3 +1,29 @@
+# Release v1.0.6  (2015-01-09)
+
+This release fixes the following issues:
+- Updated the kernel used during installation to 3.12.
+- The kernel modules needed as dependency of other modules are now dynamically determined.
+- Lots of documentation corrections/improvements/etc.
+- Set the console blank timeout to 1 hour so that (normally) the whole installation process can be viewed.
+- Added script which handles kernel upgrades. This fixes [issue 88](https://github.com/debian-pi/raspbian-ua-netinst/issues/88) and [issue 89](https://github.com/debian-pi/raspbian-ua-netinst/issues/89)
+- Changed permissions on log file so it is not world readable any more. This fixes [issue 106](https://github.com/debian-pi/raspbian-ua-netinst/issues/106).
+
+This release also adds the following new functionality:
+- Introduction of the `config` directory. Files and folders placed in that directory are made available in `/boot/config/` for further processing during the installation. 
+It is strongly recommended to place all your configuration files and folders inside the `config` directory.
+- When building the installer the `config` directory, `installer-config.txt` and `post-install.txt` are automatically packed inside the generated image/archive, so you won't have to do that manually afterwards any more.
+- Added support for the serial console on the installed system. This fixes [issue 57](https://github.com/debian-pi/raspbian-ua-netinst/issues/57). The serial console can also be used during installation, but you'd have to modify `cmdline.txt` for that (place the `ttyAMA0` parameters at the end).
+- Timing of the start/end and the durarion of the installation.
+- Also create images compressed with bz2 which should be easier to use on a Mac.
+
+Other changes:
+- Added @goranche as official collaborator to the project.
+- Code re-organization for better maintainability.
+- Added workaround for non-working busybox-static ([full story](https://github.com/debian-pi/raspbian-ua-netinst/issues/80)).
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.6/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.5  (2014-07-23)
 
 This release fixes the following issues:
