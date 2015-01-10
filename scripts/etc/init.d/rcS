@@ -1,4 +1,6 @@
 #!/bin/busybox sh
+#
+set -x
 
 LOGFILE=/tmp/raspbian-ua-netinst.log
 
@@ -13,6 +15,7 @@ rootpw=raspbian
 cdebootstrap_cmdline=
 bootsize=+50M
 rootsize=
+rootoffset=$(( 64 * 1024 * (1024/512) ))
 timeserver=time.nist.gov
 ip_addr=dhcp
 ip_netmask=0.0.0.0
@@ -21,8 +24,9 @@ ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
 usbroot=
-cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=noop"
 rootfstype=ext4
+rootfs_mkfs_options="-E stride=2,stripe-width=1024 -b 4096"
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -236,14 +240,6 @@ date_set=false
 if [ "$date_set" = "false" ] ; then
     # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
     timeservers=$timeserver
-    timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
-    timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
-    timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
-    timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
-    timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
-    timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
-    timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
-    timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
     for ts in $timeservers
     do
         rdate $ts &>/dev/null
@@ -354,7 +350,9 @@ echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
+echo "  bootoffset = $bootoffset"
 echo "  rootsize = $rootsize"
+echo "  rootoffset = $rootoffset"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
@@ -387,18 +385,19 @@ done
 if [ "$rootdev" = "$bootdev" ]; then
     echo -n "Applying new partition table... "
     dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null <<EOF
+    fdisk $bootdev <<EOF
+u
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
 n
 p
 2
-
+$rootoffset
 $rootsize
 w
 EOF
@@ -410,7 +409,7 @@ else
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
@@ -424,13 +423,15 @@ EOF
 n
 p
 1
-
+$rootoffset
 $rootsize
 w
 EOF
     echo "OK"
 
 fi
+
+fdisk -l
 
 echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
