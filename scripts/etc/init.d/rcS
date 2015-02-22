@@ -11,7 +11,9 @@ hostname=pi
 domainname=
 rootpw=raspbian
 cdebootstrap_cmdline=
+bootoffset=
 bootsize=+50M
+rootoffset=
 rootsize=
 timeserver=time.nist.gov
 ip_addr=dhcp
@@ -353,7 +355,9 @@ echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
+echo "  bootoffset = $bootoffset"
 echo "  bootsize = $bootsize"
+echo "  rootoffset = $rootoffset"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
@@ -391,14 +395,14 @@ if [ "$rootdev" = "$bootdev" ]; then
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
 n
 p
 2
-
+$rootoffset
 $rootsize
 w
 EOF
@@ -410,7 +414,7 @@ else
 n
 p
 1
-
+$bootoffset
 $bootsize
 t
 b
@@ -424,7 +428,7 @@ EOF
 n
 p
 1
-
+$rootoffset
 $rootsize
 w
 EOF
