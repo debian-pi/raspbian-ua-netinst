@@ -1,13 +1,15 @@
 #!/bin/bash
 
-KERNEL_VERSION=3.12-1-rpi
+KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
+KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
 # programs
 packages="$packages raspberrypi-bootloader-nokernel"
-packages="$packages linux-image-${KERNEL_VERSION}"
+packages="$packages linux-image-${KERNEL_VERSION_RPI1}"
+packages="$packages linux-image-${KERNEL_VERSION_RPI2}"
 packages="$packages btrfs-tools"
 packages="$packages busybox-static"
 packages="$packages cdebootstrap-static"
