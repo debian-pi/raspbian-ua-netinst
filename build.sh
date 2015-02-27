@@ -90,7 +90,7 @@ rm -rf bootfs
 mkdir -p bootfs
 
 # raspberrypi-bootloader-nokernel components and kernel
-cp tmp/boot/* bootfs/
+cp -r tmp/boot/* bootfs/
 rm bootfs/System*
 rm bootfs/config-*
 mv bootfs/vmlinuz* bootfs/kernel_install.img
