@@ -102,13 +102,13 @@ rm ${LOGFILE}.pipe
 RPI1_HARDWARE="BCM2708"
 RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
-RPI1="false"
-RPI2="false"
+rpi1="false"
+rpi2="false"
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
-    RPI1="true"
+    rpi1="true"
 elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
-    RPI2="true"
+    rpi2="true"
 else
     # we're screwd
 fi
@@ -120,9 +120,9 @@ echo "================================================="
 echo "Revision __VERSION__"
 echo "Built on __DATE__"
 echo -n "Running on Raspberry Pi version "
-if [ "$RPI1" = "true" ] ; then
+if [ "$rpi1" = "true" ] ; then
     echo "1"
-elif [ "$RPI2" = "true" ] ; then
+elif [ "$rpi2" = "true" ] ; then
     echo "2"
 else
     echo "UNKNOWN !!!"
