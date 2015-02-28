@@ -99,12 +99,34 @@ tee < ${LOGFILE}.pipe $LOGFILE &
 exec &> ${LOGFILE}.pipe
 rm ${LOGFILE}.pipe
 
+RPI1_HARDWARE="BCM2708"
+RPI2_HARDWARE="BCM2709"
+rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
+RPI1="false"
+RPI2="false"
+
+if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
+    RPI1="true"
+elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
+    RPI2="true"
+else
+    # we're screwd
+fi
+
 echo ""
 echo "================================================="
 echo "raspbian-ua-netinst"
 echo "================================================="
 echo "Revision __VERSION__"
 echo "Built on __DATE__"
+echo -n "Running on Raspberry Pi version "
+if [ "$RPI1" = "true" ] ; then
+    echo "1"
+elif [ "$RPI2" = "true" ] ; then
+    echo "2"
+else
+    echo "UNKNOWN !!!"
+fi
 echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
