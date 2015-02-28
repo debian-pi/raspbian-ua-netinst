@@ -599,35 +599,8 @@ KERNEL_VERSION=$(sed -n -e '/^Package: linux-image-rpi-rpfv$/,/Package: /{s/^Dep
 echo "Kernel version: '${KERNEL_VERSION}'"
 
 # create a kernel upgrade handler script
-echo -n "Creating kernel upgrade handler script... "
-(
-cat <<-EOScript
-#!/bin/sh -e
-
-version="\$1"
-boot_dir=\$(dirname "\$2")
-
-config_file="\$boot_dir/config.txt"
-
-if [ -f \$config_file ] ; then
-    # test whether kernel parameter is present
-    if grep -l 'kernel=' \$config_file >/dev/null ; then
-        sed -i "s/kernel=.*/kernel=vmlinuz-\$version/" \$config_file
-    else
-        echo "\nkernel=vmlinuz-\$version" >> \$config_file
-    fi
-else
-    echo "kernel=vmlinuz-\$version" > \$config_file
-fi
-
-# test whether initramfs parameter is present
-if grep -l 'initramfs' \$config_file >/dev/null ; then
-    sed -i "s/initramfs.*/initramfs initrd.img-\$version followkernel/" \$config_file
-else
-    echo "\ninitramfs initrd.img-\$version followkernel" >> \$config_file
-fi
-EOScript
-) > /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
+echo -n "Retrieving kernel upgrade handler script... "
+wget -q -O /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst https://github.com/debian-pi/raspbian-tools/blob/master/raspbian-kernel-post-install
 if [ $? -eq 0 ]; then
     chmod +x /rootfs/etc/kernel/postinst.d/raspbian-ua-netinst
     echo "OK"
