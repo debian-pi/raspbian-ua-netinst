@@ -104,11 +104,14 @@ RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
 rpi1="false"
 rpi2="false"
+kernel_meta_package=""
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
     rpi1="true"
+    kernel_meta_package="linux-image-rpi-rpfv"
 elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
     rpi2="true"
+    kernel_meta_package="linux-image-rpi2-rpfv"
 else
     # we're screwd
 fi
@@ -321,7 +324,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # Changed it so it is always installed.
     # Firmware can't be installed just yet, we'll do so at the end
     if [ "$kernel_module" = true ] ; then
-        cdebootstrap_cmdline="$cdebootstrap_cmdline,linux-image-rpi-rpfv"
+        cdebootstrap_cmdline="$cdebootstrap_cmdline,${kernel_meta_package}"
     fi
 
     case $preset in
@@ -617,7 +620,7 @@ echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
 # find kernel/initramfs version
-KERNEL_VERSION=$(sed -n -e '/^Package: linux-image-rpi-rpfv$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi\).*$/\1/p}' /rootfs/var/lib/dpkg/status)
+KERNEL_VERSION=$(sed -n -e '/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi\).*$/\1/p}' /rootfs/var/lib/dpkg/status)
 echo "Kernel version: '${KERNEL_VERSION}'"
 
 # create a kernel upgrade handler script
