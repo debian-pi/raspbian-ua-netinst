@@ -138,34 +138,7 @@ echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
 
-cp /boot/bootcode.bin \
-    /boot/fixup_cd.dat \
-    /boot/fixup.dat \
-    /boot/fixup_x.dat \
-    /boot/installer.cpio \
-    /boot/kernel_install.img \
-    /boot/start_cd.elf \
-    /boot/start.elf \
-    /boot/start_x.elf /bootfs/ || fail
-
-    if ls /boot/raspbian-ua-netinst* > /dev/null 2>&1 ; then
-        cp /boot/raspbian-ua-netinst* /bootfs/
-    fi
-    
-if [ -f /boot/installer-config.txt ]; then
-    cp /boot/installer-config.txt /bootfs/installer-config.txt || fail
-fi
-
-if [ -f /boot/post-install.txt ]; then
-    cp /boot/post-install.txt /bootfs/post-install.txt || fail
-fi
-
-if [ -d /boot/config ] ; then
-    cp -r /boot/config /bootfs/ || fail
-fi
-
-# if installation aborts it will restart
-cp /boot/config.txt /bootfs/config.txt || fail
+cp -r /boot/ /bootfs/ || fail
 
 umount /boot || fail
 echo "OK"
