@@ -616,10 +616,16 @@ else
     echo "FAILED !"
 fi
 
-# make sure there is a /boot/kernel.img present
-if [ ! -f /rootfs/boot/kernel.img ] ; then
-    echo -n "Copying kernel to /boot/kernel.img... "
-    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/kernel.img
+# set the default kernel file based on the hardware
+default_kernel_file="kernel.img"
+if [ "$rpi2" = "true" ] ; then
+    default_kernel_file="kernel7.img"
+fi
+
+# make sure there is a /boot/kernel.img or /boot/kernel7.img present
+if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
+    echo -n "Copying kernel to /boot/${default_kernel_file}... "
+    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
     if [ $? -eq 0 ]; then
         echo "OK"
     else
