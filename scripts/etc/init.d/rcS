@@ -102,18 +102,24 @@ rm ${LOGFILE}.pipe
 RPI1_HARDWARE="BCM2708"
 RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
+rpi_hardware_version=""
 rpi1="false"
 rpi2="false"
 kernel_meta_package=""
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
-    rpi1="true"
+    rpi_hardware_version="1"
     kernel_meta_package="linux-image-rpi-rpfv"
 elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
-    rpi2="true"
+    rpi_hardware_version="2"
     kernel_meta_package="linux-image-rpi2-rpfv"
 else
-    # we're screwd
+    echo ""
+    echo "================================================="
+    echo "     No Raspberry Pi hardware detected!!"
+    echo " Value of rpi_hardware variable: '$(rpi_hardware)'"
+    echo "================================================="
+    echo ""
 fi
 
 echo ""
@@ -122,14 +128,7 @@ echo "raspbian-ua-netinst"
 echo "================================================="
 echo "Revision __VERSION__"
 echo "Built on __DATE__"
-echo -n "Running on Raspberry Pi version "
-if [ "$rpi1" = "true" ] ; then
-    echo "1"
-elif [ "$rpi2" = "true" ] ; then
-    echo "2"
-else
-    echo "UNKNOWN !!!"
-fi
+echo "Running on Raspberry Pi version ${rpi_hardware_version}"
 echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
@@ -138,7 +137,7 @@ echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
 
-cp -r /boot/ /bootfs/ || fail
+cp -r /boot/* /bootfs/ || fail
 
 umount /boot || fail
 echo "OK"
@@ -618,7 +617,7 @@ fi
 
 # set the default kernel file based on the hardware
 default_kernel_file="kernel.img"
-if [ "$rpi2" = "true" ] ; then
+if [ "${rpi_hardware_version" = "2" ] ; then
     default_kernel_file="kernel7.img"
 fi
 

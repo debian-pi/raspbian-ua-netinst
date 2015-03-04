@@ -95,11 +95,9 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
-    mkdir -p rootfs/lib/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
-    mkdir -p rootfs/usr/share/
     mkdir -p rootfs/usr/share/keyrings/
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
@@ -227,7 +225,7 @@ done
 
 # initialize bootfs
 rm -rf bootfs
-mkdir -p bootfs
+mkdir bootfs
 
 # raspberrypi-bootloader-nokernel components and kernel
 cp -r tmp/boot/* bootfs/
