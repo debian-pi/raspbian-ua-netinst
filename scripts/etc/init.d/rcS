@@ -103,8 +103,6 @@ RPI1_HARDWARE="BCM2708"
 RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
 rpi_hardware_version=""
-rpi1="false"
-rpi2="false"
 kernel_meta_package=""
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
