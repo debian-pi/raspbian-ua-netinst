@@ -102,7 +102,7 @@ rm ${LOGFILE}.pipe
 RPI1_HARDWARE="BCM2708"
 RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
-rpi_hardware_version=""
+rpi_hardware_version="UNKNOWN !!"
 kernel_meta_package=""
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
