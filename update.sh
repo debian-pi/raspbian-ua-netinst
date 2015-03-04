@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 KERNEL_VERSION=3.12-1-rpi
 
