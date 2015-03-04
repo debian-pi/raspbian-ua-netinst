@@ -1,6 +1,6 @@
 /bootfs/
 /packages/
-/installer.cpio*
+/installer*.cpio*
 /raspbian-ua-netinst-*.zip
 /raspbian-ua-netinst-*.img
 /raspbian-ua-netinst-*.img.xz
