@@ -427,6 +427,9 @@ EOF
 
 fi
 
+# refresh the /dev device nodes
+mdev -s
+
 echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
