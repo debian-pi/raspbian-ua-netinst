@@ -604,7 +604,7 @@ echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/confi
 
 # set the default kernel file based on the hardware
 default_kernel_file="kernel.img"
-if [ "${rpi_hardware_version" = "2" ] ; then
+if [ "${rpi_hardware_version}" = "2" ] ; then
     default_kernel_file="kernel7.img"
 fi
 
