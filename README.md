@@ -30,7 +30,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - working Ethernet with Internet connectivity
 
 ## Obtaining installer files on Windows and Mac
-Installer archive is around **9MB** and contains all firmware files and the installer.
+Installer archive is around **17MB** and contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
@@ -39,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
-Prebuilt image is around **9MB** bzip2 compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is around **17MB** bzip2 compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -55,7 +55,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ## SD card image for Linux
-Prebuilt image is around **6MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **11MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
@@ -104,8 +104,8 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
-See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh').
+While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to. 
+See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh'). 
 
 If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
 
@@ -135,7 +135,7 @@ The format of the file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-All of the configuration options should be clear. You can override any of these in your _installer-config.txt_.  
+All of the configuration options should be clear. You can override any of these in your _installer-config.txt_ by placing your own `installer-config.txt` in the main directory.  
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
 **Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.  
 All non-provided options will use the defaults as mentioned above.

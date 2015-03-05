@@ -1,3 +1,10 @@
+# Release v1.0.7-beta (2015-03-05)
+
+This release fixes the following issues:
+- Added support for the Raspberry Pi 2. This fixes [issue 180](https://github.com/debian-pi/raspbian-ua-netinst/issues/180).
+- Updated the kernel used during installation to 3.18.
+- Removed the kernel-upgrade-script since it doesn't handle sections in /boot/config.txt. See [raspbian-tools issue 2](https://github.com/debian-pi/raspbian-tools/issues/2).
+
 # Release v1.0.6  (2015-01-09)
 
 This release fixes the following issues:
