@@ -119,7 +119,7 @@ The format of the file and the current defaults:
     domainname=
     rootpw=raspbian
     cdebootstrap_cmdline=
-    bootsize=+50M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
+    bootsize=+64M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
     rootsize=     # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
     timeserver=time.nist.gov
     ip_addr=dhcp
