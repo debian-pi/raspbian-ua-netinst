@@ -137,7 +137,7 @@ The format of the file and the current defaults:
     ip_broadcast=0.0.0.0
     ip_gateway=0.0.0.0
     ip_nameservers=
-    wlandriver=
+    drivers_to_load=
     online_config= # URL to extra config that will be executed after installer-config.txt
     usbroot= # set to 1 to install to first USB disk
     cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"

@@ -29,7 +29,7 @@ ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
 ip_gateway=0.0.0.0
 ip_nameservers=
-wlandriver=
+drivers_to_load=
 online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
@@ -208,8 +208,10 @@ echo "Waiting for $ifname... "
 
 if [ "$ifname" != "eth0" ]; then
     # if eth0 is not the chosen eth interface it is a wireless interface and a driver must be loaded
-    echo -n "Loding driver $wlandriver... "
-    insmod /drivers/wireless/$wlandriver || fail
+    echo -n "Loading drivers $drivers_to_load... "
+    # depmod needs to update modules.dep
+    depmod -a
+    modprobe /lib/modules/$(uname -r)/kernel/drivers/$drivers_to_load || fail
     [ $? -eq 0 ] && echo "OK"
     # Also, replace eth0 as udhcpc dns interface
     sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
@@ -235,8 +237,8 @@ done
 if [ "$ifname" != "eth0" ]; then
     # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
     echo -n "Running wpa_supplicant... "
-    wpa_supplicant -B -Dwext -c/bootfs/config/wpa_supplicant.conf -iwlan0 >& /dev/null || fail
-    [ $? -eq 0 ] && echo "OK"
+    wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
+    echo "OK"
 fi
 
 if [ "$ip_addr" = "dhcp" ]; then
@@ -817,7 +819,7 @@ fi
 if [ "$ifname" != "eth0" ]; then
     # Install wireless dependencies
     echo -n "Installing wpasupplicant package... "
-    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant firmware-realtek >& /dev/null
+    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
     if [ $? -eq 0 ]; then
         echo "OK"
     else
