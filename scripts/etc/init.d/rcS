@@ -204,18 +204,24 @@ fi
 echo "  online_config = $online_config"
 echo
 
-echo "Waiting for $ifname... "
-
-if [ "$ifname" != "eth0" ]; then
-    # if eth0 is not the chosen eth interface it is a wireless interface and a driver must be loaded
-    echo -n "Loading drivers $drivers_to_load... "
-    # depmod needs to update modules.dep
-    depmod -a
-    modprobe /lib/modules/$(uname -r)/kernel/drivers/$drivers_to_load || fail
-    [ $? -eq 0 ] && echo "OK"
-    # Also, replace eth0 as udhcpc dns interface
-    sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
+# depmod needs to update modules.dep before using modprobe
+depmod -a
+if [ "$drivers_to_load" != "" ] ; then
+   echo "Loading additional drivers."
+   for driver in $drivers_to_load
+   do
+      echo -n " Loading driver '$driver' ... "
+      modprobe $driver || fail
+      if [ $? -eq 0 ] ; then
+         echo "OK"
+      else
+         echo "FAILED !"
+      fi
+   done
+   echo "Finished loading additional drivers"
 fi
+
+echo "Waiting for $ifname... "
 
 for i in `seq 1 10`; do
 
@@ -235,6 +241,8 @@ for i in `seq 1 10`; do
 done
 
 if [ "$ifname" != "eth0" ]; then
+    # Replace eth0 as udhcpc dns interface
+    sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
     # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
     echo -n "Running wpa_supplicant... "
     wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
