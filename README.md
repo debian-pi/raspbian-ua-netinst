@@ -26,7 +26,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
 
 ## Requirements
  - a Raspberry Pi Model B or Model B+
- - SD card of at least 512MB (or at least 64MB for USB root install)
+ - SD card of at least 640MB (or at least 128MB for USB root install)
  - working Ethernet with Internet connectivity
 
 ## Obtaining installer files on Windows and Mac
@@ -70,7 +70,8 @@ In normal circumstances, you can just power on your Pi and cross your fingers.
 
 If you don't have a display attached you can monitor the Ethernet card leds to guess activity. When it finally reboots after installing everything you will see them going out and on a few times when Raspbian configures it on boot.
 
-If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
+If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.  
+If you have a serial cable, then remove 'console=tty1' at then end of the `cmdline.txt` file.
 
 **Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
 
@@ -119,7 +120,7 @@ The format of the file and the current defaults:
     domainname=
     rootpw=raspbian
     cdebootstrap_cmdline=
-    bootsize=+64M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
+    bootsize=+128M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
     rootsize=     # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
     timeserver=time.nist.gov
     ip_addr=dhcp
