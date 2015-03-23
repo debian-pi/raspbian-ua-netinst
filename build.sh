@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
-KERNEL_VERSION=3.12-1-rpi
+KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
+KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
+
 INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/fs/btrfs/btrfs.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/usb/storage/usb-storage.ko"
@@ -73,6 +75,167 @@ function create_tempfile {
     fi
 }
 
+function create_cpio {
+    local KERNEL_VERSION=""
+    local target_system
+
+    if [ "$1" = "rpi1" ] ; then
+        KERNEL_VERSION=$KERNEL_VERSION_RPI1
+        target_system="rpi1"
+    elif [ "$1" = "rpi2" ] ; then
+        KERNEL_VERSION=$KERNEL_VERSION_RPI2
+        target_system="rpi2"
+    else
+        echo "Invalid parameter to 'create_cpio' function!"
+        return 1
+    fi
+
+    # initialize rootfs
+    rm -rf rootfs
+    mkdir -p rootfs
+    # create all the directories needed to copy the various components into place
+    mkdir -p rootfs/bin/
+    mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
+    mkdir -p rootfs/sbin/
+    mkdir -p rootfs/usr/bin/
+    mkdir -p rootfs/usr/share/keyrings/
+
+    cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
+
+    # calculate module dependencies
+    depmod_file=$(create_tempfile)
+    /sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+
+    modules=(${INSTALL_MODULES})
+
+    # new_count contains the number of new elements in the $modules array for each iteration
+    new_count=${#modules[@]}
+    # repeat the hunt for dependencies until no new ones are found (the loop takes care
+    # of finding nested dependencies)
+    until [ "${new_count}" == 0 ]; do
+        # check the dependencies for the modules in the last $new_count elements
+        check_dependencies "${modules[@]:$((${#modules[@]}-${new_count}))}"
+    done
+
+    # do some cleanup
+    rm -f ${depmod_file}
+
+    # copy the needed kernel modules to the rootfs (create directories as needed)
+    for module in ${modules[@]}; do
+        # calculate the target dir, just so the following line of code is shorter :)
+        dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
+        # check if destination dir exist, create it otherwise
+        [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
+        cp -a "tmp/lib/modules/${KERNEL_VERSION}/${module}" "${dstdir}"
+    done
+
+    /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
+
+    # install scripts
+    cp -r scripts/* rootfs/
+
+    # update version and date
+    sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
+    sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
+
+
+    # btrfs-tools components
+    cp tmp/sbin/mkfs.btrfs rootfs/sbin/
+    cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
+
+    # busybox-static components
+    cp tmp/bin/busybox rootfs/bin
+    cd rootfs && ln -s bin/busybox init; cd ..
+
+    # cdebootstrap-static components
+    cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
+    cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+
+    # dosfstools components
+    cp tmp/sbin/mkfs.vfat rootfs/sbin/
+
+    # e2fslibs components
+    cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
+    cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
+
+    # e2fsprogs components
+    cp tmp/sbin/mkfs.ext4 rootfs/sbin/
+
+    # f2fs-tools components
+    cp tmp/sbin/mkfs.f2fs rootfs/sbin/
+    cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
+
+    # gpgv components
+    cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+    # raspberrypi.org GPG key 
+    cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
+
+    # raspbian-archive-keyring components
+    cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+    # wpa_supplicant components
+    cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
+    cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
+
+    # libblkid1 components
+    cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
+
+    # libbz2-1.0 components
+    cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
+
+    # libc6 components
+    cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
+    cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
+    cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
+    cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
+    cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
+    cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
+
+    # libcomerr2 components
+    cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
+
+    # libdbus components
+    cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
+    cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
+
+    # libgcc1 components
+    cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
+    cp tmp/lib/*/librt.so.1 rootfs/lib/
+
+    # liblzo2-2 components
+    cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
+
+    # libnl components
+    cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
+
+    # libnl-genl components
+    cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
+
+    # libpcsclite components
+    cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
+
+    # libssl components
+    cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/lib/libssl.so.1.0.0
+    cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/lib/libcrypto.so.1.0.0
+
+    # libuuid1 components
+    cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
+
+    # zlib1g components
+    cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
+
+    # drivers
+    mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net
+    cp -r tmp/lib/modules/*/kernel/drivers/net/wireless rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
+
+    cd rootfs && find . | cpio -H newc -ov > ../installer-${target_system}.cpio
+    cd ..
+
+    rm -rf rootfs
+
+}
+
 if [ ! -d packages ]; then
     . ./update.sh
 fi
@@ -85,168 +248,37 @@ for i in packages/*.deb; do
     cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
 done
 
+
 # initialize bootfs
 rm -rf bootfs
-mkdir -p bootfs
+mkdir bootfs
 
 # raspberrypi-bootloader-nokernel components and kernel
 cp -r tmp/boot/* bootfs/
 rm bootfs/System*
 rm bootfs/config-*
-mv bootfs/vmlinuz* bootfs/kernel_install.img
+mv bootfs/vmlinuz-${KERNEL_VERSION_RPI1} bootfs/kernel-rpi1_install.img
+mv bootfs/vmlinuz-${KERNEL_VERSION_RPI2} bootfs/kernel-rpi2_install.img
 
-# initialize rootfs
-rm -rf rootfs
-mkdir -p rootfs
-# create all the directories needed to copy the various components into place
-mkdir -p rootfs/bin/
-mkdir -p rootfs/lib/
-mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
-mkdir -p rootfs/sbin/
-mkdir -p rootfs/usr/bin/
-mkdir -p rootfs/usr/share/
-mkdir -p rootfs/usr/share/keyrings/
+if [ ! -f bootfs/config.txt ] ; then
+    touch bootfs/config.txt
+fi
 
-cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
+create_cpio "rpi1"
+cp installer-rpi1.cpio bootfs/
+echo "[pi1]" >> bootfs/config.txt
+echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
+echo "initramfs installer-rpi1.cpio" >> bootfs/config.txt
 
-# calculate module dependencies
-depmod_file=$(create_tempfile)
-/sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+create_cpio "rpi2"
+cp installer-rpi2.cpio bootfs/
+echo "[pi2]" >> bootfs/config.txt
+echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
+echo "initramfs installer-rpi2.cpio" >> bootfs/config.txt
 
-modules=(${INSTALL_MODULES})
-
-# new_count contains the number of new elements in the $modules array for each iteration
-new_count=${#modules[@]}
-# repeat the hunt for dependencies until no new ones are found (the loop takes care
-# of finding nested dependencies)
-until [ "${new_count}" == 0 ]; do
-    # check the dependencies for the modules in the last $new_count elements
-    check_dependencies "${modules[@]:$((${#modules[@]}-${new_count}))}"
-done
-
-# do some cleanup
-rm -f ${depmod_file}
-
-# copy the needed kernel modules to the rootfs (create directories as needed)
-for module in ${modules[@]}; do
-    # calculate the target dir, just so the following line of code is shorter :)
-    dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
-    # check if destination dir exist, create it otherwise
-    [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
-    cp -a "tmp/lib/modules/${KERNEL_VERSION}/${module}" "${dstdir}"
-done
-
-/sbin/depmod -a -b rootfs ${KERNEL_VERSION}
-
-# install scripts
-cp -r scripts/* rootfs/
-
-# update version and date
-sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
-sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
-
-
-# btrfs-tools components
-cp tmp/sbin/mkfs.btrfs rootfs/sbin/
-cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
-
-# busybox-static components
-cp tmp/bin/busybox rootfs/bin
-cd rootfs && ln -s bin/busybox init; cd ..
-
-# cdebootstrap-static components
-cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
-cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
-
-# dosfstools components
-cp tmp/sbin/mkfs.vfat rootfs/sbin/
-
-# e2fslibs components
-cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
-cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
-
-# e2fsprogs components
-cp tmp/sbin/mkfs.ext4 rootfs/sbin/
-
-# f2fs-tools components
-cp tmp/sbin/mkfs.f2fs rootfs/sbin/
-cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
-
-# gpgv components
-cp tmp/usr/bin/gpgv rootfs/usr/bin/
-
-# raspberrypi.org GPG key 
-cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
-
-# raspbian-archive-keyring components
-cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
-
-# wpa_supplicant components
-cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
-cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
-
-# libblkid1 components
-cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
-
-# libbz2-1.0 components
-cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
-
-# libc6 components
-cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
-cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
-cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
-cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
-cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
-
-# libcomerr2 components
-cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
-
-# libdbus components
-cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
-cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
-
-# libgcc1 components
-cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
-cp tmp/lib/*/librt.so.1 rootfs/lib/
-
-# liblzo2-2 components
-cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
-
-# libnl components
-cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
-
-# libnl-genl components
-cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
-
-# libpcsclite components
-cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
-
-# libssl components
-cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/lib/libssl.so.1.0.0
-cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/lib/libcrypto.so.1.0.0
-
-# libuuid1 components
-cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
-
-# zlib1g components
-cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
-
-# drivers
-mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net
-cp -r tmp/lib/modules/*/kernel/drivers/net/wireless rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
-
-
-cd rootfs && find . | cpio -H newc -ov > ../installer.cpio
-cd ..
-
+# clean up
 rm -rf tmp
-rm -rf rootfs
 
-cp installer.cpio bootfs/
-
-echo "kernel=kernel_install.img" > bootfs/config.txt
-echo "initramfs installer.cpio" >> bootfs/config.txt
 echo "consoleblank=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1" > bootfs/cmdline.txt
 
 if [ -f installer-config.txt ]; then

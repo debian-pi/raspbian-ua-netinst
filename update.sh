@@ -1,13 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-KERNEL_VERSION=3.12-1-rpi
+KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
+KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
 # programs
 packages="$packages raspberrypi-bootloader-nokernel"
-packages="$packages linux-image-${KERNEL_VERSION}"
+packages="$packages linux-image-${KERNEL_VERSION_RPI1}"
+packages="$packages linux-image-${KERNEL_VERSION_RPI2}"
 packages="$packages btrfs-tools"
 packages="$packages busybox-static"
 packages="$packages cdebootstrap-static"
@@ -200,6 +202,21 @@ if sha256sum --quiet -c SHA256SUMS ; then
     echo "OK"
 else
     echo -e "ERROR\nThe checksums of the downloaded packages don't match the package lists!"
+    cd ..
+    exit 1
+fi
+
+# ugly workaround for non-working busybox-static in jessie
+echo -n "Copying older, but working, version of busybox as a workaround... "
+rm busybox-static_*
+bbfilename=busybox-static_1.20.0-7_armhf.deb
+curl -s -o $bbfilename https://raw.githubusercontent.com/debian-pi/general/master/workarounds/busybox-static_1.20.0-7_armhf.deb
+# test whether the file exists and it's size is > 100k
+if [ -f $bbfilename ] && [ $(wc -c < $bbfilename) -gt 100000 ] ; then
+    echo "OK"
+else
+    echo "FAILED"
+    echo -e "ERROR\nThe download of busybox-static failed, thus the rest will also fail!"
     cd ..
     exit 1
 fi

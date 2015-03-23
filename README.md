@@ -26,11 +26,11 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
 
 ## Requirements
  - a Raspberry Pi Model B or Model B+
- - SD card of at least 512MB (or at least 64MB for USB root install)
+ - SD card of at least 640MB (or at least 128MB for USB root install)
  - working Ethernet with Internet connectivity
 
 ## Obtaining installer files on Windows and Mac
-Installer archive is around **9MB** and contains all firmware files and the installer.
+Installer archive is around **17MB** and contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
@@ -39,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
-Prebuilt image is around **9MB** bzip2 compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is around **17MB** bzip2 compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -55,7 +55,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ## SD card image for Linux
-Prebuilt image is around **6MB** xz compressed and **31MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **11MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
@@ -70,7 +70,8 @@ In normal circumstances, you can just power on your Pi and cross your fingers.
 
 If you don't have a display attached you can monitor the Ethernet card leds to guess activity. When it finally reboots after installing everything you will see them going out and on a few times when Raspbian configures it on boot.
 
-If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.
+If you do have a display, you can follow the progress and catch any possible errors in the default configuration or your own modifications.  
+If you have a serial cable, then remove 'console=tty1' at then end of the `cmdline.txt` file.
 
 **Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
 
@@ -93,7 +94,8 @@ When you need a kernel module that isn't loaded by default, you will still have 
 When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
 
 > Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
+> Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
 
 ## Reinstalling or replacing an existing system
 If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_install.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
@@ -104,8 +106,8 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to.
-See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh').
+While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to. 
+See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh'). 
 
 If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
 
@@ -125,7 +127,7 @@ The format of the file and the current defaults:
     user_ssh_pubkey= # public SSH key for created user; the public SSH key must be on a single line, enclosed in quotes
     user_is_admin= # set to 1 to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
-    bootsize=+50M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
+    bootsize=+128M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
     rootsize=     # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
     timeserver=time.nist.gov
     timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
@@ -146,7 +148,7 @@ The format of the file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-All of the configuration options should be clear. You can override any of these in your _installer-config.txt_.  
+All of the configuration options should be clear. You can override any of these in your _installer-config.txt_ by placing your own `installer-config.txt` in the main directory.  
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
 **Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.  
 All non-provided options will use the defaults as mentioned above.
