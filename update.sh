@@ -17,6 +17,7 @@ packages="$packages e2fsprogs"
 packages="$packages f2fs-tools"
 packages="$packages gpgv"
 packages="$packages raspbian-archive-keyring"
+packages="$packages wpasupplicant"
 
 # libraries
 packages="$packages libblkid1"
@@ -27,6 +28,11 @@ packages="$packages libgcc1"
 packages="$packages liblzo2-2"
 packages="$packages libuuid1"
 packages="$packages zlib1g"
+packages="$packages libssl1.0.0"
+packages="$packages libdbus-1-3"
+packages="$packages libnl-3-200"
+packages="$packages libnl-genl-3-200"
+packages="$packages libpcsclite1"
 
 packages_found=
 packages_debs=
@@ -138,6 +144,8 @@ download_package_lists() {
     package_section=firmware
     download_package_list
     package_section=main
+    download_package_list
+    package_section=non-free
     download_package_list
 }
 
