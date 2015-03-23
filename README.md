@@ -94,7 +94,7 @@ When you need a kernel module that isn't loaded by default, you will still have 
 When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
 
 > Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
 > Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
 
 ## Reinstalling or replacing an existing system
