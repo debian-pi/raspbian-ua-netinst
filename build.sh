@@ -143,7 +143,7 @@ function create_cpio {
     cp tmp/sbin/mkfs.btrfs rootfs/sbin/
     cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
 
-    # busybox-static components
+    # busybox components
     cp tmp/bin/busybox rootfs/bin
     cd rootfs && ln -s bin/busybox init; cd ..
 
