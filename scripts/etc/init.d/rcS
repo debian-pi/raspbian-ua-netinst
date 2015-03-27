@@ -126,7 +126,7 @@ else
     echo ""
     echo "================================================="
     echo "     No Raspberry Pi hardware detected!!"
-    echo " Value of rpi_hardware variable: '$(rpi_hardware)'"
+    echo " Value of rpi_hardware variable: '${rpi_hardware}'"
     echo "================================================="
     echo ""
 fi
