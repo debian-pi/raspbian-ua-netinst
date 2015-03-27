@@ -194,11 +194,27 @@ function create_cpio {
 
     # libc6 components
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
+    cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
+    cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-    cp tmp/lib/*/libm.so.6  rootfs/lib/
-    cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
+    cp tmp/lib/*/libcidn-*.so rootfs/lib/libcidn.so.1
+    cp tmp/lib/*/libcrypt-*.so rootfs/lib/libcrypt.so.1
+    cp tmp/lib/*/libdl-*.so rootfs/lib/libdl.so.2
+    cp tmp/lib/*/libm-*.so  rootfs/lib/libm.so.6
+    cp tmp/lib/*/libmemusage.so rootfs/lib/
+    cp tmp/lib/*/libnsl-*.so rootfs/lib/libnsl.so.1
+    cp tmp/lib/*/libnss_compat-*.so rootfs/lib/libnss_compat.so.2
     cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
+    cp tmp/lib/*/libnss_files-*.so rootfs/lib/libnss_files.so.2
+    cp tmp/lib/*/libnss_hesiod-*.so rootfs/lib/libnss_hesiod.so.2
+    cp tmp/lib/*/libnss_nis-*.so rootfs/lib/libnss_nis.so.2
+    cp tmp/lib/*/libpcprofile.so rootfs/lib/
     cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
+    cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
+    cp tmp/lib/*/librt-*.so rootfs/lib/librt.so.1
+    cp tmp/lib/*/libSegFault.so rootfs/lib/
+    cp tmp/lib/*/libthread_db-*.so rootfs/lib/libthread_db.so.1
+    cp tmp/lib/*/libutil-*.so rootfs/lib/libutil.so.1
 
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
