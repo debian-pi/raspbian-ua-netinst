@@ -141,7 +141,7 @@ function create_cpio {
 
     # btrfs-tools components
     cp tmp/sbin/mkfs.btrfs rootfs/sbin/
-    cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/libbtrfs.so.0
+    cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
 
     # busybox-static components
     cp tmp/bin/busybox rootfs/bin
@@ -163,7 +163,7 @@ function create_cpio {
 
     # f2fs-tools components
     cp tmp/sbin/mkfs.f2fs rootfs/sbin/
-    cp tmp/lib/*/libf2fs.so.0  rootfs/lib/libf2fs.so.0
+    cp tmp/lib/*/libf2fs.so.0  rootfs/lib/
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
@@ -183,7 +183,7 @@ function create_cpio {
     # libc6 components
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-    cp tmp/lib/*/libm.so.6  rootfs/lib/libm.so.6
+    cp tmp/lib/*/libm.so.6  rootfs/lib/
     cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
     cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
     cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
@@ -195,13 +195,13 @@ function create_cpio {
     cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 
     # liblzo2-2 components
-    cp tmp/lib/*/liblzo2.so.2 rootfs/lib/liblzo2.so.2
+    cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 
     # zlib1g components
-    cp tmp/lib/*/libz.so.1  rootfs/lib/libz.so.1
+    cp tmp/lib/*/libz.so.1  rootfs/lib/
 
     cd rootfs && find . | cpio -H newc -ov > ../installer-${target_system}.cpio
     cd ..
@@ -256,11 +256,11 @@ rm -rf tmp
 echo "consoleblank=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1" > bootfs/cmdline.txt
 
 if [ -f installer-config.txt ]; then
-    cp installer-config.txt bootfs/installer-config.txt
+    cp installer-config.txt bootfs/
 fi
 
 if [ -f post-install.txt ]; then
-    cp post-install.txt bootfs/post-install.txt
+    cp post-install.txt bootfs/
 fi
 
 if [ -d config ] ; then
