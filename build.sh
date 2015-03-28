@@ -210,6 +210,9 @@ function create_cpio {
     # libgcc1 components
     cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
 
+    # liblzma5 components
+    cp tmp/lib/*/liblzma.so.5.* rootfs/lib/liblzma.so.5
+
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
