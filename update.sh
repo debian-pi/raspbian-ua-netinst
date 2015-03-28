@@ -21,6 +21,7 @@ packages="$packages gpgv"
 packages="$packages raspbian-archive-keyring"
 
 # libraries
+packages="$packages libattr1"
 packages="$packages libblkid1"
 packages="$packages libbz2-1.0"
 packages="$packages libc6"
