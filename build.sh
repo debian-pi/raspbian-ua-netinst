@@ -200,6 +200,9 @@ function create_cpio {
     cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
     cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
 
+    # libattr1 components
+    cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
+
     # libblkid1 components
     cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
 

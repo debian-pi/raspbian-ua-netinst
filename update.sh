@@ -37,6 +37,7 @@ packages+=("raspbian-archive-keyring")
 packages+=("wpasupplicant")
 
 # libraries
+packages+=("libattr1")
 packages+=("libblkid1")
 packages+=("libbz2-1.0")
 packages+=("libc6")
