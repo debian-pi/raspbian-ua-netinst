@@ -28,6 +28,7 @@ packages="$packages libcomerr2"
 packages="$packages libgcc1"
 packages="$packages liblzo2-2"
 packages="$packages libpcre3"
+packages="$packages libselinux1"
 packages="$packages libuuid1"
 packages="$packages zlib1g"
 

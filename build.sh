@@ -217,6 +217,9 @@ function create_cpio {
     cp tmp/lib/*/libpcre.so.3.* rootfs/lib/libpcre.so.3
     cp tmp/usr/lib/*/libpcreposix.so.3.* rootfs/usr/lib/libpcreposix.so.3
 
+    # libselinux1 components
+    cp tmp/lib/*/libselinux.so.1 rootfs/lib/
+
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 
