@@ -257,6 +257,9 @@ function create_cpio {
     # libpcsclite components
     cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
 
+    # libselinux1 components
+    cp tmp/lib/*/libselinux.so.1 rootfs/lib/
+
     # libssl1.0.0 components
     cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/usr/lib/
     cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/usr/lib/

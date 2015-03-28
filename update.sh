@@ -48,6 +48,7 @@ packages+=("libnl-3-200")
 packages+=("libnl-genl-3-200")
 packages+=("libpcre3")
 packages+=("libpcsclite1")
+packages+=("libselinux1"
 packages+=("libssl1.0.0")
 packages+=("libuuid1")
 packages+=("zlib1g")
