@@ -100,7 +100,9 @@ function create_cpio {
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
+    mkdir -p rootfs/usr/lib/mime/packages/
     mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
+    mkdir -p rootfs/usr/lib/tar/
     mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/keyrings/
     mkdir -p rootfs/var/lib/ntpdate
@@ -195,6 +197,13 @@ function create_cpio {
 
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+    # tar components
+    cp tmp/bin/tar rootfs/bin/
+    cp tmp/etc/rmt rootfs/etc/
+    cp tmp/usr/lib/mime/packages/tar rootfs/usr/lib/mime/packages/
+    cp tmp/usr/sbin/rmt-tar rootfs/usr/sbin/
+    cp tmp/usr/sbin/tarcat rootfs/usr/sbin/
 
     # wpa_supplicant components
     cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
