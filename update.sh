@@ -46,11 +46,15 @@ packages+=("libgcc1")
 packages+=("liblzo2-2")
 packages+=("libnl-3-200")
 packages+=("libnl-genl-3-200")
+packages+=("libpcre3")
 packages+=("libpcsclite1")
 packages+=("libssl1.0.0")
 packages+=("libuuid1")
 packages+=("zlib1g")
 
+packages_found=
+packages_debs=
+packages_sha256=
 
 check_key() {
     # param 1 = keyfile

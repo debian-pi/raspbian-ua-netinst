@@ -250,6 +250,10 @@ function create_cpio {
     # libnl-genl-3-200 components
     cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
 
+    # libpcre3 components
+    cp tmp/lib/*/libpcre.so.3.* rootfs/lib/libpcre.so.3
+    cp tmp/usr/lib/*/libpcreposix.so.3.* rootfs/usr/lib/libpcreposix.so.3
+
     # libpcsclite components
     cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
 
