@@ -95,9 +95,13 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
+    mkdir -p rootfs/etc/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
+    mkdir -p rootfs/usr/lib/mime/packages/
+    mkdir -p rootfs/usr/lib/tar/
+    mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/keyrings/
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
@@ -173,6 +177,13 @@ function create_cpio {
 
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+    # tar components
+    cp tmp/bin/tar rootfs/bin/
+    cp tmp/etc/rmt rootfs/etc/
+    cp tmp/usr/lib/mime/packages/tar rootfs/usr/lib/mime/packages/
+    cp tmp/usr/sbin/rmt-tar rootfs/usr/sbin/
+    cp tmp/usr/sbin/tarcat rootfs/usr/sbin/
 
     # libacl1 components
     cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
