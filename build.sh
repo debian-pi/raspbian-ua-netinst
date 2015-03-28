@@ -174,6 +174,9 @@ function create_cpio {
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
 
+    # libacl1 components
+    cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
+
     # libattr1 components
     cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
 
