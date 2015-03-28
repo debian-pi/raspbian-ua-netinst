@@ -43,6 +43,7 @@ packages+=("libc6")
 packages+=("libcomerr2")
 packages+=("libdbus-1-3")
 packages+=("libgcc1")
+packages+=("liblzma5"
 packages+=("liblzo2-2")
 packages+=("libnl-3-200")
 packages+=("libnl-genl-3-200")
