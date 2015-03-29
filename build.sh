@@ -95,7 +95,9 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
-    mkdir -p rootfs/etc/{default,network/if-up.d/}
+    mkdir -p rootfs/lib/lsb/init-functions.d/
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,logrotate.d,network/if-up.d/}
+    mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
     mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
@@ -104,7 +106,8 @@ function create_cpio {
     mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
     mkdir -p rootfs/usr/lib/tar/
     mkdir -p rootfs/usr/sbin/
-    mkdir -p rootfs/usr/share/keyrings/
+    mkdir -p rootfs/usr/share/{dpkg,keyrings}
+    mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
     mkdir -p rootfs/var/lib/ntpdate
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
@@ -160,6 +163,29 @@ function create_cpio {
 
     # dosfstools components
     cp tmp/sbin/mkfs.vfat rootfs/sbin/
+
+    # dpkg components
+    cp tmp/etc/alternatives/README rootfs/etc/alternatives/
+    cp tmp/etc/cron.daily/dpkg rootfs/etc/cron.daily/
+    cp tmp/etc/dpkg/dpkg.cfg rootfs/etc/dpkg/
+    cp tmp/etc/logrotate.d/dpkg rootfs/etc/logrotate.d/
+    cp tmp/sbin/start-stop-daemon rootfs/sbin/
+    cp tmp/usr/bin/dpkg rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-deb rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-divert rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-maintscript-helper rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-query rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-split rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-statoverride rootfs/usr/bin/
+    cp tmp/usr/bin/dpkg-trigger rootfs/usr/bin/
+    cp tmp/usr/bin/update-alternatives rootfs/usr/bin/
+    cd rootfs && ln -s usr/bin/dpkg-divert usr/sbin/dpkg-divert; cd ..
+    cd rootfs && ln -s usr/bin/dpkg-statoverride usr/sbin/dpkg-statoverride; cd ..
+    cd rootfs && ln -s usr/bin/update-alternatives usr/sbin/update-alternatives; cd ..
+    cp tmp/usr/share/dpkg/abitable rootfs/usr/share/dpkg/
+    cp tmp/usr/share/dpkg/cputable rootfs/usr/share/dpkg/
+    cp tmp/usr/share/dpkg/ostable rootfs/usr/share/dpkg/
+    cp tmp/usr/share/dpkg/triplettable rootfs/usr/share/dpkg/
 
     # e2fslibs components
     cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
