@@ -109,6 +109,7 @@ function create_cpio {
     mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
     mkdir -p rootfs/var/lib/ntpdate
+    mkdir -p rootfs/var/log/
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
@@ -186,6 +187,7 @@ function create_cpio {
     cp tmp/usr/share/dpkg/cputable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/ostable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/triplettable rootfs/usr/share/dpkg/
+    touch rootfs/var/lib/dpkg/status
 
     # e2fslibs components
     cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
