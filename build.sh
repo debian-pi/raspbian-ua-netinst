@@ -271,6 +271,9 @@ function create_cpio {
     cp tmp/lib/*/libthread_db-*.so rootfs/lib/libthread_db.so.1
     cp tmp/lib/*/libutil-*.so rootfs/lib/libutil.so.1
 
+    # libcap2 components
+    cp tmp/lib/*/libcap.so.2.* rootfs/lib/libcap.so.2
+
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
 
