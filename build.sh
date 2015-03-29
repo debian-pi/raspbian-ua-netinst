@@ -95,7 +95,7 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,logrotate.d}
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,ld.so.conf.d,logrotate.d}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
@@ -103,7 +103,7 @@ function create_cpio {
     mkdir -p rootfs/usr/lib/mime/packages/
     mkdir -p rootfs/usr/lib/tar/
     mkdir -p rootfs/usr/sbin/
-    mkdir -p rootfs/usr/share/{dpkg,keyrings}
+    mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
@@ -221,6 +221,29 @@ function create_cpio {
 
     # libbz2-1.0 components
     cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
+
+    # libc-bin components
+    cp tmp/etc/default/nss rootfs/etc/default/
+    cp tmp/etc/ld.so.conf.d/libc.conf rootfs/etc/ld.so.conf.d/
+    cp tmp/etc/bindresvport.blacklist rootfs/etc/
+    cp tmp/etc/gai.conf rootfs/etc/
+    cp tmp/etc/ld.so.conf rootfs/etc/
+    cp tmp/sbin/ldconfig rootfs/sbin/
+    cp tmp/sbin/ldconfig.real rootfs/sbin/
+    cp tmp/usr/bin/catchsegv rootfs/usr/bin/
+    cp tmp/usr/bin/getconf rootfs/usr/bin/
+    cp tmp/usr/bin/getent rootfs/usr/bin/
+    cp tmp/usr/bin/iconv rootfs/usr/bin/
+    cp tmp/usr/bin/ldd rootfs/usr/bin/
+    cp tmp/usr/bin/locale rootfs/usr/bin/
+    cp tmp/usr/bin/localedef rootfs/usr/bin/
+    cp tmp/usr/bin/pldd rootfs/usr/bin/
+    cp tmp/usr/bin/tzselect rootfs/usr/bin/
+    cp tmp/usr/bin/zdump rootfs/usr/bin/
+    # lib/locale ?
+    cp tmp/usr/sbin/iconvconfig rootfs/usr/sbin/
+    cp tmp/usr/sbin/zic rootfs/usr/sbin/
+    cp tmp/usr/share/libc-bin/nsswitch.conf rootfs/usr/share/libc-bin/
 
     # libc6 components
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
