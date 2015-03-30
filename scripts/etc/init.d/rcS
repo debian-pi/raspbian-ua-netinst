@@ -593,7 +593,11 @@ echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
 # find kernel/initramfs version
-KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
+if [ "${rpi_hardware_version}" = "1" ] ; then
+  KERNEL_VERSION="3.12-1-rpi"
+else
+  KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
+fi
 echo "Kernel version: '${KERNEL_VERSION}'"
 
 # no kernel-upgrade-script for the time being
