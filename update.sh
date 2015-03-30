@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
+KERNEL_VERSION_RPI1=3.12-1-rpi
 KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 mirror=http://archive.raspbian.org/raspbian/

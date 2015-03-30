@@ -107,7 +107,7 @@ kernel_meta_package=""
 
 if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
     rpi_hardware_version="1"
-    kernel_meta_package="linux-image-rpi-rpfv"
+    kernel_meta_package="linux-image-3.12-1-rpi"
 elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
     rpi_hardware_version="2"
     kernel_meta_package="linux-image-rpi2-rpfv"

@@ -2,7 +2,7 @@
 
 set -e
 
-KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
+KERNEL_VERSION_RPI1=3.12-1-rpi
 KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko"
