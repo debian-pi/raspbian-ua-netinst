@@ -1,6 +1,6 @@
 # raspbian-ua-netinst
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model B and Model B+.  
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+ and 2B.  
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -25,7 +25,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - option to install root to USB drive
 
 ## Requirements
- - a Raspberry Pi Model B or Model B+
+ - a Raspberry Pi Model 1B, Model 1B+ or Model 2B
  - SD card of at least 640MB (or at least 128MB for USB root install)
  - working Ethernet with Internet connectivity
 
