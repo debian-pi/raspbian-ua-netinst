@@ -17,7 +17,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - configurable default settings
  - extra configuration over HTTP possible - gives unlimited flexibility
  - installation takes about **15 minutes** with fast Internet from power on to sshd running
- - fits in 512MB SD card
+ - can fit on 512MB SD card, but 1GB is more reasonable
  - default install includes fake-hwclock to save time on shutdown
  - default install includes NTP to keep time
  - /tmp is mounted as tmpfs to improve speed
@@ -26,7 +26,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
 
 ## Requirements
  - a Raspberry Pi Model 1B, Model 1B+ or Model 2B
- - SD card of at least 640MB (or at least 128MB for USB root install)
+ - SD card of at least 640MB or at least 128MB for USB root install (without customization)
  - working Ethernet with Internet connectivity
 
 ## Obtaining installer files on Windows and Mac
