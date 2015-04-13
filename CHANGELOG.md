@@ -1,3 +1,12 @@
+# Release v1.0.7 (2015-04-13)
+
+This release fixes the following issues:
+- Fixed most of kernel crashes/rainbow screens that happened with the rpi15 kernel. This fixes [issue 199](https://github.com/debian-pi/raspbian-ua-netinst/issues/199) and [issue 201](https://github.com/debian-pi/raspbian-ua-netinst/issues/201).
+- Increased the size of /boot/ to 128MB by default. This fixes [issue 190](https://github.com/debian-pi/raspbian-ua-netinst/issues/190).
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.7/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.7-beta (2015-03-05)
 
 This release fixes the following issues:
