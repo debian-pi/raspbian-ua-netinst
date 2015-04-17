@@ -221,6 +221,9 @@ function create_cpio {
     # libaudit-common components
     cp tmp/etc/libaudit.conf rootfs/etc/
 
+    # libaudit1 components
+    cp tmp/lib/*/libaudit.so.1.* rootfs/lib/libaudit.so.1
+
     # libblkid1 components
     cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
 
