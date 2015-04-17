@@ -25,6 +25,7 @@ packages="$packages tar"
 # libraries
 packages="$packages libacl1"
 packages="$packages libattr1"
+packages="$packages libaudit-common"
 packages="$packages libblkid1"
 packages="$packages libbz2-1.0"
 packages="$packages libc-bin"
