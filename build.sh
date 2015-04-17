@@ -301,6 +301,11 @@ function create_cpio {
     cp tmp/usr/lib/*/libmenu.so.5.* rootfs/usr/lib/libmenu.so.5
     cp tmp/usr/lib/*/libpanel.so.5.* rootfs/usr/lib/libpanel.so.5
 
+    # libpam0g components
+    cp tmp/lib/*/libpam.so.0.* rootfs/lib/libpam.so.0
+    cp tmp/lib/*/libpam_misc.so.0.* rootfs/lib/libpam_misc.so.0
+    cp tmp/lib/*/libpamc.so.0.* rootfs/lib/libpamc.so.0
+
     # libpcre3 components
     cp tmp/lib/*/libpcre.so.3.* rootfs/lib/libpcre.so.3
     cp tmp/usr/lib/*/libpcreposix.so.3.* rootfs/usr/lib/libpcreposix.so.3
