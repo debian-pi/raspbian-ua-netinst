@@ -243,6 +243,9 @@ function create_cpio {
     # libattr1 components
     cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
 
+    # libaudit-common components
+    cp tmp/etc/libaudit.conf rootfs/etc/
+
     # libblkid1 components
     cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
 
