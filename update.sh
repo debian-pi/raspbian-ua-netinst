@@ -52,6 +52,7 @@ packages+=("libgcc1")
 packages+=("liblzma5"
 packages+=("liblzo2-2")
 packages+=("libmount1"
+packages+=("libncurses5"
 packages+=("libnl-3-200")
 packages+=("libnl-genl-3-200")
 packages+=("libpcre3")
