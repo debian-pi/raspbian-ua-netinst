@@ -313,6 +313,9 @@ function create_cpio {
     # libselinux1 components
     cp tmp/lib/*/libselinux.so.1 rootfs/lib/
 
+    # libslang2 components
+    cp tmp/lib/*/libslang.so.2.* rootfs/lib/libslang.so.2
+
     # libsmartcols1 components
     cp tmp/lib/*/libsmartcols.so.1.* rootfs/lib/libsmartcols.so.1
 
