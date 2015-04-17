@@ -37,6 +37,7 @@ packages="$packages liblzo2-2"
 packages="$packages libmount1"
 packages="$packages libpcre3"
 packages="$packages libselinux1"
+packages="$packages libtinfo5"
 packages="$packages libuuid1"
 packages="$packages zlib1g"
 

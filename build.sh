@@ -296,6 +296,10 @@ function create_cpio {
     # libselinux1 components
     cp tmp/lib/*/libselinux.so.1 rootfs/lib/
 
+    # libtinfo5 components
+    cp tmp/lib/*/libtinfo.so.5.* rootfs/lib/libtinfo.so.5
+    cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
+
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 
