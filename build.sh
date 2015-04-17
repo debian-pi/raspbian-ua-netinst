@@ -316,6 +316,9 @@ function create_cpio {
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
+    # libmount1 components
+    cp tmp/lib/*/libmount.so.1.* rootfs/lib/libmount.so.1
+
     # libnl-3-200 components
     cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
 
