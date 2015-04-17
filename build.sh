@@ -351,6 +351,10 @@ function create_cpio {
     cp tmp/usr/lib/*/openssl-1.0.0/engines/libsureware.so rootfs/usr/lib/openssl-1.0.0/engines/
     cp tmp/usr/lib/*/openssl-1.0.0/engines/libubsec.so rootfs/usr/lib/openssl-1.0.0/engines/
 
+    # libtinfo5 components
+    cp tmp/lib/*/libtinfo.so.5.* rootfs/lib/libtinfo.so.5
+    cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
+
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 

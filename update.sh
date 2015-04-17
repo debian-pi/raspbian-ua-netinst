@@ -58,6 +58,7 @@ packages+=("libpcre3")
 packages+=("libpcsclite1")
 packages+=("libselinux1"
 packages+=("libssl1.0.0")
+packages+=("libtinfo5")
 packages+=("libuuid1")
 packages+=("zlib1g")
 
