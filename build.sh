@@ -289,6 +289,12 @@ function create_cpio {
     # libmount1 components
     cp tmp/lib/*/libmount.so.1.* rootfs/lib/libmount.so.1
 
+    # libncurses5 components
+    cp tmp/lib/*/libncurses.so.5.* rootfs/lib/libncurses.so.5
+    cp tmp/usr/lib/*/libform.so.5.* rootfs/usr/lib/libform.so.5
+    cp tmp/usr/lib/*/libmenu.so.5.* rootfs/usr/lib/libmenu.so.5
+    cp tmp/usr/lib/*/libpanel.so.5.* rootfs/usr/lib/libpanel.so.5
+
     # libpcre3 components
     cp tmp/lib/*/libpcre.so.3.* rootfs/lib/libpcre.so.3
     cp tmp/usr/lib/*/libpcreposix.so.3.* rootfs/usr/lib/libpcreposix.so.3
