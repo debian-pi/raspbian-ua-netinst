@@ -39,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
-Prebuilt image is around **17MB** bzip2 compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is around **17MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -55,7 +55,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ## SD card image for Linux
-Prebuilt image is around **11MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **11MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
