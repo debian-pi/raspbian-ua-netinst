@@ -199,8 +199,8 @@ function create_cpio {
     touch rootfs/var/lib/dpkg/status
 
     # e2fslibs components
-    cp tmp/lib/*/libe2p.so.2.3 rootfs/lib/libe2p.so.2
-    cp tmp/lib/*/libext2fs.so.2.4  rootfs/lib/libext2fs.so.2
+    cp tmp/lib/*/libe2p.so.2.* rootfs/lib/libe2p.so.2
+    cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
 
     # e2fsprogs components
     cp tmp/sbin/mkfs.ext4 rootfs/sbin/
@@ -259,7 +259,7 @@ function create_cpio {
     cp tmp/lib/*/libaudit.so.1.* rootfs/lib/libaudit.so.1
 
     # libblkid1 components
-    cp tmp/lib/*/libblkid.so.1.1.0 rootfs/lib/libblkid.so.1
+    cp tmp/lib/*/libblkid.so.1.* rootfs/lib/libblkid.so.1
 
     # libbz2-1.0 components
     cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
@@ -315,7 +315,7 @@ function create_cpio {
     cp tmp/lib/*/libcap.so.2.* rootfs/lib/libcap.so.2
 
     # libcomerr2 components
-    cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
+    cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
 
     # libdbus-1-3 components
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
@@ -388,7 +388,7 @@ function create_cpio {
     cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
 
     # libuuid1 components
-    cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
+    cp tmp/lib/*/libuuid.so.1.* rootfs/lib/libuuid.so.1
 
     # zlib1g components
     cp tmp/lib/*/libz.so.1  rootfs/lib/
