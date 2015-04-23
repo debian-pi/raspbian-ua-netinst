@@ -199,7 +199,32 @@ function create_cpio {
     cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
 
     # e2fsprogs components
-    cp tmp/sbin/mkfs.ext4 rootfs/sbin/
+    cp tmp/etc/mke2fs.conf rootfs/etc/
+    cp tmp/sbin/badblocks rootfs/sbin/
+    cp tmp/sbin/debugfs rootfs/sbin/
+    cp tmp/sbin/dumpe2fs rootfs/sbin/
+    cp tmp/sbin/e2fsck rootfs/sbin/
+    cp tmp/sbin/e2image rootfs/sbin/
+    cp tmp/sbin/e2undo rootfs/sbin/
+    cp tmp/sbin/logsave rootfs/sbin/
+    cp tmp/sbin/mke2fs rootfs/sbin/
+    cp tmp/sbin/resize2fs rootfs/sbin/
+    cp tmp/sbin/tune2fs rootfs/sbin/
+    cp tmp/usr/bin/chattr rootfs/usr/bin/
+    cp tmp/usr/bin/lsattr rootfs/usr/bin/
+    cp tmp/usr/sbin/e2freefrag rootfs/usr/sbin/
+    cp tmp/usr/sbin/e4defrag rootfs/usr/sbin/
+    cp tmp/usr/sbin/filefrag rootfs/usr/sbin/
+    cp tmp/usr/sbin/mklost+found rootfs/usr/sbin/
+    cd rootfs && ln -s sbin/tune2fs sbin/e2lablel; cd ..
+    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext2; cd ..
+    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext3; cd ..
+    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext4; cd ..
+    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext4dev; cd ..
+    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext2; cd ..
+    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext3; cd ..
+    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext4; cd ..
+    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext4dev; cd ..
 
     # f2fs-tools components
     cp tmp/sbin/mkfs.f2fs rootfs/sbin/
