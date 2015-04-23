@@ -163,7 +163,16 @@ function create_cpio {
     cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
 
     # dosfstools components
-    cp tmp/sbin/mkfs.vfat rootfs/sbin/
+    cp tmp/sbin/fatlabel rootfs/sbin/
+    cd rootfs && ln -s sbin/fatlabel sbin/dosfslabel; cd ..
+    cp tmp/sbin/fsck.fat rootfs/sbin/
+    cd rootfs && ln -s sbin/fsck.fat sbin/dosfsck; cd ..
+    cd rootfs && ln -s sbin/fsck.fat sbin/fsck.msdos; cd ..
+    cd rootfs && ln -s sbin/fsck.fat sbin/fsck.vfat; cd ..
+    cp tmp/sbin/mkfs.fat rootfs/sbin/
+    cd rootfs && ln -s sbin/mkfs.fat sbin/mkdosfs; cd ..
+    cd rootfs && ln -s sbin/mkfs.fat sbin/mkfs.msdos; cd ..
+    cd rootfs && ln -s sbin/mkfs.fat sbin/mkfs.vfat; cd ..
 
     # dpkg components
     cp tmp/etc/alternatives/README rootfs/etc/alternatives/
