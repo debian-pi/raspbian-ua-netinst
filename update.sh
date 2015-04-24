@@ -36,6 +36,7 @@ packages+=("netbase")
 packages+=("ntpdate")
 packages+=("raspbian-archive-keyring")
 packages+=("tar")
+packages+=("util-linux")
 packages+=("wpasupplicant")
 
 # libraries

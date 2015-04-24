@@ -273,6 +273,14 @@ function create_cpio {
     cp tmp/usr/sbin/rmt-tar rootfs/usr/sbin/
     cp tmp/usr/sbin/tarcat rootfs/usr/sbin/
 
+    # util-linux components
+    cp tmp/sbin/blkid rootfs/sbin/
+    cp tmp/sbin/blockdev rootfs/sbin/
+    cp tmp/sbin/fdisk rootfs/sbin/
+    cp tmp/sbin/fsck rootfs/sbin/
+    cp tmp/sbin/mkswap rootfs/sbin/
+    cp tmp/sbin/swaplabel rootfs/sbin/
+
     # wpa_supplicant components
     cp tmp/sbin/wpa_supplicant rootfs/sbin/wpa_supplicant
     cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
