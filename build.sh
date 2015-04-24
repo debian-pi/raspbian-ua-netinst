@@ -162,13 +162,15 @@ function create_cpio {
     cp tmp/sbin/fatlabel rootfs/sbin/
     cp tmp/sbin/fsck.fat rootfs/sbin/
     cp tmp/sbin/mkfs.fat rootfs/sbin/
-    cd rootfs && ln -s sbin/fatlabel sbin/dosfslabel; cd ..
-    cd rootfs && ln -s sbin/fsck.fat sbin/dosfsck; cd ..
-    cd rootfs && ln -s sbin/fsck.fat sbin/fsck.msdos; cd ..
-    cd rootfs && ln -s sbin/fsck.fat sbin/fsck.vfat; cd ..
-    cd rootfs && ln -s sbin/mkfs.fat sbin/mkdosfs; cd ..
-    cd rootfs && ln -s sbin/mkfs.fat sbin/mkfs.msdos; cd ..
-    cd rootfs && ln -s sbin/mkfs.fat sbin/mkfs.vfat; cd ..
+    cd rootfs/sbin
+    ln -s fatlabel dosfslabel
+    ln -s fsck.fat dosfsck
+    ln -s fsck.fat fsck.msdos
+    ln -s fsck.fat fsck.vfat
+    ln -s mkfs.fat mkdosfs
+    ln -s mkfs.fat mkfs.msdos
+    ln -s mkfs.fat mkfs.vfat
+    cd ../..
 
     # dpkg components
     cp tmp/etc/alternatives/README rootfs/etc/alternatives/
@@ -189,9 +191,11 @@ function create_cpio {
     cp tmp/usr/share/dpkg/cputable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/ostable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/triplettable rootfs/usr/share/dpkg/
-    cd rootfs && ln -s usr/bin/dpkg-divert usr/sbin/dpkg-divert; cd ..
-    cd rootfs && ln -s usr/bin/dpkg-statoverride usr/sbin/dpkg-statoverride; cd ..
-    cd rootfs && ln -s usr/bin/update-alternatives usr/sbin/update-alternatives; cd ..
+    cd rootfs/usr/sbin
+    ln -s ../bin/dpkg-divert dpkg-divert
+    ln -s ../bin/dpkg-statoverride dpkg-statoverride
+    ln -s ../bin/update-alternatives update-alternatives
+    cd ../../..
     touch rootfs/var/lib/dpkg/status
 
     # e2fslibs components
@@ -216,15 +220,17 @@ function create_cpio {
     cp tmp/usr/sbin/e4defrag rootfs/usr/sbin/
     cp tmp/usr/sbin/filefrag rootfs/usr/sbin/
     cp tmp/usr/sbin/mklost+found rootfs/usr/sbin/
-    cd rootfs && ln -s sbin/tune2fs sbin/e2lablel; cd ..
-    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext2; cd ..
-    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext3; cd ..
-    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext4; cd ..
-    cd rootfs && ln -s sbin/e2fsck sbin/fsck.ext4dev; cd ..
-    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext2; cd ..
-    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext3; cd ..
-    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext4; cd ..
-    cd rootfs && ln -s sbin/mke2fs sbin/mkfs.ext4dev; cd ..
+    cd rootfs/sbin
+    ln -s tune2fs e2lablel
+    ln -s e2fsck fsck.ext2
+    ln -s e2fsck fsck.ext3
+    ln -s e2fsck fsck.ext4
+    ln -s e2fsck fsck.ext4dev
+    ln -s mke2fs mkfs.ext2
+    ln -s mke2fs mkfs.ext3
+    ln -s mke2fs mkfs.ext4
+    ln -s mke2fs mkfs.ext4dev
+    cd ../..
 
     # f2fs-tools components
     cp tmp/sbin/mkfs.f2fs rootfs/sbin/
