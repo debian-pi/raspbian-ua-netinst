@@ -21,6 +21,7 @@ packages="$packages f2fs-tools"
 packages="$packages gpgv"
 packages="$packages raspbian-archive-keyring"
 packages="$packages tar"
+packages="$packages util-linux"
 
 # libraries
 packages="$packages libacl1"

@@ -252,6 +252,14 @@ function create_cpio {
     cp tmp/usr/sbin/rmt-tar rootfs/usr/sbin/
     cp tmp/usr/sbin/tarcat rootfs/usr/sbin/
 
+    # util-linux components
+    cp tmp/sbin/blkid rootfs/sbin/
+    cp tmp/sbin/blockdev rootfs/sbin/
+    cp tmp/sbin/fdisk rootfs/sbin/
+    cp tmp/sbin/fsck rootfs/sbin/
+    cp tmp/sbin/mkswap rootfs/sbin/
+    cp tmp/sbin/swaplabel rootfs/sbin/
+
     # libacl1 components
     cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
 
