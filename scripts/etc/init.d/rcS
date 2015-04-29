@@ -53,7 +53,7 @@ fail()
         mount $bootpartition /boot
         fail_boot_mounted=true
     fi
-    cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
+    cp -- $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
     sync
     
     # if we mounted /boot in the fail command, unmount it.
@@ -146,7 +146,7 @@ echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
 
-cp -r /boot/* /bootfs/ || fail
+cp -r -- /boot/* /bootfs/ || fail
 
 umount /boot || fail
 echo "OK"
@@ -519,7 +519,7 @@ mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
 echo -n "Copying /boot files in... "
-cp -r /bootfs/* /rootfs/boot || fail
+cp -r -- /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
@@ -743,9 +743,8 @@ for listfile in $(ls *.list)
 do
     if [ $listfile != "sources.list" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
-        cp $listfile /rootfs/etc/apt/sources.list.d/
-        # verify the file is indeed present in its target location
-        if [ -f /rootfs/etc/apt/sources.list.d/$listfile ] ; then
+        cp -- $listfile /rootfs/etc/apt/sources.list.d/
+        if [ $? -eq 0 ] ; then
             echo "OK"
         else
             echo "FAILED"
@@ -768,9 +767,8 @@ done
 for preffile in $(ls *.pref)
 do
     echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
-    cp $preffile /rootfs/etc/apt/preferences.d/
-    # verify the file is indeed present in its target location
-    if [ -f /rootfs/etc/apt/preferences.d/$listfile ] ; then
+    cp -- $preffile /rootfs/etc/apt/preferences.d/
+    if [ $? -eq 0 ] ; then
         echo "OK"
     else
         echo "FAILED"
@@ -863,7 +861,7 @@ fi
 # make sure there is a /boot/kernel.img or /boot/kernel7.img present
 if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
     echo -n "Copying kernel to /boot/${default_kernel_file}... "
-    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
+    cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
     if [ $? -eq 0 ]; then
         echo "OK"
     else
@@ -898,7 +896,7 @@ echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
 
 echo -n "Unmounting filesystems... "
 # copy logfile to standard log directory
-cp $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
+cp -- $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
 chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
 
 umount /rootfs/boot
