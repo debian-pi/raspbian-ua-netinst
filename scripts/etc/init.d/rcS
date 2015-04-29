@@ -744,7 +744,8 @@ do
     if [ $listfile != "sources.list" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
         cp $listfile /rootfs/etc/apt/sources.list.d/
-        if [ $? -eq ] ; then
+        # verify the file is indeed present in its target location
+        if [ -f /rootfs/etc/apt/sources.list.d/$listfile ] ; then
             echo "OK"
         else
             echo "FAILED"
@@ -768,7 +769,8 @@ for preffile in $(ls *.pref)
 do
     echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
     cp $preffile /rootfs/etc/apt/preferences.d/
-    if [ $? -eq 0 ] ; then
+    # verify the file is indeed present in its target location
+    if [ -f /rootfs/etc/apt/preferences.d/$listfile ] ; then
         echo "OK"
     else
         echo "FAILED"
