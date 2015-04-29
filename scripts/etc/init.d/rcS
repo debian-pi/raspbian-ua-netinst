@@ -533,66 +533,66 @@ fi
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
-# allow root login
 echo "Configuring installed system:"
-if [ ! "$disable_root" = "1" ]; then
-    echo -n "  Setting root password... "
-    echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-    echo "OK"
-fi
 
-# add SSH key for root (if provided)
-if [ ! -z "$root_ssh_pubkey" ]; then
-    echo -n "  Setting root SSH key... "
-    mkdir -p /rootfs/root/.ssh && \
-        chmod 700 /rootfs/root/.ssh && \
-        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
-    if [ $? -eq 0 ]; then
+# configure root login
+if [ ! "$disable_root" = "1" ]; then
+    # add SSH key for root (if provided)
+    if [ ! -z "$root_ssh_pubkey" ]; then
+        echo -n "  Setting root SSH key... "
+        mkdir -p /rootfs/root/.ssh && \
+            echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
         echo "OK"
-    else
-        echo "FAILED !"
+        echo -n "  Setting permissions on root SSH directory... "
+        chmod -R go-rwx /rootfs/root/.ssh || fail
+        echo "OK"
+    fi
+    if [ ! -z "$rootpw" ]; then
+        # openssh-server in jessie doesn't allow root to login with a password
+        if [ "$release" = "jessie" ] ; then
+            echo -n "  Allowing root to login with password on jessie... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+        echo -n "  Setting root password... "
+        echo -n "root:$rootpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
     fi
 fi
 
 # add user to system
 if [ ! -z "$username" ]; then
-    echo -n "  Creating user... "
-    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
-    if [ $? -eq 0 ]; then
+    echo -n "  Creating $username user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password || fail
+    echo "OK"
+    # add SSH key for user (if provided)
+    if [ ! -z "$user_ssh_pubkey" ]; then
+        echo -n "  Setting $username SSH key... "
+        ssh_dir="/rootfs/home/$username/.ssh"
+        mkdir -p "$ssh_dir" && \
+            echo "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
         echo "OK"
-        echo -n "  Setting user password... "
-        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
-        if [ $? -eq 0 ]; then
-            echo "OK"
-        else
-            echo "FAILED !"
-        fi
-        if [ ! -z "$user_ssh_pubkey" ]; then
-            echo -n "  Setting user SSH key... "
-            ssh_dir="/home/$username/.ssh"
-            mkdir -p "/rootfs$ssh_dir" && \
-                chmod 700 "/rootfs$ssh_dir" && \
-                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
-            if [ $? -eq 0 ]; then
-                echo "OK"
-                echo -n "  Setting owner on SSH key... "
-                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
-                if [ $? -eq 0 ]; then
-                    echo "OK"
-                else
-                    echo "FAILED !"
-                fi
-            else
-                echo "FAILED !"
-            fi
-        fi
-        if [ "$user_is_admin" = "1" ]; then
-            echo -n "  Adding $username to sudo group... "
-            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+        echo -n "  Setting owner as $username on SSH directory... "
+        chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" || fail
+        echo "OK"
+        echo -n "  Setting permissions on $username SSH directory... "
+        chmod -R go-rwx "$ssh_dir" || fail
+        echo "OK"
+    fi
+    if [ ! -z "$user_passwd" ]; then
+        echo -n "  Setting $username password... "
+        echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
+    fi
+    if [ "$user_is_admin" = "1" ]; then
+        echo -n "  Adding $username to sudo group... "
+        chroot /rootfs /usr/sbin/usermod -aG sudo "$username" || fail
+        echo "OK"
+        if [ -z "$user_passwd" ]; then
+            echo -n "  Setting $username to sudo without a password... "
+            echo -n "%sudo         ALL = (ALL) NOPASSWD: ALL" > /rootfs/etc/sudoers.d/01_sudo || fail
             echo "OK"
         fi
-    else
-        echo "FAILED !"
     fi
 fi
 
@@ -690,19 +690,6 @@ if [ "$system_default_locale" != "" ]; then
         echo "OK"
     else
         echo "FAILED !"
-    fi
-fi
-
-# openssh-server in jessie doesn't allow root to login using password anymore
-# this hack does allow it (until a proper solution is implemented)
-# only do this if no SSH key is provided for root and disabling root isn't requested
-if [ -z "$root_ssh_pubkey" ]; then
-    if [ ! "$disable_root" = "1" ]; then
-        if [ "$release" = "jessie" ] ; then
-            echo -n "  Allowing root to login with password... "
-            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-            echo "OK"
-        fi
     fi
 fi
 
