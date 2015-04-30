@@ -42,6 +42,7 @@ packages+=("wpasupplicant")
 
 # libraries
 packages+=("libacl1")
+packages+=("libatm1")
 packages+=("libattr1")
 packages+=("libaudit-common")
 packages+=("libaudit1")
