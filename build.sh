@@ -356,6 +356,9 @@ function create_cpio {
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
 
+    # libdb5.3 components
+    cp tmp/usr/lib/*/libdb-5.3.so rootfs/usr/lib/libdb5.3.so
+
     # libdbus-1-3 components
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
