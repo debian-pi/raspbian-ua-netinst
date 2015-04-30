@@ -26,6 +26,7 @@ packages="$packages util-linux"
 
 # libraries
 packages="$packages libacl1"
+packages="$packages libatm1"
 packages="$packages libattr1"
 packages="$packages libaudit-common"
 packages="$packages libaudit1"

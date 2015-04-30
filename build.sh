@@ -299,6 +299,9 @@ function create_cpio {
     # libacl1 components
     cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
 
+    # libatm1 components
+    cp tmp/lib/*/libatm.so.1.* rootfs/lib/libatm.so.1
+
     # libattr1 components
     cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
 
