@@ -95,13 +95,13 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,default,ld.so.conf.d,logrotate.d}
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,iproute2,ld.so.conf.d,logrotate.d}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
     mkdir -p rootfs/usr/lib/mime/packages/
-    mkdir -p rootfs/usr/lib/tar/
+    mkdir -p rootfs/usr/lib/{tar,tc}
     mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
@@ -238,6 +238,42 @@ function create_cpio {
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+    # iproute2 components
+    cp tmp/bin/ip rootfs/bin/
+    cp tmp/bin/ss rootfs/bin/
+    cp tmp/etc/iproute2/ematch_map rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/group rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/rt_dsfield rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/rt_protos rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/rt_realms rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/rt_scopes rootfs/etc/iproute2/
+    cp tmp/etc/iproute2/rt_tables rootfs/etc/iproute2/
+    cp tmp/sbin/bridge rootfs/sbin/
+    cp tmp/sbin/rtacct rootfs/sbin/
+    cp tmp/sbin/rtmon rootfs/sbin/
+    cp tmp/sbin/tc rootfs/sbin/
+    cd rootfs/sbin
+    ln -s ../bin/ip ip
+    cd ../..
+    cp tmp/usr/bin/lnstat rootfs/usr/bin/
+    cp tmp/usr/bin/nstat rootfs/usr/bin/
+    cp tmp/usr/bin/routef rootfs/usr/bin/
+    cp tmp/usr/bin/routel rootfs/usr/bin/
+    cd rootfs/usr/bin
+    ln -s lnstat ctstat
+    ln -s lnstat rtstat
+    cd ../../..
+    cp tmp/usr/lib/tc/experimental.dist rootfs/usr/lib/tc
+    cp tmp/usr/lib/tc/m_xt.so rootfs/usr/lib/tc
+    cp tmp/usr/lib/tc/normal.dist rootfs/usr/lib/tc
+    cp tmp/usr/lib/tc/pareto.dist rootfs/usr/lib/tc
+    cp tmp/usr/lib/tc/paretonormal.dist rootfs/usr/lib/tc
+    cp tmp/usr/lib/tc/q_atm.so rootfs/usr/lib/tc
+    cd rootfs/usr/lib/tc
+    ln -s m_xt.so m_ipt.so
+    cd ../../../..
+    cp tmp/usr/sbin/arpd rootfs/usr/sbin/
 
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
