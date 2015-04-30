@@ -97,6 +97,7 @@ function create_cpio {
     mkdir -p rootfs/bin/
     mkdir -p rootfs/etc/{alternatives,cron.daily,default,iproute2,ld.so.conf.d,logrotate.d}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
+    mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
@@ -274,6 +275,10 @@ function create_cpio {
     ln -s m_xt.so m_ipt.so
     cd ../../../..
     cp tmp/usr/sbin/arpd rootfs/usr/sbin/
+
+    # lsb-base components
+    cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
+    cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
 
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
