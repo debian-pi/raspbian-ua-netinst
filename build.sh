@@ -95,8 +95,10 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,default,iproute2,ld.so.conf.d,logrotate.d}
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
+    mkdir -p rootfs/etc/network/{if-down.d,if-post-down.d,if-pre-up.d,if-up.d,interfaces.d}
+    mkdir -p rootfs/lib/ifupdown/
     mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
@@ -239,6 +241,22 @@ function create_cpio {
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+    # ifupdown components
+    cp tmp/etc/default/networking rootfs/etc/default/
+    cp tmp/etc/init/network-interface-container.conf rootfs/etc/init/
+    cp tmp/etc/init/network-interface-security.conf rootfs/etc/init/
+    cp tmp/etc/init/network-interface.conf rootfs/etc/init/
+    cp tmp/etc/init/networking.conf rootfs/etc/init/
+    cp tmp/etc/init.d/networking rootfs/etc/init.d/
+    cp tmp/etc/network/if-down.d/upstart rootfs/etc/network/if-down.d/
+    cp tmp/etc/network/if-up.d/upstart rootfs/etc/network/if-up.d/
+    cp tmp/lib/ifupdown/settle-dad.sh rootfs/lib/ifupdown/
+    cp tmp/sbin/ifup rootfs/sbin/
+    cd rootfs/sbin
+    ln -s ifup ifdown
+    ln -s ifup ifquery
+    cd ../..
 
     # iproute2 components
     cp tmp/bin/ip rootfs/bin/
