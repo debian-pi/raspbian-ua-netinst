@@ -748,58 +748,33 @@ old_dir=$(pwd)
 cd /rootfs/boot/config/apt/
 
 # iterate through all the *.list files and add them to /etc/apt/sources.list.d
-for listfile in *.list
+for listfile in ./*.list
 do
-    if [ $listfile != "sources.list" ] ; then
+    if [ "$listfile" != "sources.list" && -e "$listfile" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
-        cp -- $listfile /rootfs/etc/apt/sources.list.d/
-        if [ $? -eq 0 ] ; then
-            echo "OK"
-        else
-            echo "FAILED"
-        fi
-
-        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
-            echo -n "  Replacing __RELEASE__ with $release in $listfile... "
-            sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list.d/$listfile
-            # if __RELEASE__ is still present, something went wrong
-            if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
-                echo "FAILED"
-            else
-                echo "OK"
-            fi
-        fi
+        sed "s/__RELEASE__/$release/g" "$listfile" > "/rootfs/etc/apt/sources.list.d/$listfile" || fail
+        echo "OK"
     fi
 done
 
 # iterate through all the *.pref files and add them to /etc/apt/preferences.d
-for preffile in *.pref
+for preffile in ./*.pref
 do
-    echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
-    cp -- $preffile /rootfs/etc/apt/preferences.d/
-    if [ $? -eq 0 ] ; then
+    if [ -e "$preffile" ]; then
+        echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+        sed "s/__RELEASE__/$release/g" "$preffile" > "/rootfs/etc/apt/preferences.d/$preffile" || fail
         echo "OK"
-    else
-        echo "FAILED"
-    fi
-
-    if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
-        echo -n "  Replacing __RELEASE__ with $release in $preffile... "
-        sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
-        # if __RELEASE__ is still present, something went wrong
-        if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
-            echo "FAILED"
-        else
-            echo "OK"
-        fi
     fi
 done
 
 # iterate through all the *.key files and add them to apt-key
-for keyfile in *.key
+for keyfile in ./*.key
 do
-    echo "  Adding key $keyfile to apt."
-    cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
+    if [ -e "$keyfile" ]; then
+        echo -n "  Adding key $keyfile to apt."
+        cat "$keyfile" | chroot /rootfs /usr/bin/apt-key add - || fail
+        echo "OK"
+    fi
 done
 
 # return to the old location for the rest of the processing
