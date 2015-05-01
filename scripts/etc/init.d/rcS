@@ -590,7 +590,7 @@ if [ ! -z "$username" ]; then
         echo "OK"
         if [ -z "$user_passwd" ]; then
             echo -n "  Setting $username to sudo without a password... "
-            echo -n "%sudo         ALL = (ALL) NOPASSWD: ALL" > /rootfs/etc/sudoers.d/01_sudo || fail
+            echo -n "%$username ALL = (ALL) NOPASSWD: ALL" > "/rootfs/etc/sudoers.d/$username" || fail
             echo "OK"
         fi
     fi
