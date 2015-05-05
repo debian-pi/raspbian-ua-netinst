@@ -1,3 +1,22 @@
+# Release v1.0.7 (2015-05-05)
+
+Below are the changes since the 1.0.6 release.
+
+This release fixes the following issues:
+- Added support for the Raspberry Pi 2. This fixes [issue 180](https://github.com/debian-pi/raspbian-ua-netinst/issues/180).
+- Updated the kernel used during installation to 3.18.
+- Removed the kernel-upgrade-script since it doesn't handle sections in /boot/config.txt. See [raspbian-tools issue 2](https://github.com/debian-pi/raspbian-tools/issues/2).
+- Fixed the insecure downloading of the raspberrypi.org GPG key. This fixes [issue 64](https://github.com/debian-pi/raspbian-ua-netinst/issues/64).
+- Increased the size of /boot/ to 128MB by default. This fixes [issue 190](https://github.com/debian-pi/raspbian-ua-netinst/issues/190).
+- Fixed the kernel crashes/rainbow screens that happened with the rpi15 kernel. This fixes [issue 199](https://github.com/debian-pi/raspbian-ua-netinst/issues/199) and [issue 201](https://github.com/debian-pi/raspbian-ua-netinst/issues/201).
+
+NOTE:
+This release also adds support for DeviceTree and this is enabled by default on the Pi 2.  
+For the Pi 1B and 1B+ it is **disabled** by default (in `/boot/config.txt`) since it seems to be the cause for the various kernel crashes/rainbow screens. You can enable DeviceTree quite simple by commenting out or removing the `device_tree=` line and it usually just works. But since we've had just too many crashes it is disabled by default. See also https://github.com/raspberrypi/linux/issues/914.
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.7/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.7-RC (2015-04-22)
 
 This release fixes the following issues:
@@ -17,6 +36,7 @@ This release fixes the following issues:
 - Added support for the Raspberry Pi 2. This fixes [issue 180](https://github.com/debian-pi/raspbian-ua-netinst/issues/180).
 - Updated the kernel used during installation to 3.18.
 - Removed the kernel-upgrade-script since it doesn't handle sections in /boot/config.txt. See [raspbian-tools issue 2](https://github.com/debian-pi/raspbian-tools/issues/2).
+
 
 # Release v1.0.6  (2015-01-09)
 
