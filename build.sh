@@ -243,6 +243,7 @@ cp installer-rpi1.cpio bootfs/
 echo "[pi1]" >> bootfs/config.txt
 echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
 echo "initramfs installer-rpi1.cpio" >> bootfs/config.txt
+echo "device_tree=" >> bootfs/config.txt
 
 create_cpio "rpi2"
 cp installer-rpi2.cpio bootfs/
@@ -267,32 +268,6 @@ if [ -d config ] ; then
     mkdir bootfs/config
     cp -r config/* bootfs/config
 fi
-
-if [ ! -d config ] ; then
-    mkdir bootfs/config
-fi
-
-# This is a temporary workaround to make the installer boot on a Pi 1B/1B+
-FIRMWARE_ARCHIVE_FILENAME=raspberrypi-firmware-20150420.zip
-echo -n "Downloading newer, but working, firmware files..."
-curl -s -o bootfs/config/$FIRMWARE_ARCHIVE_FILENAME  https://raw.githubusercontent.com/debian-pi/general/master/workarounds/$FIRMWARE_ARCHIVE_FILENAME
-# test whether the file exists and it's size is > 100k
-if [ -f bootfs/config/$FIRMWARE_ARCHIVE_FILENAME ] && [ $(wc -c < bootfs/config/$FIRMWARE_ARCHIVE_FILENAME) -gt 100000 ] ; then
-    echo "OK"
-else
-    echo "FAILED"
-fi
-
-if [ -f bootfs/config/$FIRMWARE_ARCHIVE_FILENAME ] ; then
-    echo -n "Extracting newer firmware files..."
-    unzip -qo bootfs/config/$FIRMWARE_ARCHIVE_FILENAME -d bootfs/
-    if [ $? -eq 0 ] ; then
-        echo "OK"
-    else
-        echo "FAILED !"
-    fi
-fi
-# End workaround
 
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
 rm -f $ZIPFILE
