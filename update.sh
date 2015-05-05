@@ -114,7 +114,7 @@ download_package_lists() {
         exit 1
     fi
     echo -e "\nDownloading and importing raspberrypi.gpg.key..."
-    curl -# -O http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+    curl -# -O https://www.raspberrypi.org/raspberrypi.gpg.key
     gpg -q --homedir gnupg --import raspberrypi.gpg.key
     echo -n "Verifying raspberrypi.gpg.key... "
     if gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
