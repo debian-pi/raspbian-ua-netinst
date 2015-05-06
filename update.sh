@@ -124,6 +124,14 @@ download_package_lists() {
         cd ..
         exit 1
     fi
+    echo -e "\nVerifying that only two keys were imported..."
+    if [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -eq 2 ]; then
+        echo "OK"
+    else
+        echo -e "ERROR\nImported more than two GPG keys!"
+        cd ..
+        exit 1
+    fi
 
     echo -e "\nDownloading Release file and its signature..."
     curl -# -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
