@@ -168,8 +168,8 @@ function create_cpio {
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
-    # raspberrypi.org GPG key 
-    cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
+    # raspberrypi.org GPG key
+    cp keys/raspberrypi.gpg.key rootfs/usr/share/keyrings/
 
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
