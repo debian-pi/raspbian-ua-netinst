@@ -106,23 +106,31 @@ download_package_lists() {
     curl -# -O https://archive.raspbian.org/raspbian.public.key
     gpg -q --homedir gnupg --import raspbian.public.key
     echo -n "Verifying raspbian.public.key... "
-    if gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
-        echo "OK"
-    else
+    if ! gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
         echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
         cd ..
         exit 1
+    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 1 ] ; then
+        echo -e "ERROR\nImported more than one GPG key for raspbian.org!"
+        cd ..
+        exit 1
+    else
+        echo "OK"
     fi
     echo -e "\nDownloading and importing raspberrypi.gpg.key..."
     curl -# -O https://www.raspberrypi.org/raspberrypi.gpg.key
     gpg -q --homedir gnupg --import raspberrypi.gpg.key
     echo -n "Verifying raspberrypi.gpg.key... "
-    if gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
-        echo "OK"
-    else
+    if ! gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
         echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
         cd ..
         exit 1
+    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 2 ] ; then
+        echo -e "ERROR\nImported more than one GPG key for raspberrypi.org!"
+        cd ..
+        exit 1
+    else
+        echo "OK"
     fi
 
     echo -e "\nDownloading Release file and its signature..."
