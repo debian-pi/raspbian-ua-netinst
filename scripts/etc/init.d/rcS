@@ -540,11 +540,11 @@ if [ ! "$disable_root" = "1" ]; then
     # add SSH key for root (if provided)
     if [ ! -z "$root_ssh_pubkey" ]; then
         echo -n "  Setting root SSH key... "
-        mkdir -p /rootfs/root/.ssh && \
+        mkdir -p -m 700 /rootfs/root/.ssh && \
             echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
         echo "OK"
-        echo -n "  Setting permissions on root SSH directory... "
-        chmod -R go-rwx /rootfs/root/.ssh || fail
+        echo -n "  Setting permissions on root SSH authorized_keys... "
+        chmod 600 /rootfs/root/.ssh/authorized_keys || fail
         echo "OK"
     fi
     if [ ! -z "$rootpw" ]; then
@@ -569,14 +569,14 @@ if [ ! -z "$username" ]; then
     if [ ! -z "$user_ssh_pubkey" ]; then
         echo -n "  Setting $username SSH key... "
         ssh_dir="/rootfs/home/$username/.ssh"
-        mkdir -p "$ssh_dir" && \
+        mkdir -p -m 700 "$ssh_dir" && \
             echo "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
         echo "OK"
         echo -n "  Setting owner as $username on SSH directory... "
         chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" || fail
         echo "OK"
-        echo -n "  Setting permissions on $username SSH directory... "
-        chmod -R go-rwx "$ssh_dir" || fail
+        echo -n "  Setting permissions on $username SSH authorized_keys... "
+        chmod 600 "$ssh_dir/authorized_keys" || fail
         echo "OK"
     fi
     if [ ! -z "$user_passwd" ]; then
