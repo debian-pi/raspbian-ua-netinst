@@ -53,7 +53,7 @@ fail()
         mount $bootpartition /boot
         fail_boot_mounted=true
     fi
-    cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
+    cp -- $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
     sync
     
     # if we mounted /boot in the fail command, unmount it.
@@ -146,7 +146,7 @@ echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
 
-cp -r /boot/* /bootfs/ || fail
+cp -r -- /boot/* /bootfs/ || fail
 
 umount /boot || fail
 echo "OK"
@@ -519,7 +519,7 @@ mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
 echo -n "Copying /boot files in... "
-cp -r /bootfs/* /rootfs/boot || fail
+cp -r -- /bootfs/* /rootfs/boot || fail
 sync
 echo "OK"
 
@@ -533,66 +533,66 @@ fi
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
-# allow root login
 echo "Configuring installed system:"
-if [ ! "$disable_root" = "1" ]; then
-    echo -n "  Setting root password... "
-    echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-    echo "OK"
-fi
 
-# add SSH key for root (if provided)
-if [ ! -z "$root_ssh_pubkey" ]; then
-    echo -n "  Setting root SSH key... "
-    mkdir -p /rootfs/root/.ssh && \
-        chmod 700 /rootfs/root/.ssh && \
-        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
-    if [ $? -eq 0 ]; then
+# configure root login
+if [ ! "$disable_root" = "1" ]; then
+    # add SSH key for root (if provided)
+    if [ ! -z "$root_ssh_pubkey" ]; then
+        echo -n "  Setting root SSH key... "
+        mkdir -p /rootfs/root/.ssh && \
+            echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
         echo "OK"
-    else
-        echo "FAILED !"
+        echo -n "  Setting permissions on root SSH directory... "
+        chmod -R go-rwx /rootfs/root/.ssh || fail
+        echo "OK"
+    fi
+    if [ ! -z "$rootpw" ]; then
+        # openssh-server in jessie doesn't allow root to login with a password
+        if [ "$release" = "jessie" ] ; then
+            echo -n "  Allowing root to login with password on jessie... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+        echo -n "  Setting root password... "
+        echo -n "root:$rootpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
     fi
 fi
 
 # add user to system
 if [ ! -z "$username" ]; then
-    echo -n "  Creating user... "
-    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
-    if [ $? -eq 0 ]; then
+    echo -n "  Creating $username user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password || fail
+    echo "OK"
+    # add SSH key for user (if provided)
+    if [ ! -z "$user_ssh_pubkey" ]; then
+        echo -n "  Setting $username SSH key... "
+        ssh_dir="/rootfs/home/$username/.ssh"
+        mkdir -p "$ssh_dir" && \
+            echo "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
         echo "OK"
-        echo -n "  Setting user password... "
-        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
-        if [ $? -eq 0 ]; then
-            echo "OK"
-        else
-            echo "FAILED !"
-        fi
-        if [ ! -z "$user_ssh_pubkey" ]; then
-            echo -n "  Setting user SSH key... "
-            ssh_dir="/home/$username/.ssh"
-            mkdir -p "/rootfs$ssh_dir" && \
-                chmod 700 "/rootfs$ssh_dir" && \
-                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
-            if [ $? -eq 0 ]; then
-                echo "OK"
-                echo -n "  Setting owner on SSH key... "
-                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
-                if [ $? -eq 0 ]; then
-                    echo "OK"
-                else
-                    echo "FAILED !"
-                fi
-            else
-                echo "FAILED !"
-            fi
-        fi
-        if [ "$user_is_admin" = "1" ]; then
-            echo -n "  Adding $username to sudo group... "
-            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+        echo -n "  Setting owner as $username on SSH directory... "
+        chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" || fail
+        echo "OK"
+        echo -n "  Setting permissions on $username SSH directory... "
+        chmod -R go-rwx "$ssh_dir" || fail
+        echo "OK"
+    fi
+    if [ ! -z "$user_passwd" ]; then
+        echo -n "  Setting $username password... "
+        echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
+    fi
+    if [ "$user_is_admin" = "1" ]; then
+        echo -n "  Adding $username to sudo group... "
+        chroot /rootfs /usr/sbin/usermod -aG sudo "$username" || fail
+        echo "OK"
+        if [ -z "$user_passwd" ]; then
+            echo -n "  Setting $username to sudo without a password... "
+            echo -n "%sudo         ALL = (ALL) NOPASSWD: ALL" > /rootfs/etc/sudoers.d/01_sudo || fail
             echo "OK"
         fi
-    else
-        echo "FAILED !"
     fi
 fi
 
@@ -693,19 +693,6 @@ if [ "$system_default_locale" != "" ]; then
     fi
 fi
 
-# openssh-server in jessie doesn't allow root to login using password anymore
-# this hack does allow it (until a proper solution is implemented)
-# only do this if no SSH key is provided for root and disabling root isn't requested
-if [ -z "$root_ssh_pubkey" ]; then
-    if [ ! "$disable_root" = "1" ]; then
-        if [ "$release" = "jessie" ] ; then
-            echo -n "  Allowing root to login with password... "
-            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-            echo "OK"
-        fi
-    fi
-fi
-
 echo ""
 
 # there is no hw clock on rpi
@@ -739,58 +726,33 @@ old_dir=$(pwd)
 cd /rootfs/boot/config/apt/
 
 # iterate through all the *.list files and add them to /etc/apt/sources.list.d
-for listfile in *.list
+for listfile in ./*.list
 do
-    if [ $listfile != "sources.list" ] ; then
+    if [ "$listfile" != "sources.list" && -e "$listfile" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
-        cp $listfile /rootfs/etc/apt/sources.list.d/
-        if [ $? -eq ] ; then
-            echo "OK"
-        else
-            echo "FAILED"
-        fi
-
-        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
-            echo -n "  Replacing __RELEASE__ with $release in $listfile... "
-            sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list.d/$listfile
-            # if __RELEASE__ is still present, something went wrong
-            if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
-                echo "FAILED"
-            else
-                echo "OK"
-            fi
-        fi
+        sed "s/__RELEASE__/$release/g" "$listfile" > "/rootfs/etc/apt/sources.list.d/$listfile" || fail
+        echo "OK"
     fi
 done
 
 # iterate through all the *.pref files and add them to /etc/apt/preferences.d
-for preffile in *.pref
+for preffile in ./*.pref
 do
-    echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
-    cp $preffile /rootfs/etc/apt/preferences.d/
-    if [ $? -eq 0 ] ; then
+    if [ -e "$preffile" ]; then
+        echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+        sed "s/__RELEASE__/$release/g" "$preffile" > "/rootfs/etc/apt/preferences.d/$preffile" || fail
         echo "OK"
-    else
-        echo "FAILED"
-    fi
-
-    if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
-        echo -n "  Replacing __RELEASE__ with $release in $preffile... "
-        sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
-        # if __RELEASE__ is still present, something went wrong
-        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
-            echo "FAILED"
-        else
-            echo "OK"
-        fi
     fi
 done
 
 # iterate through all the *.key files and add them to apt-key
-for keyfile in *.key
+for keyfile in ./*.key
 do
-    echo "  Adding key $keyfile to apt."
-    cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
+    if [ -e "$keyfile" ]; then
+        echo -n "  Adding key $keyfile to apt."
+        cat "$keyfile" | chroot /rootfs /usr/bin/apt-key add - || fail
+        echo "OK"
+    fi
 done
 
 # return to the old location for the rest of the processing
@@ -861,7 +823,7 @@ fi
 # make sure there is a /boot/kernel.img or /boot/kernel7.img present
 if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
     echo -n "Copying kernel to /boot/${default_kernel_file}... "
-    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
+    cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
     if [ $? -eq 0 ]; then
         echo "OK"
     else
@@ -896,7 +858,7 @@ echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
 
 echo -n "Unmounting filesystems... "
 # copy logfile to standard log directory
-cp $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
+cp -- $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
 chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
 
 umount /rootfs/boot
