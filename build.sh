@@ -231,6 +231,7 @@ function create_cpio {
 
     cd rootfs && find . | cpio -H newc -ov > ../installer-${target_system}.cpio
     cd ..
+    gzip -f --best installer-${target_system}.cpio
 
     rm -rf rootfs
 
@@ -265,16 +266,16 @@ if [ ! -f bootfs/config.txt ] ; then
 fi
 
 create_cpio "rpi1"
-cp installer-rpi1.cpio bootfs/
+cp installer-rpi1.cpio.gz bootfs/
 echo "[pi1]" >> bootfs/config.txt
 echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi1.cpio" >> bootfs/config.txt
+echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
 
 create_cpio "rpi2"
-cp installer-rpi2.cpio bootfs/
+cp installer-rpi2.cpio.gz bootfs/
 echo "[pi2]" >> bootfs/config.txt
 echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi2.cpio" >> bootfs/config.txt
+echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
 
 # clean up
 rm -rf tmp
