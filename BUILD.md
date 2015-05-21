@@ -13,7 +13,7 @@ On a Debian system those are the following, excluding packages with priority ess
 - dosfstools
 - binutils
 
-Install them as root:
+On Debian based systems you can install them as root or with sudo as follows:
 ```
 aptitude install git curl bzip2 zip xz-utils gnupg kpartx dosfstools binutils
 ```
