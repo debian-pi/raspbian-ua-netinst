@@ -203,9 +203,8 @@ function create_cpio {
     # zlib1g components
     cp tmp/lib/*/libz.so.1  rootfs/lib/
 
-    cd rootfs && find . | cpio -H newc -ov > ../installer-${target_system}.cpio
-    cd ..
-    gzip -f --best installer-${target_system}.cpio
+    INITRAMFS="../installer-${target_system}.cpio.gz"
+    (cd rootfs && find . | cpio -H newc -ov | gzip --best > $INITRAMFS)
 
     rm -rf rootfs
 
