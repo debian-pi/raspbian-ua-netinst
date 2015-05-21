@@ -39,22 +39,23 @@ packages+=("libnl-genl-3-200")
 packages+=("libpcsclite1")
 
 required() {
-    if ((${packages_req["$1"]})); then
-        return 0
-    fi
+    for i in ${packages[@]}; do
+        [[ $i = $1 ]] && return 0
+    done
+    return 1
+}
+
+unset_required() {
+    for i in ${!packages[@]}; do
+        [[ ${packages[$i]} = $1 ]] && unset packages[$i] && return 0
+    done
     return 1
 }
 
 allfound() {
-    [[ ${#packages_req[@]} -eq 0 ]] && return 0
+    [[ ${#packages[@]} -eq 0 ]] && return 0
     return 1
 }
-
-# using an assotiative array is faster than looping through an array multiple times
-declare -A packages_req
-for i in "${packages[@]}"; do
-    packages_req["$i"]=1
-done
 
 filter_package_list() {
     grep -E 'Package:|Filename:|SHA256:|^$'
@@ -170,7 +171,7 @@ do
     elif [ "$k" = "" ]; then
         if required $current_package; then
             printf "  %-32s %s\n" $current_package $(basename $current_filename)
-            unset packages_req["$current_package"]
+            unset_required $current_package
             packages_debs+=("${mirror}${current_filename}")
             packages_sha256+=("${current_sha256}  $(basename ${current_filename})")
             allfound && break
@@ -184,7 +185,7 @@ done < <(filter_package_list <Packages)
 
 if ! allfound ; then
     echo "ERROR: Unable to find all required packages in package list!"
-    echo "Missing packages: ${!packages_req[@]}"
+    echo "Missing packages: ${packages[@]}"
     cd ..
     exit 1
 fi
