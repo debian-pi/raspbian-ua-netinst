@@ -8,17 +8,29 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
+label=raspberrypi
 domainname=
 rootpw=raspbian
+root_ssh_pubkey=
+disable_root=
+username=
+userpw=
+user_ssh_pubkey=
+user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+128M
 rootsize=
 timeserver=time.nist.gov
+timezone=Etc/UTC
+locales=
+system_default_locale=
+ifname=eth0
 ip_addr=dhcp
 ip_netmask=0.0.0.0
 ip_broadcast=0.0.0.0
 ip_gateway=0.0.0.0
 ip_nameservers=
+drivers_to_load=
 online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
@@ -149,6 +161,10 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
 fi
 
+if [ -e /bootfs/config/wpa_supplicant.conf ]; then
+    sanitize_inputfile /bootfs/config/wpa_supplicant.conf
+fi
+
 case "$rootfstype" in
   "btrfs")
     kernel_module=true
@@ -184,11 +200,28 @@ fi
 echo "  online_config = $online_config"
 echo
 
-echo -n "Waiting for eth0... "
+# depmod needs to update modules.dep before using modprobe
+depmod -a
+if [ "$drivers_to_load" != "" ] ; then
+   echo "Loading additional drivers."
+   for driver in $drivers_to_load
+   do
+      echo -n " Loading driver '$driver' ... "
+      modprobe $driver || fail
+      if [ $? -eq 0 ] ; then
+         echo "OK"
+      else
+         echo "FAILED !"
+      fi
+   done
+   echo "Finished loading additional drivers"
+fi
+
+echo "Waiting for $ifname... "
 
 for i in `seq 1 10`; do
 
-    ifconfig eth0 &>/dev/null
+    ifconfig $ifname &>/dev/null
     if [ $? -eq 0 ]; then
         break
     fi
@@ -203,19 +236,28 @@ for i in `seq 1 10`; do
     echo -n "$i.. "
 done
 
-if [ "$ip_addr" = "dhcp" ]; then
-    echo -n "Configuring eth0 with DHCP... "
+if [ "$ifname" != "eth0" ]; then
+    # Replace eth0 as udhcpc dns interface
+    sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
+    # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
+    echo -n "Running wpa_supplicant... "
+    wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
+    echo "OK"
+fi
 
-    udhcpc -i eth0 &>/dev/null
+if [ "$ip_addr" = "dhcp" ]; then
+    echo -n "Configuring $ifname with DHCP... "
+
+    udhcpc -i $ifname &>/dev/null
     if [ $? -eq 0 ]; then
-        ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+        ifconfig $ifname | fgrep addr: | awk '{print $2}' | cut -d: -f2
     else
         echo "FAILED"
         fail
     fi
 else
-    echo -n "Configuring eth0 with static ip $ip_addr... "
-    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || fail
+    echo -n "Configuring $ifname with static ip $ip_addr... "
+    ifconfig $ifname up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || fail
     route add default gw $ip_gateway || fail
     echo -n > /etc/resolv.conf
     for i in $ip_nameservers; do
@@ -279,6 +321,15 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+# check if we need the sudo package and add it if so
+if [ "$user_is_admin" = "1" ]; then
+    if [ -z "$packages" ]; then
+        packages="sudo"
+    else
+        packages="$packages,sudo"
+    fi        
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
@@ -322,7 +373,7 @@ else
     preset=none
 fi
 
-if [ "$usbroot" != "" ]; then
+if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
     modprobe sd_mod &> /dev/null || fail
@@ -345,12 +396,22 @@ echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
+echo "  label = $label"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
+echo "  root_ssh_pubkey = $root_ssh_pubkey"
+echo "  disable_root = $disable_root"
+echo "  username = $username"
+echo "  userpw = $userpw"
+echo "  user_ssh_pubkey = $user_ssh_pubkey"
+echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
+echo "  timezone = $timezone"
+echo "  locales = $locales"
+echo "  system_default_locale = $system_default_locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -359,6 +420,13 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
+echo
+
+echo -n "Waiting 5 seconds"
+for i in `seq 1 5`; do
+    echo -n "."
+    sleep 1
+done
 echo
 
 echo -n "Waiting for $rootdev... "
@@ -431,7 +499,7 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat $bootpartition &>/dev/null || fail
+mkfs.vfat -n $label $bootpartition &>/dev/null || fail
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
@@ -469,9 +537,66 @@ cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror 
 
 # allow root login
 echo "Configuring installed system:"
-echo -n "  Setting root password... "
-echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-echo "OK"
+if [ ! "$disable_root" = "1" ]; then
+    echo -n "  Setting root password... "
+    echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
+    echo "OK"
+fi
+
+# add SSH key for root (if provided)
+if [ ! -z "$root_ssh_pubkey" ]; then
+    echo -n "  Setting root SSH key... "
+    mkdir -p /rootfs/root/.ssh && \
+        chmod 700 /rootfs/root/.ssh && \
+        echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
+# add user to system
+if [ ! -z "$username" ]; then
+    echo -n "  Creating user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password
+    if [ $? -eq 0 ]; then
+        echo "OK"
+        echo -n "  Setting user password... "
+        echo -n $username:$userpw | chroot /rootfs /usr/sbin/chpasswd
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAILED !"
+        fi
+        if [ ! -z "$user_ssh_pubkey" ]; then
+            echo -n "  Setting user SSH key... "
+            ssh_dir="/home/$username/.ssh"
+            mkdir -p "/rootfs$ssh_dir" && \
+                chmod 700 "/rootfs$ssh_dir" && \
+                echo "$user_ssh_pubkey" > "/rootfs$ssh_dir/authorized_keys"
+            if [ $? -eq 0 ]; then
+                echo "OK"
+                echo -n "  Setting owner on SSH key... "
+                chroot /rootfs /bin/chown -R "$username:$username" "$ssh_dir"
+                if [ $? -eq 0 ]; then
+                    echo "OK"
+                else
+                    echo "FAILED !"
+                fi
+            else
+                echo "FAILED !"
+            fi
+        fi
+        if [ "$user_is_admin" = "1" ]; then
+            echo -n "  Adding $username to sudo group... "
+            chroot /rootfs /usr/sbin/usermod -aG sudo "$username"
+            echo "OK"
+        fi
+    else
+        echo "FAILED !"
+    fi
+fi
 
 # default mounts
 echo -n "  Configuring /etc/fstab... "
@@ -508,17 +633,20 @@ echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
 echo "" >>  /rootfs/etc/network/interfaces || fail
 
 # eth0 config
-echo "auto eth0" >> /rootfs/etc/network/interfaces || fail
+echo "auto $ifname" >> /rootfs/etc/network/interfaces || fail
 if [ "$ip_addr" = "dhcp" ]; then
-    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || fail
+    echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces || fail
 else
-    echo "iface eth0 inet static" >> /rootfs/etc/network/interfaces || fail
+    echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces || fail
     echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || fail
     echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || fail
     echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || fail
     echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || fail
 
     cp /etc/resolv.conf /rootfs/etc/ || fail
+fi
+if [ "$ifname" != "eth0" ]; then
+    echo "wpa-conf /boot/config/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces || fail
 fi
 echo "OK"
 
@@ -528,13 +656,58 @@ echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
 echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
 echo "OK"
 
+# set timezone and reconfigure tzdata package
+echo -n "  Configuring tzdata, setting timezone to $timezone... "
+echo "$timezone" > /rootfs/etc/timezone
+chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# generate locale data
+if [ "$locales" != "" ]; then
+    echo -n "  Enabling locales... "
+    for locale in $locales; do
+        echo -n "$locale... "
+        if [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
+            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
+        else
+            echo -n "NOT found... "
+        fi
+    done
+    echo "OK"
+    chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
+    if [ $? -ne 0 ]; then
+        echo "  ERROR while generating locales !"
+    fi
+fi
+
+# set system default locale
+if [ "$system_default_locale" != "" ]; then
+    echo -n "  Setting system default locale... "
+    chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
+fi
+
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] ; then
-    echo -n "  Allowing root to login with password... "
-    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
-    echo "OK"
+# only do this if no SSH key is provided for root and disabling root isn't requested
+if [ -z "$root_ssh_pubkey" ]; then
+    if [ ! "$disable_root" = "1" ]; then
+        if [ "$release" = "jessie" ] ; then
+            echo -n "  Allowing root to login with password... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+    fi
 fi
+
 echo ""
 
 # there is no hw clock on rpi
@@ -546,21 +719,85 @@ echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
 
-# add firmware to default apt sources
-echo -n "Configuring apt... "
-echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
-echo "deb http://archive.raspberrypi.org/debian wheezy main" >> /rootfs/etc/apt/sources.list
-cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+# copy apt's sources.list to the target system
+echo "Configuring apt:"
+echo -n "  Copying raspbian repo to sources.list... "
+cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
 echo "OK"
+echo -n "  Replacing __RELEASE__ with $release... "
+sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
+# if __RELEASE__ is still present, something went wrong
+if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list >/dev/null ; then
+    echo "FAILED"
+else
+    echo "OK"
+fi
 
-# add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
-# raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
-echo -n "Creating preferences file for libraspberrypi-bin... "
-echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin: release o=Raspbian,n=$release" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin-Priority: 800" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "OK"
+echo "  Adding raspberrypi.org gpg key to apt-key."
+cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/apt/
+
+# iterate through all the *.list files and add them to /etc/apt/sources.list.d
+for listfile in *.list
+do
+    if [ $listfile != "sources.list" ] ; then
+        echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
+        cp $listfile /rootfs/etc/apt/sources.list.d/
+        if [ $? -eq ] ; then
+            echo "OK"
+        else
+            echo "FAILED"
+        fi
+
+        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+            echo -n "  Replacing __RELEASE__ with $release in $listfile... "
+            sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list.d/$listfile
+            # if __RELEASE__ is still present, something went wrong
+            if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+                echo "FAILED"
+            else
+                echo "OK"
+            fi
+        fi
+    fi
+done
+
+# iterate through all the *.pref files and add them to /etc/apt/preferences.d
+for preffile in *.pref
+do
+    echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+    cp $preffile /rootfs/etc/apt/preferences.d/
+    if [ $? -eq 0 ] ; then
+        echo "OK"
+    else
+        echo "FAILED"
+    fi
+
+    if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
+        echo -n "  Replacing __RELEASE__ with $release in $preffile... "
+        sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
+        # if __RELEASE__ is still present, something went wrong
+        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+            echo "FAILED"
+        else
+            echo "OK"
+        fi
+    fi
+done
+
+# iterate through all the *.key files and add them to apt-key
+for keyfile in *.key
+do
+    echo "  Adding key $keyfile to apt."
+    cat $keyfile | chroot /rootfs /usr/bin/apt-key add -
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir
+
 
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
@@ -578,12 +815,24 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
-echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
+fi
+
+# if eth0 was not used during initial boot, a wireless interfaces was used
+if [ "$ifname" != "eth0" ]; then
+    # Install wireless dependencies
+    echo -n "Installing wpasupplicant package... "
+    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
 fi
 
 # add reasonable default modules, works only after kernel is properly installed

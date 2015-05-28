@@ -86,8 +86,8 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 The default **root** password is **raspbian**.
 
 > Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales`  
-> Configure your timezone: `dpkg-reconfigure tzdata`  
+> Configure your default locale: `dpkg-reconfigure locales` (can also be configured during installation using **locales** and **system_default_locale** in [installer-config.txt](#installer-customization))  
+> Configure your timezone: `dpkg-reconfigure tzdata` (can also be set during installation using **timezone** in [installer-config.txt](#installer-customization)  
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
@@ -120,15 +120,26 @@ The format of the file and the current defaults:
     hostname=pi
     domainname=
     rootpw=raspbian
+    root_ssh_pubkey= # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for root if set; the public SSH key must be on a single line, enclosed in quotes
+    disable_root= # set to 1 to disable root login (and password) altogether
+    username= # username of the user to create
+    userpw= # password to use for created user
+    user_ssh_pubkey= # public SSH key for created user; the public SSH key must be on a single line, enclosed in quotes
+    user_is_admin= # set to 1 to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
     bootsize=+128M # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
     rootsize=     # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
     timeserver=time.nist.gov
+    timezone=Etc/UTC # set to desired timezone (e.g. Europe/Ljubljana)
+    locales=  # a space delimited list of locales that will be generated during install (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
+    system_default_locale= # the default system locale to set (using the LANG environment variable)
+    ifname=eth0
     ip_addr=dhcp
     ip_netmask=0.0.0.0
     ip_broadcast=0.0.0.0
     ip_gateway=0.0.0.0
     ip_nameservers=
+    drivers_to_load=
     online_config= # URL to extra config that will be executed after installer-config.txt
     usbroot= # set to 1 to install to first USB disk
     cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
