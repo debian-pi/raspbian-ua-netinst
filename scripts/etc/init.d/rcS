@@ -8,6 +8,7 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
+label=raspberrypi
 domainname=
 rootpw=raspbian
 root_ssh_pubkey=
@@ -395,6 +396,7 @@ echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
 echo "  hostname = $hostname"
+echo "  label = $label"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
 echo "  root_ssh_pubkey = $root_ssh_pubkey"
@@ -497,7 +499,7 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat $bootpartition &>/dev/null || fail
+mkfs.vfat -n $label $bootpartition &>/dev/null || fail
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
