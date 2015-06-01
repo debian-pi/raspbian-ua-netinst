@@ -3,6 +3,16 @@
 KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
 KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
+RASPBIAN_ARCHIVE_KEY_LOCATION="https://archive.raspbian.org/"
+RASPBIAN_ARCHIVE_KEY_NAME="raspbian.public.key"
+RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_LOCATION}${RASPBIAN_ARCHIVE_KEY_NAME}"
+RASPBIAN_ARCHIVE_KEY_FINGERPRINT="A0DA38D0D76E8B5D638872819165938D90FDDD2E"
+
+RASPBERRYPI_ARCHIVE_KEY_LOCATION="https://archive.raspberrypi.org/debian/"
+RASPBERRYPI_ARCHIVE_KEY_NAME="raspberrypi.gpg.key"
+RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_LOCATION}${RASPBERRYPI_ARCHIVE_KEY_NAME}"
+RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
+
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
@@ -102,11 +112,11 @@ download_package_lists() {
 
     mkdir -p gnupg
     chmod 0700 gnupg
-    echo "Downloading and importing raspbian.public.key..."
-    curl -# -O https://archive.raspbian.org/raspbian.public.key
-    gpg -q --homedir gnupg --import raspbian.public.key
-    echo -n "Verifying raspbian.public.key... "
-    if ! gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
+    echo "Downloading and importing ${RASPBIAN_ARCHIVE_KEY_NAME}..."
+    curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
+    gpg -q --homedir gnupg --import ${RASPBIAN_ARCHIVE_KEY_NAME}
+    echo -n "Verifying ${RASPBIAN_ARCHIVE_KEY_NAME}... "
+    if ! gpg --homedir gnupg -k ${RASPBIAN_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
         echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
         cd ..
         exit 1
@@ -117,11 +127,11 @@ download_package_lists() {
     else
         echo "OK"
     fi
-    echo -e "\nDownloading and importing raspberrypi.gpg.key..."
-    curl -# -O https://www.raspberrypi.org/raspberrypi.gpg.key
-    gpg -q --homedir gnupg --import raspberrypi.gpg.key
-    echo -n "Verifying raspberrypi.gpg.key... "
-    if ! gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
+    echo -e "\nDownloading and importing ${RASPBERRYPI_ARCHIVE_KEY_NAME}"
+    curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
+    gpg -q --homedir gnupg --import ${RASPBERRYPI_ARCHIVE_KEY_NAME}
+    echo -n "Verifying ${RASPBERRYPI_ARCHIVE_KEY_NAME}..."
+    if ! gpg --homedir gnupg -k ${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
         echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
         cd ..
         exit 1
