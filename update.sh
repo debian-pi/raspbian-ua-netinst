@@ -44,6 +44,44 @@ packages_found=
 packages_debs=
 packages_sha256=
 
+setup_archive_keys() {
+
+    mkdir -m 0700 -p gnupg
+
+    echo "Downloading and importing ${RASPBIAN_ARCHIVE_KEY_NAME}..."
+    curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
+    gpg -q --homedir gnupg --import ${RASPBIAN_ARCHIVE_KEY_NAME}
+    echo -n "Verifying ${RASPBIAN_ARCHIVE_KEY_NAME}... "
+    if ! gpg --homedir gnupg -k ${RASPBIAN_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
+        echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
+        cd ..
+        exit 1
+    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 1 ] ; then
+        echo -e "ERROR\nImported more than one GPG key for raspbian.org!"
+        cd ..
+        exit 1
+    else
+        echo "OK"
+    fi
+
+    echo -e "\nDownloading and importing ${RASPBERRYPI_ARCHIVE_KEY_NAME}"
+    curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
+    gpg -q --homedir gnupg --import ${RASPBERRYPI_ARCHIVE_KEY_NAME}
+    echo -n "Verifying ${RASPBERRYPI_ARCHIVE_KEY_NAME}..."
+    if ! gpg --homedir gnupg -k ${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
+        echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
+        cd ..
+        exit 1
+    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 2 ] ; then
+        echo -e "ERROR\nImported more than one GPG key for raspberrypi.org!"
+        cd ..
+        exit 1
+    else
+        echo "OK"
+    fi
+
+}
+
 required() {
     for i in $packages; do
         [[ $i = $1 ]] && return 0
@@ -110,39 +148,7 @@ download_package_list() {
 
 download_package_lists() {
 
-    mkdir -p gnupg
-    chmod 0700 gnupg
-    echo "Downloading and importing ${RASPBIAN_ARCHIVE_KEY_NAME}..."
-    curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
-    gpg -q --homedir gnupg --import ${RASPBIAN_ARCHIVE_KEY_NAME}
-    echo -n "Verifying ${RASPBIAN_ARCHIVE_KEY_NAME}... "
-    if ! gpg --homedir gnupg -k ${RASPBIAN_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
-        echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
-        cd ..
-        exit 1
-    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 1 ] ; then
-        echo -e "ERROR\nImported more than one GPG key for raspbian.org!"
-        cd ..
-        exit 1
-    else
-        echo "OK"
-    fi
-    echo -e "\nDownloading and importing ${RASPBERRYPI_ARCHIVE_KEY_NAME}"
-    curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
-    gpg -q --homedir gnupg --import ${RASPBERRYPI_ARCHIVE_KEY_NAME}
-    echo -n "Verifying ${RASPBERRYPI_ARCHIVE_KEY_NAME}..."
-    if ! gpg --homedir gnupg -k ${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
-        echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
-        cd ..
-        exit 1
-    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 2 ] ; then
-        echo -e "ERROR\nImported more than one GPG key for raspberrypi.org!"
-        cd ..
-        exit 1
-    else
-        echo "OK"
-    fi
-
+    setup_archive_keys
     echo -e "\nDownloading Release file and its signature..."
     curl -# -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
     echo -n "Verifying Release file... "
