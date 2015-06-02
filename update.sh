@@ -44,40 +44,73 @@ packages_found=
 packages_debs=
 packages_sha256=
 
+check_key() {
+    # param 1 = keyfile
+    # param 2 = key fingerprint
+    KEY_FILE="$1"
+    KEY_FINGERPRINT="$2"
+
+    if [ ! -f ${KEY_FILE} ] || [ "${KEY_FINGERPRINT}" = "" ] ; then
+        echo "One or more required parameters for check_key() is missing"
+        return 1 
+    fi
+    echo -n "Checking key file '${KEY_FILE}'... "
+
+    # check that there is only 1 public key in the key file
+    if [ $(gpg --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -ne 1 ] ; then
+        echo "FAILED!"
+        echo "There is more then one key in the ${KEY_FILE} key file!"
+        return 1
+    fi
+
+    # check that the key file's fingerprint is correct
+    if [ "$(gpg --with-colons ${KEY_FILE} | grep ^fpr: | awk -F: '{print $10}')" != "${KEY_FINGERPRINT}" ] ; then
+        echo "FAILED!"
+        echo "Bad GPG key fingerprint for ${KEY_FILE}!"
+        return 1
+    fi
+
+    echo "OK"
+}
+
 setup_archive_keys() {
 
     mkdir -m 0700 -p gnupg
 
-    echo "Downloading and importing ${RASPBIAN_ARCHIVE_KEY_NAME}..."
+    echo "Downloading ${RASPBIAN_ARCHIVE_KEY_NAME}."
     curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
-    gpg -q --homedir gnupg --import ${RASPBIAN_ARCHIVE_KEY_NAME}
-    echo -n "Verifying ${RASPBIAN_ARCHIVE_KEY_NAME}... "
-    if ! gpg --homedir gnupg -k ${RASPBIAN_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
-        echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
-        cd ..
-        exit 1
-    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 1 ] ; then
-        echo -e "ERROR\nImported more than one GPG key for raspbian.org!"
-        cd ..
-        exit 1
+    if check_key "${RASPBIAN_ARCHIVE_KEY_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
+        # GPG key checks out, thus import it into our own keyring
+        echo -n "Importing ${RASPBIAN_ARCHIVE_KEY_NAME} into keyring... "
+        if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_NAME}" ; then
+            echo "OK"
+        else
+            echo "FAILED!"
+            cd ..
+            exit 1
+        fi
     else
-        echo "OK"
+        cd ..
+        exit 1
     fi
 
-    echo -e "\nDownloading and importing ${RASPBERRYPI_ARCHIVE_KEY_NAME}"
+    echo ""
+
+    echo "Downloading ${RASPBERRYPI_ARCHIVE_KEY_NAME}."
     curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
-    gpg -q --homedir gnupg --import ${RASPBERRYPI_ARCHIVE_KEY_NAME}
-    echo -n "Verifying ${RASPBERRYPI_ARCHIVE_KEY_NAME}..."
-    if ! gpg --homedir gnupg -k ${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT} &> /dev/null ; then
-        echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
-        cd ..
-        exit 1
-    elif [ "$(gpg --homedir gnupg -k --with-colons | grep '^pub:' | wc -l)" -ne 2 ] ; then
-        echo -e "ERROR\nImported more than one GPG key for raspberrypi.org!"
-        cd ..
-        exit 1
+    if check_key "${RASPBERRYPI_ARCHIVE_KEY_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
+        # GPG key checks out, thus import it into our own keyring
+        echo -n "Importing ${RASPBERRYPI_ARCHIVE_KEY_NAME} into keyring..."
+        if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_NAME}" ; then
+            echo "OK"
+        else
+            echo "FAILED!"
+            cd ..
+            exit 1
+        fi
     else
-        echo "OK"
+        cd ..
+        exit 1
     fi
 
 }
