@@ -21,7 +21,7 @@ ip_gateway=0.0.0.0
 ip_nameservers=
 online_config=
 usbroot=
-label=raspberrypi
+label=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 rootfstype=ext4
 
@@ -432,7 +432,11 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat -n $label $bootpartition &>/dev/null || fail
+if [ "$label" = "" ]; then
+  mkfs.vfat $bootpartition &>/dev/null || fail
+else
+  mkfs.vfat -n $label $bootpartition &>/dev/null || fail
+fi
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
