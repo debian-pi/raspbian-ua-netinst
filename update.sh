@@ -3,14 +3,14 @@
 KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
 KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
-RASPBIAN_ARCHIVE_KEY_LOCATION="https://archive.raspbian.org/"
-RASPBIAN_ARCHIVE_KEY_NAME="raspbian.public.key"
-RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_LOCATION}${RASPBIAN_ARCHIVE_KEY_NAME}"
+RASPBIAN_ARCHIVE_KEY_DIRECTORY="https://archive.raspbian.org/"
+RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
+RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_DIRECTORY}${RASPBIAN_ARCHIVE_KEY_FILE_NAME}"
 RASPBIAN_ARCHIVE_KEY_FINGERPRINT="A0DA38D0D76E8B5D638872819165938D90FDDD2E"
 
-RASPBERRYPI_ARCHIVE_KEY_LOCATION="https://archive.raspberrypi.org/debian/"
-RASPBERRYPI_ARCHIVE_KEY_NAME="raspberrypi.gpg.key"
-RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_LOCATION}${RASPBERRYPI_ARCHIVE_KEY_NAME}"
+RASPBERRYPI_ARCHIVE_KEY_DIRECTORY="https://archive.raspberrypi.org/debian/"
+RASPBERRYPI_ARCHIVE_KEY_FILE_NAME="raspberrypi.gpg.key"
+RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_DIRECTORY}${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}"
 RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
 
 mirror=http://archive.raspbian.org/raspbian/
@@ -86,12 +86,12 @@ setup_archive_keys() {
 
     mkdir -m 0700 -p gnupg
 
-    echo "Downloading ${RASPBIAN_ARCHIVE_KEY_NAME}."
+    echo "Downloading ${RASPBIAN_ARCHIVE_KEY_FILE_NAME}."
     curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
-    if check_key "${RASPBIAN_ARCHIVE_KEY_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
+    if check_key "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
         # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_NAME}' into keyring... "
-        if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_NAME}" ; then
+        echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_FILE_NAME}' into keyring... "
+        if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" ; then
             echo "OK"
         else
             echo "FAILED!"
@@ -103,12 +103,12 @@ setup_archive_keys() {
 
     echo ""
 
-    echo "Downloading ${RASPBERRYPI_ARCHIVE_KEY_NAME}."
+    echo "Downloading ${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}."
     curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
-    if check_key "${RASPBERRYPI_ARCHIVE_KEY_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
+    if check_key "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
         # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing '${RASPBERRYPI_ARCHIVE_KEY_NAME}' into keyring..."
-        if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_NAME}" ; then
+        echo -n "Importing '${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}' into keyring..."
+        if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" ; then
             echo "OK"
         else
             echo "FAILED!"
