@@ -79,6 +79,7 @@ check_key() {
     fi
 
     echo "OK"
+    return 0
 }
 
 setup_archive_keys() {
@@ -89,17 +90,15 @@ setup_archive_keys() {
     curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
     if check_key "${RASPBIAN_ARCHIVE_KEY_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
         # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing ${RASPBIAN_ARCHIVE_KEY_NAME} into keyring... "
+        echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_NAME}' into keyring... "
         if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_NAME}" ; then
             echo "OK"
         else
             echo "FAILED!"
-            cd ..
-            exit 1
+            return 1
         fi
     else
-        cd ..
-        exit 1
+        return 1
     fi
 
     echo ""
@@ -108,18 +107,18 @@ setup_archive_keys() {
     curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
     if check_key "${RASPBERRYPI_ARCHIVE_KEY_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
         # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing ${RASPBERRYPI_ARCHIVE_KEY_NAME} into keyring..."
+        echo -n "Importing '${RASPBERRYPI_ARCHIVE_KEY_NAME}' into keyring..."
         if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_NAME}" ; then
             echo "OK"
         else
             echo "FAILED!"
-            cd ..
-            exit 1
+            return 1
         fi
     else
-        cd ..
-        exit 1
+        return 1
     fi
+
+    return 0
 
 }
 
@@ -190,6 +189,12 @@ download_package_list() {
 download_package_lists() {
 
     setup_archive_keys
+    if [ $? != 0 ] ; then
+        echo -e "ERROR\nSetting up the archives failed! Exiting."
+        cd ..
+        exit 1
+    fi
+
     echo -e "\nDownloading Release file and its signature..."
     curl -# -O $mirror/dists/$release/Release -O $mirror/dists/$release/Release.gpg
     echo -n "Verifying Release file... "
