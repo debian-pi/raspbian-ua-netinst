@@ -8,7 +8,7 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
-label=raspberrypi
+label=
 domainname=
 rootpw=raspbian
 root_ssh_pubkey=
@@ -499,7 +499,11 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat -n $label $bootpartition &>/dev/null || fail
+if [ "$label" = "" ]; then
+  mkfs.vfat $bootpartition &>/dev/null || fail
+else
+  mkfs.vfat -n $label $bootpartition &>/dev/null || fail
+fi
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
