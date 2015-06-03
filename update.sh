@@ -47,19 +47,27 @@ packages_sha256=
 check_key() {
     # param 1 = keyfile
     # param 2 = key fingerprint
+
+    # check input parameters
+    if [ -z $1 ] || [ ! -f $1 ] ; then
+        echo "Parameter 1 of check_key() is not a file!"
+        return 1
+    fi
+
+    if [ -z $2 ] ; then
+        echo "Parameter 2 of check_key() is not a key fingerprint!"
+        return 1
+    fi
+
     KEY_FILE="$1"
     KEY_FINGERPRINT="$2"
 
-    if [ ! -f ${KEY_FILE} ] || [ "${KEY_FINGERPRINT}" = "" ] ; then
-        echo "One or more required parameters for check_key() is missing"
-        return 1 
-    fi
     echo -n "Checking key file '${KEY_FILE}'... "
 
     # check that there is only 1 public key in the key file
-    if [ $(gpg --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -ne 1 ] ; then
+    if [ ! $(gpg --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -eq 1 ] ; then
         echo "FAILED!"
-        echo "There is more then one key in the ${KEY_FILE} key file!"
+        echo "There are zero or more then one keys in the ${KEY_FILE} key file!"
         return 1
     fi
 
