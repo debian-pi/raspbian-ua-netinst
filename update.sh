@@ -67,7 +67,7 @@ check_key() {
     # check that there is only 1 public key in the key file
     if [ ! $(gpg --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -eq 1 ] ; then
         echo "FAILED!"
-        echo "There are zero or more then one keys in the ${KEY_FILE} key file!"
+        echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
         return 1
     fi
 
