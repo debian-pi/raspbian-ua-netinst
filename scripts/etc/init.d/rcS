@@ -505,6 +505,13 @@ echo -n "Initializing /boot as vfat... "
 mkfs.vfat $bootpartition &>/dev/null || fail
 echo "OK"
 
+echo -n "Copying /boot files in... "
+mount $bootpartition /boot || fail
+cp -r /bootfs/* /boot || fail
+sync
+umount /boot || fail
+echo "OK"
+
 if [ "$kernel_module" = true ] ; then
   if [ "$rootfstype" != "ext4" ] ; then
     echo -n "Loading $rootfstype module... "
@@ -521,11 +528,6 @@ echo -n "Mounting new filesystems... "
 mount $rootpartition /rootfs -o $rootfs_install_mount_options || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
-echo "OK"
-
-echo -n "Copying /boot files in... "
-cp -r /bootfs/* /rootfs/boot || fail
-sync
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
