@@ -149,27 +149,6 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
 fi
 
-case "$rootfstype" in
-  "btrfs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-  "ext4")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
-    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
-    ;;
-  "f2fs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-esac
-
 echo
 echo "Network configuration:"
 echo "  ip_addr = $ip_addr"
@@ -278,6 +257,32 @@ if [ "$online_config" != "" ]; then
     echo "=== Finished executing online-config.txt. ==="
     echo "================================================="
 fi
+
+# prepare rootfs mount options
+case "$rootfstype" in
+  "btrfs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  "ext4")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
+    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
+    ;;
+  "f2fs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  *)
+    echo "Unknown filesystem specified: $rootfstype"
+    fail
+    ;;
+esac
 
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
