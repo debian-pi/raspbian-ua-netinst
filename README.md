@@ -118,7 +118,7 @@ The format of the file and the current defaults:
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=wheezy
     hostname=pi
-    label=raspberrypi # Sets the volume name (label) of the boot partition. The volume name can be up to 11 characters long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the SD-card on the desktop and can be useful when using multiple SD-cards.
+    boot_volume_label= # Sets the volume name of the boot partition. The volume name can be up to 11 characters long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the SD-card on the desktop and can be useful when using multiple SD-cards.
     domainname=
     rootpw=raspbian
     root_ssh_pubkey= # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for root if set; the public SSH key must be on a single line, enclosed in quotes
