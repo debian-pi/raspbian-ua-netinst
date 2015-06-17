@@ -163,6 +163,9 @@ function create_cpio {
 
     # dash components
     cp tmp/bin/dash rootfs/bin/
+    cd rootfs/bin
+    ln -s dash sh
+    cd ../..
 
     # debianutils components
     cp tmp/bin/run-parts rootfs/bin/
