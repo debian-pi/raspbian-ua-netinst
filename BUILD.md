@@ -12,7 +12,6 @@ On a Debian system those are the following, excluding packages with priority ess
 - kpartx
 - dosfstools
 - binutils
-- bc
 
 The following scripts are used to build the raspbian-ua-netinst installer, listed in the same order they would be used:
 
