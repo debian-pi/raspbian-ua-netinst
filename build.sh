@@ -161,6 +161,9 @@ function create_cpio {
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
     cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
 
+    # dash components
+    cp tmp/bin/dash rootfs/bin/
+
     # debianutils components
     cp tmp/bin/run-parts rootfs/bin/
     cp tmp/bin/tempfile rootfs/bin/
