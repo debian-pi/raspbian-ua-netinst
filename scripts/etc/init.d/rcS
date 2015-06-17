@@ -608,6 +608,10 @@ fi
 echo "[pi${rpi_hardware_version}]" >> /rootfs/boot/config.txt
 echo "kernel=vmlinuz-$KERNEL_VERSION" >> /rootfs/boot/config.txt
 echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/config.txt
+if [ "${rpi_hardware_version}" = "1" ] ; then
+    echo "# to enable DeviceTree, comment out the next line " >> /rootfs/boot/config.txt
+    echo "device_tree=" >> /rootfs/boot/config.txt
+fi
 
 # set the default kernel file based on the hardware
 default_kernel_file="kernel.img"
