@@ -65,14 +65,14 @@ check_key() {
     echo -n "Checking key file '${KEY_FILE}'... "
 
     # check that there is only 1 public key in the key file
-    if [ ! $(gpg --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -eq 1 ] ; then
+    if [ ! $(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -eq 1 ] ; then
         echo "FAILED!"
         echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
         return 1
     fi
 
     # check that the key file's fingerprint is correct
-    if [ "$(gpg --with-colons ${KEY_FILE} | grep ^fpr: | awk -F: '{print $10}')" != "${KEY_FINGERPRINT}" ] ; then
+    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons ${KEY_FILE} | grep ^fpr: | awk -F: '{print $10}')" != "${KEY_FINGERPRINT}" ] ; then
         echo "FAILED!"
         echo "Bad GPG key fingerprint for ${KEY_FILE}!"
         return 1
