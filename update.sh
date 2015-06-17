@@ -33,6 +33,7 @@ packages="$packages ifupdown"
 packages="$packages iproute2"
 packages="$packages lsb-base"
 packages="$packages raspbian-archive-keyring"
+packages="$packages sensible-utils"
 packages="$packages tar"
 packages="$packages util-linux"
 

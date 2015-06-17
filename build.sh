@@ -304,6 +304,13 @@ function create_cpio {
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
 
+    # sensible-utils components
+    cp tmp/usr/bin/select-editor rootfs/usr/bin/
+    cp tmp/usr/bin/sensible-browser rootfs/usr/bin/
+    cp tmp/usr/bin/sensible-editor rootfs/usr/bin/
+    cp tmp/usr/bin/sensible-pager rootfs/usr/bin/
+    cp tmp/usr/lib/mime/packages/sensible-utils rootfs/usr/lib/mime/packages/
+
     # tar components
     cp tmp/bin/tar rootfs/bin/
     cp tmp/etc/rmt rootfs/etc/
