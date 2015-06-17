@@ -106,7 +106,7 @@ function create_cpio {
     mkdir -p rootfs/usr/lib/mime/packages/
     mkdir -p rootfs/usr/lib/{tar,tc}
     mkdir -p rootfs/usr/sbin/
-    mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
+    mkdir -p rootfs/usr/share/{dpkg,debianutils,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
     mkdir -p rootfs/var/log/
 
@@ -160,6 +160,18 @@ function create_cpio {
     # cdebootstrap-static components
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
     cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+
+    # debianutils components
+    cp tmp/bin/run-parts rootfs/bin/
+    cp tmp/bin/tempfile rootfs/bin/
+    cp tmp/bin/which rootfs/bin/
+    cp tmp/sbin/installkernel rootfs/sbin/
+    cp tmp/usr/bin/ischroot rootfs/usr/bin/
+    cp tmp/usr/bin/savelog rootfs/usr/bin/
+    cp tmp/usr/bin/which rootfs/usr/bin/
+    cp tmp/usr/sbin/add-shell rootfs/usr/sbin/
+    cp tmp/usr/sbin/remove-shell rootfs/usr/sbin/
+    cp tmp/usr/share/debianutils/shells rootfs/usr/share/debianutils/
 
     # dosfstools components
     cp tmp/sbin/fatlabel rootfs/sbin/
