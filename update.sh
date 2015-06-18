@@ -23,22 +23,45 @@ packages+=("raspberrypi-bootloader-nokernel")
 packages+=("linux-image-${KERNEL_VERSION_RPI1}")
 packages+=("linux-image-${KERNEL_VERSION_RPI2}")
 packages+=("btrfs-tools")
-packages+=("busybox-static")
+packages+=("busybox")
 packages+=("cdebootstrap-static")
 packages+=("dosfstools")
+packages+=("dpkg")
 packages+=("e2fslibs")
 packages+=("e2fsprogs")
 packages+=("f2fs-tools")
 packages+=("gpgv")
+packages+=("ifupdown")
+packages+=("iproute2")
+packages+=("lsb-base")
 packages+=("raspbian-archive-keyring")
+packages+=("tar")
+packages+=("util-linux")
 
 # libraries
+packages+=("libacl1")
+packages+=("libatm1")
+packages+=("libattr1")
+packages+=("libaudit-common")
+packages+=("libaudit1")
 packages+=("libblkid1")
 packages+=("libbz2-1.0")
+packages+=("libc-bin")
 packages+=("libc6")
+packages+=("libcap2")
 packages+=("libcomerr2")
+packages+=("libdb5.3")
 packages+=("libgcc1")
+packages+=("liblzma5")
 packages+=("liblzo2-2")
+packages+=("libmount1")
+packages+=("libncurses5")
+packages+=("libpam0g")
+packages+=("libpcre3")
+packages+=("libselinux1")
+packages+=("libslang2")
+packages+=("libsmartcols1")
+packages+=("libtinfo5")
 packages+=("libuuid1")
 packages+=("zlib1g")
 
@@ -262,21 +285,6 @@ if sha256sum --quiet -c SHA256SUMS ; then
     echo "OK"
 else
     echo -e "ERROR\nThe checksums of the downloaded packages don't match the package lists!"
-    cd ..
-    exit 1
-fi
-
-# ugly workaround for non-working busybox-static in jessie
-echo -n "Copying older, but working, version of busybox as a workaround... "
-rm busybox-static_*
-bbfilename=busybox-static_1.20.0-7_armhf.deb
-curl -s -o $bbfilename https://raw.githubusercontent.com/debian-pi/general/master/workarounds/busybox-static_1.20.0-7_armhf.deb
-# test whether the file exists and it's size is > 100k
-if [ -f $bbfilename ] && [ $(wc -c < $bbfilename) -gt 100000 ] ; then
-    echo "OK"
-else
-    echo "FAILED"
-    echo -e "ERROR\nThe download of busybox-static failed, thus the rest will also fail!"
     cd ..
     exit 1
 fi
