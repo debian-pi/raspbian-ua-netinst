@@ -208,11 +208,7 @@ if [ "$drivers_to_load" != "" ] ; then
    do
       echo -n " Loading driver '$driver' ... "
       modprobe $driver || fail
-      if [ $? -eq 0 ] ; then
-         echo "OK"
-      else
-         echo "FAILED !"
-      fi
+      echo "OK"
    done
    echo "Finished loading additional drivers"
 fi
@@ -750,7 +746,7 @@ do
     if [ $listfile != "sources.list" ] ; then
         echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
         cp $listfile /rootfs/etc/apt/sources.list.d/
-        if [ $? -eq ] ; then
+        if [ $? -eq 0 ] ; then
             echo "OK"
         else
             echo "FAILED"
@@ -784,7 +780,7 @@ do
         echo -n "  Replacing __RELEASE__ with $release in $preffile... "
         sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/preferences.d/$preffile
         # if __RELEASE__ is still present, something went wrong
-        if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list.d/$listfile >/dev/null ; then
+        if grep -l '__RELEASE__' /rootfs/etc/apt/preferences.d/$preffile >/dev/null ; then
             echo "FAILED"
         else
             echo "OK"
