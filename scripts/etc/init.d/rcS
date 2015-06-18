@@ -79,10 +79,13 @@ mkdir -p /var/run
 mkdir -p /rootfs/boot
 mkdir -p /bootfs
 mkdir -p /tmp/
+mkdir -p /opt/busybox/bin/
 
-/bin/busybox --install
+/bin/busybox --install /opt/busybox/bin/
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
+# put PATH in /etc/profile so it's also available when we get a busybox shell
+echo "export PATH=${PATH}" > /etc/profile
 
 mount -t proc none /proc
 mount -t sysfs none /sys
