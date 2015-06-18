@@ -13,6 +13,11 @@ On a Debian system those are the following, excluding packages with priority ess
 - dosfstools
 - binutils
 
+On Debian based systems you can install them as root or with sudo as follows:
+```
+aptitude install git curl bzip2 zip xz-utils gnupg kpartx dosfstools binutils
+```
+
 The following scripts are used to build the raspbian-ua-netinst installer, listed in the same order they would be used:
 
  - update.sh - Downloads latest Raspbian packages that will be used to build the installer.
