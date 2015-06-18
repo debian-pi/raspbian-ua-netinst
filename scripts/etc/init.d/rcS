@@ -8,6 +8,7 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
+boot_volume_label=
 domainname=
 rootpw=raspbian
 cdebootstrap_cmdline=
@@ -350,6 +351,7 @@ echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
+echo "  boot_volume_label = $boot_volume_label"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
@@ -431,7 +433,11 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat $bootpartition &>/dev/null || fail
+if [ "$boot_volume_label" = "" ]; then
+  mkfs.vfat $bootpartition &>/dev/null || fail
+else
+  mkfs.vfat -n $boot_volume_label $bootpartition &>/dev/null || fail
+fi
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
