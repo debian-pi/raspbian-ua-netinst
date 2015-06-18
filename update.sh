@@ -86,7 +86,9 @@ setup_archive_keys() {
 
     mkdir -m 0700 -p gnupg
     # Let gpg set itself up already in the 'gnupg' dir before we actually use it
+    echo "Setting up gpg... "
     gpg --homedir gnupg --list-secret-keys
+    echo ""
 
     echo "Downloading ${RASPBIAN_ARCHIVE_KEY_FILE_NAME}."
     curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
