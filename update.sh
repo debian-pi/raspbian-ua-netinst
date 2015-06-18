@@ -16,59 +16,58 @@ RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
+packages=()
+
 # programs
-packages="$packages raspberrypi-bootloader-nokernel"
-packages="$packages linux-image-${KERNEL_VERSION_RPI1}"
-packages="$packages linux-image-${KERNEL_VERSION_RPI2}"
-packages="$packages btrfs-tools"
-packages="$packages busybox"
-packages="$packages cdebootstrap-static"
-packages="$packages dash"
-packages="$packages debianutils"
-packages="$packages dosfstools"
-packages="$packages dpkg"
-packages="$packages e2fslibs"
-packages="$packages e2fsprogs"
-packages="$packages f2fs-tools"
-packages="$packages gpgv"
-packages="$packages ifupdown"
-packages="$packages iproute2"
-packages="$packages lsb-base"
-packages="$packages raspbian-archive-keyring"
-packages="$packages sensible-utils"
-packages="$packages tar"
-packages="$packages util-linux"
+packages+=("raspberrypi-bootloader-nokernel")
+packages+=("linux-image-${KERNEL_VERSION_RPI1}")
+packages+=("linux-image-${KERNEL_VERSION_RPI2}")
+packages+=("btrfs-tools")
+packages+=("busybox")
+packages+=("cdebootstrap-static")
+packages+=("dash")
+packages+=("debianutils")
+packages+=("dosfstools")
+packages+=("dpkg")
+packages+=("e2fslibs")
+packages+=("e2fsprogs")
+packages+=("f2fs-tools")
+packages+=("gpgv")
+packages+=("ifupdown")
+packages+=("iproute2")
+packages+=("lsb-base")
+packages+=("raspbian-archive-keyring")
+packages+=("sensible-utils")
+packages+=("tar")
+packages+=("util-linux")
 
 # libraries
-packages="$packages libacl1"
-packages="$packages libatm1"
-packages="$packages libattr1"
-packages="$packages libaudit-common"
-packages="$packages libaudit1"
-packages="$packages libblkid1"
-packages="$packages libbz2-1.0"
-packages="$packages libc-bin"
-packages="$packages libc6"
-packages="$packages libcap2"
-packages="$packages libcomerr2"
-packages="$packages libdb5.3"
-packages="$packages libgcc1"
-packages="$packages liblzma5"
-packages="$packages liblzo2-2"
-packages="$packages libmount1"
-packages="$packages libncurses5"
-packages="$packages libpam0g"
-packages="$packages libpcre3"
-packages="$packages libselinux1"
-packages="$packages libslang2"
-packages="$packages libsmartcols1"
-packages="$packages libtinfo5"
-packages="$packages libuuid1"
-packages="$packages zlib1g"
+packages+=("libacl1")
+packages+=("libatm1")
+packages+=("libattr1")
+packages+=("libaudit-common")
+packages+=("libaudit1")
+packages+=("libblkid1")
+packages+=("libbz2-1.0")
+packages+=("libc-bin")
+packages+=("libc6")
+packages+=("libcap2")
+packages+=("libcomerr2")
+packages+=("libdb5.3")
+packages+=("libgcc1")
+packages+=("liblzma5")
+packages+=("liblzo2-2")
+packages+=("libmount1")
+packages+=("libncurses5")
+packages+=("libpam0g")
+packages+=("libpcre3")
+packages+=("libselinux1")
+packages+=("libslang2")
+packages+=("libsmartcols1")
+packages+=("libtinfo5")
+packages+=("libuuid1")
+packages+=("zlib1g")
 
-packages_found=
-packages_debs=
-packages_sha256=
 
 check_key() {
     # param 1 = keyfile
@@ -149,25 +148,26 @@ setup_archive_keys() {
 }
 
 required() {
-    for i in $packages; do
+    for i in ${packages[@]}; do
         [[ $i = $1 ]] && return 0
     done
+    return 1
+}
 
+unset_required() {
+    for i in ${!packages[@]}; do
+        [[ ${packages[$i]} = $1 ]] && unset packages[$i] && return 0
+    done
     return 1
 }
 
 allfound() {
-    for i in $packages; do
-        found=0
+    [[ ${#packages[@]} -eq 0 ]] && return 0
+    return 1
+}
 
-        for j in $packages_found; do
-            [[ $i = $j ]] && found=1
-        done
-
-        [[ $found -eq 0 ]] && return 1
-    done
-
-    return 0
+filter_package_list() {
+    grep -E 'Package:|Filename:|SHA256:|^$'
 }
 
 download_package_list() {
@@ -245,27 +245,24 @@ cd packages
 
 download_package_lists
 
+packages_debs=()
+packages_sha256=()
+
 echo -e "\nSearching for required packages..."
 while read k v
 do
     if [ "$k" = "Package:" ]; then
         current_package=$v
-    fi
-
-    if [ "$k" = "Filename:" ]; then
+    elif [ "$k" = "Filename:" ]; then
         current_filename=$v
-    fi
-
-    if [ "$k" = "SHA256:" ]; then
+    elif [ "$k" = "SHA256:" ]; then
         current_sha256=$v
-    fi
-
-    if [ "$k" = "" ]; then
+    elif [ "$k" = "" ]; then
         if required $current_package; then
-            printf "  %-32s %s\n" $current_package `basename $current_filename`
-            packages_debs="${mirror}${current_filename} ${packages_debs}"
-            packages_sha256="${current_sha256}  $(basename ${current_filename})\n${packages_sha256}"
-            packages_found="$current_package $packages_found"
+            printf "  %-32s %s\n" $current_package $(basename $current_filename)
+            unset_required $current_package
+            packages_debs+=("${mirror}${current_filename}")
+            packages_sha256+=("${current_sha256}  $(basename ${current_filename})")
             allfound && break
         fi
 
@@ -273,19 +270,20 @@ do
         current_filename=
         current_sha256=
     fi
-done < Packages
+done < <(filter_package_list <Packages)
 
 if ! allfound ; then
     echo "ERROR: Unable to find all required packages in package list!"
+    echo "Missing packages: ${packages[@]}"
     cd ..
     exit 1
 fi
 
 echo -e "\nDownloading packages..."
-curl -# --remote-name-all $packages_debs
+curl -# --remote-name-all ${packages_debs[@]}
 
 echo -n "Verifying downloaded packages... "
-echo -ne "${packages_sha256}" > SHA256SUMS
+printf "%s\n" "${packages_sha256[@]}" > SHA256SUMS
 if sha256sum --quiet -c SHA256SUMS ; then
     echo "OK"
 else
