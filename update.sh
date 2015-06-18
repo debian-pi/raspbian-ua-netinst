@@ -6,60 +6,59 @@ KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
+packages=()
+
 # programs
-packages="$packages raspberrypi-bootloader-nokernel"
-packages="$packages linux-image-${KERNEL_VERSION_RPI1}"
-packages="$packages linux-image-${KERNEL_VERSION_RPI2}"
-packages="$packages btrfs-tools"
-packages="$packages busybox-static"
-packages="$packages cdebootstrap-static"
-packages="$packages dosfstools"
-packages="$packages e2fslibs"
-packages="$packages e2fsprogs"
-packages="$packages f2fs-tools"
-packages="$packages gpgv"
-packages="$packages raspbian-archive-keyring"
-packages="$packages wpasupplicant"
+packages+=("raspberrypi-bootloader-nokernel")
+packages+=("linux-image-${KERNEL_VERSION_RPI1}")
+packages+=("linux-image-${KERNEL_VERSION_RPI2}")
+packages+=("btrfs-tools")
+packages+=("busybox-static")
+packages+=("cdebootstrap-static")
+packages+=("dosfstools")
+packages+=("e2fslibs")
+packages+=("e2fsprogs")
+packages+=("f2fs-tools")
+packages+=("gpgv")
+packages+=("raspbian-archive-keyring")
+packages+=("wpasupplicant")
 
 # libraries
-packages="$packages libblkid1"
-packages="$packages libbz2-1.0"
-packages="$packages libc6"
-packages="$packages libcomerr2"
-packages="$packages libgcc1"
-packages="$packages liblzo2-2"
-packages="$packages libuuid1"
-packages="$packages zlib1g"
-packages="$packages libssl1.0.0"
-packages="$packages libdbus-1-3"
-packages="$packages libnl-3-200"
-packages="$packages libnl-genl-3-200"
-packages="$packages libpcsclite1"
-
-packages_found=
-packages_debs=
-packages_sha256=
+packages+=("libblkid1")
+packages+=("libbz2-1.0")
+packages+=("libc6")
+packages+=("libcomerr2")
+packages+=("libgcc1")
+packages+=("liblzo2-2")
+packages+=("libuuid1")
+packages+=("zlib1g")
+packages+=("libssl1.0.0")
+packages+=("libdbus-1-3")
+packages+=("libnl-3-200")
+packages+=("libnl-genl-3-200")
+packages+=("libpcsclite1")
 
 required() {
-    for i in $packages; do
+    for i in ${packages[@]}; do
         [[ $i = $1 ]] && return 0
     done
+    return 1
+}
 
+unset_required() {
+    for i in ${!packages[@]}; do
+        [[ ${packages[$i]} = $1 ]] && unset packages[$i] && return 0
+    done
     return 1
 }
 
 allfound() {
-    for i in $packages; do
-        found=0
+    [[ ${#packages[@]} -eq 0 ]] && return 0
+    return 1
+}
 
-        for j in $packages_found; do
-            [[ $i = $j ]] && found=1
-        done
-
-        [[ $found -eq 0 ]] && return 1
-    done
-
-    return 0
+filter_package_list() {
+    grep -E 'Package:|Filename:|SHA256:|^$'
 }
 
 download_package_list() {
@@ -157,27 +156,24 @@ cd packages
 
 download_package_lists
 
+packages_debs=()
+packages_sha256=()
+
 echo -e "\nSearching for required packages..."
 while read k v
 do
     if [ "$k" = "Package:" ]; then
         current_package=$v
-    fi
-
-    if [ "$k" = "Filename:" ]; then
+    elif [ "$k" = "Filename:" ]; then
         current_filename=$v
-    fi
-
-    if [ "$k" = "SHA256:" ]; then
+    elif [ "$k" = "SHA256:" ]; then
         current_sha256=$v
-    fi
-
-    if [ "$k" = "" ]; then
+    elif [ "$k" = "" ]; then
         if required $current_package; then
-            printf "  %-32s %s\n" $current_package `basename $current_filename`
-            packages_debs="${mirror}${current_filename} ${packages_debs}"
-            packages_sha256="${current_sha256}  $(basename ${current_filename})\n${packages_sha256}"
-            packages_found="$current_package $packages_found"
+            printf "  %-32s %s\n" $current_package $(basename $current_filename)
+            unset_required $current_package
+            packages_debs+=("${mirror}${current_filename}")
+            packages_sha256+=("${current_sha256}  $(basename ${current_filename})")
             allfound && break
         fi
 
@@ -185,19 +181,20 @@ do
         current_filename=
         current_sha256=
     fi
-done < Packages
+done < <(filter_package_list <Packages)
 
 if ! allfound ; then
     echo "ERROR: Unable to find all required packages in package list!"
+    echo "Missing packages: ${packages[@]}"
     cd ..
     exit 1
 fi
 
 echo -e "\nDownloading packages..."
-curl -# --remote-name-all $packages_debs
+curl -# --remote-name-all ${packages_debs[@]}
 
 echo -n "Verifying downloaded packages... "
-echo -ne "${packages_sha256}" > SHA256SUMS
+printf "%s\n" "${packages_sha256[@]}" > SHA256SUMS
 if sha256sum --quiet -c SHA256SUMS ; then
     echo "OK"
 else
