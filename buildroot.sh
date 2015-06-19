@@ -8,7 +8,7 @@ rm -f $IMG
 rm -f $IMG.bz2
 rm -f $IMG.xz
 
-dd if=/dev/zero of=$IMG bs=1M count=32
+dd if=/dev/zero of=$IMG bs=1M count=64
 
 fdisk $IMG <<EOF
 n

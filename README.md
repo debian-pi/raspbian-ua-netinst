@@ -1,6 +1,6 @@
 # raspbian-ua-netinst
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model B and Model B+.  
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+ and 2B.  
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -17,7 +17,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - configurable default settings
  - extra configuration over HTTP possible - gives unlimited flexibility
  - installation takes about **15 minutes** with fast Internet from power on to sshd running
- - fits in 512MB SD card
+ - can fit on 512MB SD card, but 1GB is more reasonable
  - default install includes fake-hwclock to save time on shutdown
  - default install includes NTP to keep time
  - /tmp is mounted as tmpfs to improve speed
@@ -25,8 +25,8 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - option to install root to USB drive
 
 ## Requirements
- - a Raspberry Pi Model B or Model B+
- - SD card of at least 640MB (or at least 128MB for USB root install)
+ - a Raspberry Pi Model 1B, Model 1B+ or Model 2B
+ - SD card of at least 640MB or at least 128MB for USB root install (without customization)
  - working Ethernet with Internet connectivity
 
 ## Obtaining installer files on Windows and Mac
@@ -39,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ## Alternative method for Mac, writing image to SD card
-Prebuilt image is around **17MB** bzip2 compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is around **17MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -55,7 +55,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ## SD card image for Linux
-Prebuilt image is around **11MB** xz compressed and **32MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **11MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
