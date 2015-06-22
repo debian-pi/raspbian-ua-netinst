@@ -96,6 +96,7 @@ function create_cpio {
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
     mkdir -p rootfs/etc/{default,network/if-up.d/}
+    mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
@@ -179,6 +180,10 @@ function create_cpio {
     cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
+
+    # lsb-base components
+    cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
+    cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
 
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
