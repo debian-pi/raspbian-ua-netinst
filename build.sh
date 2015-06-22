@@ -95,11 +95,14 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
+    mkdir -p rootfs/etc/{default,network/if-up.d/}
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
     mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
+    mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/keyrings/
+    mkdir -p rootfs/var/lib/ntpdate
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
@@ -168,6 +171,14 @@ function create_cpio {
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
+
+    # ntpdate components
+    cp tmp/etc/default/ntpdate rootfs/etc/default/
+    # don't use /etc/ntp.conf since we don't have it
+    sed -i s/NTPDATE_USE_NTP_CONF=yes/NTPDATE_USE_NTP_CONF=no/ rootfs/etc/default/ntpdate
+    cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
+    cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
+    cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
 
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/

@@ -30,6 +30,7 @@ packages+=("e2fslibs")
 packages+=("e2fsprogs")
 packages+=("f2fs-tools")
 packages+=("gpgv")
+packages+=("ntpdate")
 packages+=("raspbian-archive-keyring")
 
 # libraries
