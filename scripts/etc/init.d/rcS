@@ -165,27 +165,6 @@ if [ -e /bootfs/config/wpa_supplicant.conf ]; then
     sanitize_inputfile /bootfs/config/wpa_supplicant.conf
 fi
 
-case "$rootfstype" in
-  "btrfs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-  "ext4")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
-    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
-    ;;
-  "f2fs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-esac
-
 echo
 echo "Network configuration:"
 echo "  ip_addr = $ip_addr"
@@ -316,6 +295,32 @@ if [ "$online_config" != "" ]; then
     echo "=== Finished executing online-config.txt. ==="
     echo "================================================="
 fi
+
+# prepare rootfs mount options
+case "$rootfstype" in
+  "btrfs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  "ext4")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
+    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
+    ;;
+  "f2fs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  *)
+    echo "Unknown filesystem specified: $rootfstype"
+    fail
+    ;;
+esac
 
 # check if we need the sudo package and add it if so
 if [ "$user_is_admin" = "1" ]; then
@@ -502,6 +507,13 @@ else
 fi
 echo "OK"
 
+echo -n "Copying /boot files in... "
+mount $bootpartition /boot || fail
+cp -r /bootfs/* /boot || fail
+sync
+umount /boot || fail
+echo "OK"
+
 if [ "$kernel_module" = true ] ; then
   if [ "$rootfstype" != "ext4" ] ; then
     echo -n "Loading $rootfstype module... "
@@ -518,11 +530,6 @@ echo -n "Mounting new filesystems... "
 mount $rootpartition /rootfs -o $rootfs_install_mount_options || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
-echo "OK"
-
-echo -n "Copying /boot files in... "
-cp -r /bootfs/* /rootfs/boot || fail
-sync
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
