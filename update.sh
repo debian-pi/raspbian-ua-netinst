@@ -31,6 +31,7 @@ packages+=("e2fsprogs")
 packages+=("f2fs-tools")
 packages+=("gpgv")
 packages+=("lsb-base")
+packages+=("netbase")
 packages+=("ntpdate")
 packages+=("raspbian-archive-keyring")
 

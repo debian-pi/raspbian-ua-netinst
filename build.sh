@@ -173,6 +173,15 @@ function create_cpio {
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
+    # lsb-base components
+    cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
+    cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
+
+    # netbase components
+    cp tmp/etc/protocols rootfs/etc/
+    cp tmp/etc/rpc rootfs/etc/
+    cp tmp/etc/services rootfs/etc/
+
     # ntpdate components
     cp tmp/etc/default/ntpdate rootfs/etc/default/
     # don't use /etc/ntp.conf since we don't have it
@@ -180,10 +189,6 @@ function create_cpio {
     cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
-
-    # lsb-base components
-    cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
-    cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
 
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
