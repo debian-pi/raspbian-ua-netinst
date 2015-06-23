@@ -29,7 +29,8 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - SD card of at least 640MB or at least 128MB for USB root install (without customization)
  - working Ethernet with Internet connectivity
 
-## Obtaining installer files on Windows and Mac
+## Writing the installer to the SD card
+### Obtaining installer files on Windows and Mac
 Installer archive is around **17MB** and contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
@@ -38,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 **Note:** If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
-## Alternative method for Mac, writing image to SD card
+### Alternative method for Mac, writing image to SD card
 Prebuilt image is around **17MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
@@ -54,7 +55,7 @@ To flash your SD card on Mac:
 
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
-## SD card image for Linux
+### SD card image for Linux
 Prebuilt image is around **11MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
@@ -74,36 +75,6 @@ If you do have a display, you can follow the progress and catch any possible err
 If you have a serial cable, then remove 'console=tty1' at then end of the `cmdline.txt` file.
 
 **Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
-
-### Logging
-The output of the installation process is now also logged to file.  
-When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
-When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
-
-## First boot
-The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
-
-The default **root** password is **raspbian**.
-
-> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales`  
-> Configure your timezone: `dpkg-reconfigure tzdata`  
-
-The latest kernel and firmware packages are now automatically installed during the unattended installation process.
-When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
-When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
-
-> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
-> Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
-
-## Reinstalling or replacing an existing system
-If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_install.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
-
-    mv /boot/config-reinstall.txt /boot/config.txt
-    reboot
-
-**Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
 You can use the installer _as is_ and get a minimal system installed which you can then use and customize to your needs.  
@@ -154,6 +125,36 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
+
+## Logging
+The output of the installation process is now also logged to file.  
+When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
+When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
+
+## First boot
+The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
+
+The default **root** password is **raspbian**.
+
+> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
+> Configure your default locale: `dpkg-reconfigure locales`  
+> Configure your timezone: `dpkg-reconfigure tzdata`  
+
+The latest kernel and firmware packages are now automatically installed during the unattended installation process.
+When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
+When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
+
+> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
+> Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
+
+## Reinstalling or replacing an existing system
+If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_install.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
+
+    mv /boot/config-reinstall.txt /boot/config.txt
+    reboot
+
+**Remember to backup all your data and original config.txt before doing this!**
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
