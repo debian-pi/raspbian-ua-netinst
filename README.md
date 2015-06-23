@@ -106,12 +106,21 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to. 
-See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh'). 
+You can use the installer _as is_ and get a minimal system installed which you can then use and customize to your needs.  
+But you can also customize the installation process and the primary way to do that is through a file named _installer&#8209;config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer&#8209;config.txt_ file alongside that file.
+The defaults for _installer&#8209;config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer&#8209;config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer&#8209;config.txt_ file with the following contents:
+```
+packages=vim,aptitude
+```
+and that's it! While most settings stand on their own, some settings influence each other. For example `rootfstype` is tightly linked to the other settings that start with `rootfs_`.  
+So don't copy and paste the defaults from below!
 
-If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
+The _installer&#8209;config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
+There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer&#8209;config.txt_.
+The _post&#8209;install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
+The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to. 
 
-The format of the file and the current defaults:
+The format of the _installer&#8209;config.txt_ file and the current defaults:
 
     preset=server
     packages= # comma separated list of extra packages
@@ -137,18 +146,14 @@ The format of the file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-All of the configuration options should be clear. You can override any of these in your _installer-config.txt_ by placing your own `installer-config.txt` in the main directory.  
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
-**Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.  
-All non-provided options will use the defaults as mentioned above.
 
 Available presets: _server_, _minimal_ and _base_.
-
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
-There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically.
+(If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
