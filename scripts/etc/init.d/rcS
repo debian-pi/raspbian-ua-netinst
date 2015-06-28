@@ -500,11 +500,6 @@ fi
 echo "tmpfs /tmp tmpfs nodev,nosuid 0 0" >> /rootfs/etc/fstab || fail
 echo "OK"
 
-# use ram tmpfs by default
-echo -n "  Configuring tmpfs to use RAM... "
-echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
-echo "OK"
-
 # default hostname
 echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
