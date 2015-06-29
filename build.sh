@@ -95,10 +95,15 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
+    mkdir -p rootfs/etc/{default,network/if-up.d/}
+    mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
+    mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
+    mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/keyrings/
+    mkdir -p rootfs/var/lib/ntpdate
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
@@ -168,6 +173,23 @@ function create_cpio {
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
+    # lsb-base components
+    cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
+    cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
+
+    # netbase components
+    cp tmp/etc/protocols rootfs/etc/
+    cp tmp/etc/rpc rootfs/etc/
+    cp tmp/etc/services rootfs/etc/
+
+    # ntpdate components
+    cp tmp/etc/default/ntpdate rootfs/etc/default/
+    # don't use /etc/ntp.conf since we don't have it
+    sed -i s/NTPDATE_USE_NTP_CONF=yes/NTPDATE_USE_NTP_CONF=no/ rootfs/etc/default/ntpdate
+    cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
+    cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
+    cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
+
     # raspberrypi.org GPG key 
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
 
@@ -182,11 +204,27 @@ function create_cpio {
 
     # libc6 components
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
+    cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
+    cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-    cp tmp/lib/*/libm.so.6  rootfs/lib/
-    cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
+    cp tmp/lib/*/libcidn-*.so rootfs/lib/libcidn.so.1
+    cp tmp/lib/*/libcrypt-*.so rootfs/lib/libcrypt.so.1
+    cp tmp/lib/*/libdl-*.so rootfs/lib/libdl.so.2
+    cp tmp/lib/*/libm-*.so  rootfs/lib/libm.so.6
+    cp tmp/lib/*/libmemusage.so rootfs/lib/
+    cp tmp/lib/*/libnsl-*.so rootfs/lib/libnsl.so.1
+    cp tmp/lib/*/libnss_compat-*.so rootfs/lib/libnss_compat.so.2
     cp tmp/lib/*/libnss_dns-*.so rootfs/lib/libnss_dns.so.2
+    cp tmp/lib/*/libnss_files-*.so rootfs/lib/libnss_files.so.2
+    cp tmp/lib/*/libnss_hesiod-*.so rootfs/lib/libnss_hesiod.so.2
+    cp tmp/lib/*/libnss_nis-*.so rootfs/lib/libnss_nis.so.2
+    cp tmp/lib/*/libpcprofile.so rootfs/lib/
     cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
+    cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
+    cp tmp/lib/*/librt-*.so rootfs/lib/librt.so.1
+    cp tmp/lib/*/libSegFault.so rootfs/lib/
+    cp tmp/lib/*/libthread_db-*.so rootfs/lib/libthread_db.so.1
+    cp tmp/lib/*/libutil-*.so rootfs/lib/libutil.so.1
 
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
@@ -197,14 +235,30 @@ function create_cpio {
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
+    # libssl1.0.0 components
+    cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/usr/lib/
+    cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/usr/lib/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/lib4758cca.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libaep.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libatalla.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcapi.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libchil.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcswift.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgmp.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgost.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libnuron.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libpadlock.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libsureware.so rootfs/usr/lib/openssl-1.0.0/engines/
+    cp tmp/usr/lib/*/openssl-1.0.0/engines/libubsec.so rootfs/usr/lib/openssl-1.0.0/engines/
+
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.3.0 rootfs/lib/libuuid.so.1
 
     # zlib1g components
     cp tmp/lib/*/libz.so.1  rootfs/lib/
 
-    cd rootfs && find . | cpio -H newc -ov > ../installer-${target_system}.cpio
-    cd ..
+    INITRAMFS="../installer-${target_system}.cpio.gz"
+    (cd rootfs && find . | cpio -H newc -ov | gzip --best > $INITRAMFS)
 
     rm -rf rootfs
 
@@ -239,17 +293,17 @@ if [ ! -f bootfs/config.txt ] ; then
 fi
 
 create_cpio "rpi1"
-cp installer-rpi1.cpio bootfs/
+cp installer-rpi1.cpio.gz bootfs/
 echo "[pi1]" >> bootfs/config.txt
 echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi1.cpio" >> bootfs/config.txt
+echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
 echo "device_tree=" >> bootfs/config.txt
 
 create_cpio "rpi2"
-cp installer-rpi2.cpio bootfs/
+cp installer-rpi2.cpio.gz bootfs/
 echo "[pi2]" >> bootfs/config.txt
 echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi2.cpio" >> bootfs/config.txt
+echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
 
 # clean up
 rm -rf tmp

@@ -8,6 +8,7 @@ packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=wheezy
 hostname=pi
+boot_volume_label=
 domainname=
 rootpw=raspbian
 cdebootstrap_cmdline=
@@ -149,27 +150,6 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
 fi
 
-case "$rootfstype" in
-  "btrfs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-  "ext4")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
-    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
-    ;;
-  "f2fs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
-    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
-    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
-    ;;
-esac
-
 echo
 echo "Network configuration:"
 echo "  ip_addr = $ip_addr"
@@ -229,28 +209,41 @@ PRE_NETWORK_DURATION=$(date +%s)
 
 date_set=false
 if [ "$date_set" = "false" ] ; then
-    # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
-    timeservers=$timeserver
-    timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
-    timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
-    timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
-    timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
-    timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
-    timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
-    timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
-    timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
-    for ts in $timeservers
-    do
-        rdate $ts &>/dev/null
-        if [ $? -eq 0 ]; then
-            echo -n "Time set using timeserver '$ts' to... "
-            date
-            date_set=true
-            break
-        else
-            echo "Failed to set time using timeserver '$ts'."
-        fi
-    done
+    # set time with ntpdate
+    ntpdate-debian -b &>/dev/null
+    if [ $? -eq 0 ] ; then
+        echo -n "Time set using ntpdate to... "
+        date
+        date_set=true
+    else
+        echo "Failed to set time using ntpdate!"
+    fi
+
+    if [ "$date_set" = "false" ] ; then
+        # failed to set time with ntpdate, fall back to rdate
+        # time server addresses taken from http://tf.nist.gov/tf-cgi/servers.cgi
+        timeservers=$timeserver
+        timeservers="$timeservers time.nist.gov nist1.symmetricom.com"
+        timeservers="$timeservers nist-time-server.eoni.com utcnist.colorado.edu"
+        timeservers="$timeservers nist1-pa.ustiming.org nist.expertsmi.com"
+        timeservers="$timeservers nist1-macon.macon.ga.us wolfnisttime.com"
+        timeservers="$timeservers nist.time.nosc.us nist.netservicesgroup.com"
+        timeservers="$timeservers nisttime.carsoncity.k12.mi.us nist1-lnk.binary.net"
+        timeservers="$timeservers ntp-nist.ldsbc.edu utcnist2.colorado.edu"
+        timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
+        for ts in $timeservers
+        do
+            rdate $ts &>/dev/null
+            if [ $? -eq 0 ]; then
+                echo -n "Time set using timeserver '$ts' to... "
+                date
+                date_set=true
+                break
+            else
+                echo "Failed to set time using timeserver '$ts'."
+            fi
+        done
+    fi
 fi
 if [ "$date_set" = "false" ] ; then
     echo "FAILED to set the date, so things are likely to fail now ..."
@@ -278,6 +271,32 @@ if [ "$online_config" != "" ]; then
     echo "=== Finished executing online-config.txt. ==="
     echo "================================================="
 fi
+
+# prepare rootfs mount options
+case "$rootfstype" in
+  "btrfs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  "ext4")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
+    rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
+    ;;
+  "f2fs")
+    kernel_module=true
+    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
+    rootfs_mount_options=${rootfs_mount_options:-'noatime'}
+    ;;
+  *)
+    echo "Unknown filesystem specified: $rootfstype"
+    fail
+    ;;
+esac
 
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
@@ -350,6 +369,7 @@ echo "  rootpw = $rootpw"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  bootsize = $bootsize"
 echo "  rootsize = $rootsize"
+echo "  boot_volume_label = $boot_volume_label"
 echo "  timeserver = $timeserver"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
@@ -431,7 +451,18 @@ fi
 mdev -s
 
 echo -n "Initializing /boot as vfat... "
-mkfs.vfat $bootpartition &>/dev/null || fail
+if [ "$boot_volume_label" = "" ]; then
+  mkfs.vfat $bootpartition &>/dev/null || fail
+else
+  mkfs.vfat -n $boot_volume_label $bootpartition &>/dev/null || fail
+fi
+echo "OK"
+
+echo -n "Copying /boot files in... "
+mount $bootpartition /boot || fail
+cp -r /bootfs/* /boot || fail
+sync
+umount /boot || fail
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
@@ -450,11 +481,6 @@ echo -n "Mounting new filesystems... "
 mount $rootpartition /rootfs -o $rootfs_install_mount_options || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
-echo "OK"
-
-echo -n "Copying /boot files in... "
-cp -r /bootfs/* /rootfs/boot || fail
-sync
 echo "OK"
 
 if [ "$kernel_module" = true ] ; then
@@ -483,11 +509,8 @@ elif [ "$rootfstype" = "btrfs" ]; then
 else
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
 fi
-echo "OK"
-
-# use ram tmpfs by default
-echo -n "  Configuring tmpfs to use RAM... "
-echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+# also specify /tmp on tmpfs in /etc/fstab so it works across init systems
+echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0" >> /rootfs/etc/fstab || fail
 echo "OK"
 
 # default hostname
