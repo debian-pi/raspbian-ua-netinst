@@ -509,11 +509,8 @@ elif [ "$rootfstype" = "btrfs" ]; then
 else
 	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
 fi
-echo "OK"
-
-# use ram tmpfs by default
-echo -n "  Configuring tmpfs to use RAM... "
-echo "RAMTMP=yes" >> /rootfs/etc/default/tmpfs 
+# also specify /tmp on tmpfs in /etc/fstab so it works across init systems
+echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0" >> /rootfs/etc/fstab || fail
 echo "OK"
 
 # default hostname
