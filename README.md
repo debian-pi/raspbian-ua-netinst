@@ -29,7 +29,8 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - SD card of at least 640MB or at least 128MB for USB root install (without customization)
  - working Ethernet with Internet connectivity
 
-## Obtaining installer files on Windows and Mac
+## Writing the installer to the SD card
+### Obtaining installer files on Windows and Mac
 Installer archive is around **17MB** and contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
@@ -38,7 +39,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 **Note:** If you get an error saying it can't mount /dev/mmcblk0p1 on /boot then the most likely cause is that you're using exFAT instead of FAT32.
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
-## Alternative method for Mac, writing image to SD card
+### Alternative method for Mac, writing image to SD card
 Prebuilt image is around **17MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
@@ -54,7 +55,7 @@ To flash your SD card on Mac:
 
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
-## SD card image for Linux
+### SD card image for Linux
 Prebuilt image is around **11MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
@@ -75,43 +76,22 @@ If you have a serial cable, then remove 'console=tty1' at then end of the `cmdli
 
 **Note:** During the installation you'll see various warning messages, like "Warning: cannot read table of mounted file systems" and "dpkg: warning: ignoring pre-dependency problem!". Those are expected and harmless.
 
-### Logging
-The output of the installation process is now also logged to file.  
-When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
-When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
-
-## First boot
-The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
-
-The default **root** password is **raspbian**.
-
-> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales` (can also be configured during installation using **locales** and **system_default_locale** in [installer-config.txt](#installer-customization))  
-> Configure your timezone: `dpkg-reconfigure tzdata` (can also be set during installation using **timezone** in [installer-config.txt](#installer-customization)  
-
-The latest kernel and firmware packages are now automatically installed during the unattended installation process.
-When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
-When a new kernel becomes available in the archives and is installed, the system will update config.txt, so it boots up the new kernel at the next reboot.
-
-> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
-> Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
-
-## Reinstalling or replacing an existing system
-If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_install.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
-
-    mv /boot/config-reinstall.txt /boot/config.txt
-    reboot
-
-**Remember to backup all your data and original config.txt before doing this!**
-
 ## Installer customization
-While defaults should work for most power users, some might want to customize default configuration or the package set even further. The installer provides support for this by reading a configuration file `installer-config.txt` from the first vfat partition. The configuration file is read in as a shell script so you can abuse that fact if you so want to. 
-See `scripts/etc/init.d/rcS` for more details what kind of environment your script will be run in (currently 'busybox sh'). 
+You can use the installer _as is_ and get a minimal system installed which you can then use and customize to your needs.  
+But you can also customize the installation process and the primary way to do that is through a file named _installer&#8209;config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer&#8209;config.txt_ file alongside that file.
+The defaults for _installer&#8209;config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer&#8209;config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer&#8209;config.txt_ file with the following contents:
+```
+packages=vim,aptitude
+```
+and that's it! While most settings stand on their own, some settings influence each other. For example `rootfstype` is tightly linked to the other settings that start with `rootfs_`.  
+So don't copy and paste the defaults from below!
 
-If an `installer-config.txt` file exists in the same directory as this `README.md`, it will be added to the installer image automatically.
+The _installer&#8209;config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
+There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer&#8209;config.txt_.
+The _post&#8209;install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
+The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to. 
 
-The format of the file and the current defaults:
+The format of the _installer&#8209;config.txt_ file and the current defaults:
 
     preset=server
     packages= # comma separated list of extra packages
@@ -149,18 +129,43 @@ The format of the file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-All of the configuration options should be clear. You can override any of these in your _installer-config.txt_ by placing your own `installer-config.txt` in the main directory.  
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
-**Note:** You only need to provide the options which you want to **override** in your _installer-config.txt_ file.  
-All non-provided options will use the defaults as mentioned above.
 
 Available presets: _server_, _minimal_ and _base_.
-
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
 
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
-There's also support for a `post-install.txt` script which is executed just before unmounting the filesystems. You can use it to tweak and finalize your automatic installation. Just like above, if `post-install.txt` exists in the same directory as this `README.md`, it will be added to the installer image automatically.
+(If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
+
+## Logging
+The output of the installation process is now also logged to file.  
+When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
+When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
+
+## First boot
+The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
+
+The default **root** password is **raspbian**.
+
+> Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
+> Configure your default locale: `dpkg-reconfigure locales`  
+> Configure your timezone: `dpkg-reconfigure tzdata`  
+
+The latest kernel and firmware packages are now automatically installed during the unattended installation process.
+When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
+
+> Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
+> Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
+
+## Reinstalling or replacing an existing system
+If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Make sure you still have _kernel_install.img_ and _installer.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those two files in and the installer _config.txt_ from the original image.
+
+    mv /boot/config-reinstall.txt /boot/config.txt
+    reboot
+
+**Remember to backup all your data and original config.txt before doing this!**
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
