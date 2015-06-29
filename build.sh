@@ -195,7 +195,7 @@ function create_cpio {
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.1 rootfs/lib/libcom_err.so.2
 
-    # libdbus components
+    # libdbus-1-3 components
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
 
@@ -206,16 +206,16 @@ function create_cpio {
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
-    # libnl components
+    # libnl-3-200 components
     cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
 
-    # libnl-genl components
+    # libnl-genl-3-200 components
     cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
 
     # libpcsclite components
     cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
 
-    # libssl components
+    # libssl1.0.0 components
     cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/lib/libssl.so.1.0.0
     cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/lib/libcrypto.so.1.0.0
 
@@ -269,6 +269,7 @@ cp installer-rpi1.cpio.gz bootfs/
 echo "[pi1]" >> bootfs/config.txt
 echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
 echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
+echo "device_tree=" >> bootfs/config.txt
 
 create_cpio "rpi2"
 cp installer-rpi2.cpio.gz bootfs/

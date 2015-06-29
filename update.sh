@@ -3,6 +3,16 @@
 KERNEL_VERSION_RPI1=3.18.0-trunk-rpi
 KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
+RASPBIAN_ARCHIVE_KEY_DIRECTORY="https://archive.raspbian.org"
+RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
+RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_DIRECTORY}/${RASPBIAN_ARCHIVE_KEY_FILE_NAME}"
+RASPBIAN_ARCHIVE_KEY_FINGERPRINT="A0DA38D0D76E8B5D638872819165938D90FDDD2E"
+
+RASPBERRYPI_ARCHIVE_KEY_DIRECTORY="https://archive.raspberrypi.org/debian"
+RASPBERRYPI_ARCHIVE_KEY_FILE_NAME="raspberrypi.gpg.key"
+RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_DIRECTORY}/${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}"
+RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
+
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
@@ -28,15 +38,98 @@ packages+=("libblkid1")
 packages+=("libbz2-1.0")
 packages+=("libc6")
 packages+=("libcomerr2")
+packages+=("libdbus-1-3")
 packages+=("libgcc1")
 packages+=("liblzo2-2")
-packages+=("libuuid1")
-packages+=("zlib1g")
-packages+=("libssl1.0.0")
-packages+=("libdbus-1-3")
 packages+=("libnl-3-200")
 packages+=("libnl-genl-3-200")
 packages+=("libpcsclite1")
+packages+=("libssl1.0.0")
+packages+=("libuuid1")
+packages+=("zlib1g")
+
+
+check_key() {
+    # param 1 = keyfile
+    # param 2 = key fingerprint
+
+    # check input parameters
+    if [ -z $1 ] || [ ! -f $1 ] ; then
+        echo "Parameter 1 of check_key() is not a file!"
+        return 1
+    fi
+
+    if [ -z $2 ] ; then
+        echo "Parameter 2 of check_key() is not a key fingerprint!"
+        return 1
+    fi
+
+    KEY_FILE="$1"
+    KEY_FINGERPRINT="$2"
+
+    echo -n "Checking key file '${KEY_FILE}'... "
+
+    # check that there is only 1 public key in the key file
+    if [ ! $(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons ${KEY_FILE} | grep ^pub: | wc -l) -eq 1 ] ; then
+        echo "FAILED!"
+        echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
+        return 1
+    fi
+
+    # check that the key file's fingerprint is correct
+    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons ${KEY_FILE} | grep ^fpr: | awk -F: '{print $10}')" != "${KEY_FINGERPRINT}" ] ; then
+        echo "FAILED!"
+        echo "Bad GPG key fingerprint for ${KEY_FILE}!"
+        return 1
+    fi
+
+    echo "OK"
+    return 0
+}
+
+setup_archive_keys() {
+
+    mkdir -m 0700 -p gnupg
+    # Let gpg set itself up already in the 'gnupg' dir before we actually use it
+    echo "Setting up gpg... "
+    gpg --homedir gnupg --list-secret-keys
+    echo ""
+
+    echo "Downloading ${RASPBIAN_ARCHIVE_KEY_FILE_NAME}."
+    curl -# -O ${RASPBIAN_ARCHIVE_KEY_URL}
+    if check_key "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
+        # GPG key checks out, thus import it into our own keyring
+        echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_FILE_NAME}' into keyring... "
+        if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" ; then
+            echo "OK"
+        else
+            echo "FAILED!"
+            return 1
+        fi
+    else
+        return 1
+    fi
+
+    echo ""
+
+    echo "Downloading ${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}."
+    curl -# -O ${RASPBERRYPI_ARCHIVE_KEY_URL}
+    if check_key "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
+        # GPG key checks out, thus import it into our own keyring
+        echo -n "Importing '${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}' into keyring..."
+        if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" ; then
+            echo "OK"
+        else
+            echo "FAILED!"
+            return 1
+        fi
+    else
+        return 1
+    fi
+
+    return 0
+
+}
 
 required() {
     for i in ${packages[@]}; do
@@ -105,27 +198,9 @@ download_package_list() {
 
 download_package_lists() {
 
-    mkdir -p gnupg
-    chmod 0700 gnupg
-    echo "Downloading and importing raspbian.public.key..."
-    curl -# -O https://archive.raspbian.org/raspbian.public.key
-    gpg -q --homedir gnupg --import raspbian.public.key
-    echo -n "Verifying raspbian.public.key... "
-    if gpg --homedir gnupg -k 0xA0DA38D0D76E8B5D638872819165938D90FDDD2E &> /dev/null ; then
-        echo "OK"
-    else
-        echo -e "ERROR\nBad GPG key fingerprint for raspbian.org!"
-        cd ..
-        exit 1
-    fi
-    echo -e "\nDownloading and importing raspberrypi.gpg.key..."
-    curl -# -O http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
-    gpg -q --homedir gnupg --import raspberrypi.gpg.key
-    echo -n "Verifying raspberrypi.gpg.key... "
-    if gpg --homedir gnupg -k 0xCF8A1AF502A2AA2D763BAE7E82B129927FA3303E &> /dev/null ; then
-        echo "OK"
-    else
-        echo -e "ERROR\nBad GPG key fingerprint for raspberrypi.org!"
+    setup_archive_keys
+    if [ $? != 0 ] ; then
+        echo -e "ERROR\nSetting up the archives failed! Exiting."
         cd ..
         exit 1
     fi
@@ -199,21 +274,6 @@ if sha256sum --quiet -c SHA256SUMS ; then
     echo "OK"
 else
     echo -e "ERROR\nThe checksums of the downloaded packages don't match the package lists!"
-    cd ..
-    exit 1
-fi
-
-# ugly workaround for non-working busybox-static in jessie
-echo -n "Copying older, but working, version of busybox as a workaround... "
-rm busybox-static_*
-bbfilename=busybox-static_1.20.0-7_armhf.deb
-curl -s -o $bbfilename https://raw.githubusercontent.com/debian-pi/general/master/workarounds/busybox-static_1.20.0-7_armhf.deb
-# test whether the file exists and it's size is > 100k
-if [ -f $bbfilename ] && [ $(wc -c < $bbfilename) -gt 100000 ] ; then
-    echo "OK"
-else
-    echo "FAILED"
-    echo -e "ERROR\nThe download of busybox-static failed, thus the rest will also fail!"
     cd ..
     exit 1
 fi
