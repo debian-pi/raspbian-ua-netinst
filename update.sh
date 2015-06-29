@@ -30,6 +30,9 @@ packages+=("e2fslibs")
 packages+=("e2fsprogs")
 packages+=("f2fs-tools")
 packages+=("gpgv")
+packages+=("lsb-base")
+packages+=("netbase")
+packages+=("ntpdate")
 packages+=("raspbian-archive-keyring")
 
 # libraries
@@ -39,6 +42,7 @@ packages+=("libc6")
 packages+=("libcomerr2")
 packages+=("libgcc1")
 packages+=("liblzo2-2")
+packages+=("libssl1.0.0")
 packages+=("libuuid1")
 packages+=("zlib1g")
 
