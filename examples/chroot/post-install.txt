@@ -1,0 +1,2 @@
+cp /bootfs/post-system-install.txt /rootfs/root/post-system-install.txt
+chroot /rootfs /root/post-system-install.txt
