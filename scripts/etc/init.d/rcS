@@ -305,7 +305,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # not very logical that minimal > base, but that's how it was historically defined
 
     # base
-    base_packages="${kernel_meta_package}"
+    base_packages="${kernel_meta_package},cpufrequtils"
 
     # minimal
     minimal_packages="kmod,fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
