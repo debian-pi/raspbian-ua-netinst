@@ -347,40 +347,44 @@ fi
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
+    # from small to large: base, minimal, server
+    # not very logical that minimal > base, but that's how it was historically defined
+
+    # base
+    base_packages="${kernel_meta_package},cpufrequtils,kmod"
+
     # minimal
-    cdebootstrap_cmdline="--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,ntp,openssh-server$dhcp_packages"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
 
-    # add dhcp client if using dhcp
-    if [ "$ip_addr" = "dhcp" ]; then
-        cdebootstrap_cmdline="$cdebootstrap_cmdline,isc-dhcp-client"
-    fi
-
-    # add latest kernel if rootfstype requires a module. 
-    # Changed it so it is always installed.
-    # Firmware can't be installed just yet, we'll do so at the end
-    if [ "$kernel_module" = true ] ; then
-        cdebootstrap_cmdline="$cdebootstrap_cmdline,${kernel_meta_package}"
-    fi
+    # server
+    server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
 
     case $preset in
-        minimal)
-            ;;
         base)
-            cdebootstrap_cmdline="--flavour=minimal"
+            cdebootstrap_cmdline="--flavour=minimal --include=${base_packages}"
+            ;;
+        minimal)
+            cdebootstrap_cmdline="--flavour=minimal --include=${base_packages},${minimal_packages}"
             ;;
         *)
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
-            preset=server
+            # this should be 'server', but using '*' for backward-compatibility
+            cdebootstrap_cmdline="--flavour=minimal --include=${base_packages},${minimal_packages},${server_packages}"
+            if [ "$preset" != "server" ]; then
+                echo "Unknown preset specified: $preset"
+                echo "Using 'server' as fallback"
+            fi
             ;;
     esac
 
-    # add extra packages
+    dhcp_client_package="isc-dhcp-client"
+    # add dhcp client if using dhcp
+    if [ "$ip_addr" = "dhcp" ]; then
+        cdebootstrap_cmdline="${cdebootstrap_cmdline},${dhcp_client_package}"
+    fi
+
+    # add user defined packages
     if [ "$packages" != "" ]; then
-        if [ "$preset" = "base" ]; then
-            cdebootstrap_cmdline="$cdebootstrap_cmdline --include=$packages"
-        else
-            cdebootstrap_cmdline="$cdebootstrap_cmdline,$packages"
-        fi
+        cdebootstrap_cmdline="${cdebootstrap_cmdline},${packages}"
     fi
 
 else
