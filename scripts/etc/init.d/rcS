@@ -325,6 +325,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             cdebootstrap_cmdline="--flavour=minimal --include=${base_packages},${minimal_packages},${server_packages}"
             if [ "$preset" != "server" ]; then
                 echo "Unknown preset specified: $preset"
+                echo "Using 'server' as fallback"
             fi
             ;;
     esac
