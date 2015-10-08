@@ -96,7 +96,7 @@ The format of the _installer&#8209;config.txt_ file and the current defaults:
     preset=server
     packages= # comma separated list of extra packages
     mirror=http://mirrordirector.raspbian.org/raspbian/
-    release=wheezy
+    release=jessie
     hostname=pi
     boot_volume_label= # Sets the volume name of the boot partition. The volume name can be up to 11 characters long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the SD-card on the desktop and can be useful when using multiple SD-cards.
     domainname=
