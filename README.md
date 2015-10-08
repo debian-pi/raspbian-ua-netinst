@@ -96,7 +96,7 @@ The format of the _installer&#8209;config.txt_ file and the current defaults:
     preset=server
     packages= # comma separated list of extra packages
     mirror=http://mirrordirector.raspbian.org/raspbian/
-    release=wheezy
+    release=jessie
     hostname=pi
     domainname=
     rootpw=raspbian
