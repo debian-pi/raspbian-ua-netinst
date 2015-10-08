@@ -304,8 +304,16 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # from small to large: base, minimal, server
     # not very logical that minimal > base, but that's how it was historically defined
 
+    init_system=""
+    if [ "$release" = "jessie" ] ; then
+        init_system="systemd"
+    fi
+
     # base
     base_packages="${kernel_meta_package},cpufrequtils,kmod"
+    if [ "$init_system" = "systemd"
+        $base_packages="${base_packages},libpam-systemd"
+    fi
 
     # minimal
     minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
