@@ -614,7 +614,7 @@ if [ ! -z "$username" ]; then
         chmod 600 "$ssh_dir/authorized_keys" || fail
         echo "OK"
     fi
-    if [ ! -z "$user_passwd" ]; then
+    if [ ! -z "$user_pw" ]; then
         echo -n "  Setting $username password... "
         echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd || fail
         echo "OK"
