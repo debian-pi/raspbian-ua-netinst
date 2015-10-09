@@ -312,7 +312,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # base
     base_packages="${kernel_meta_package},cpufrequtils,kmod"
     if [ "$init_system" = "systemd" ] ; then
-        $base_packages="${base_packages},libpam-systemd"
+        base_packages="${base_packages},libpam-systemd"
     fi
 
     # minimal
