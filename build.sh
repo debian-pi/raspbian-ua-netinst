@@ -343,6 +343,12 @@ function create_cpio {
     cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
     cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
 
+    # mawk components
+    cp tmp/usr/bin/mawk rootfs/usr/bin/
+    cd rootfs/usr/bin
+    ln -s mawk awk
+    cd ../../..
+
     # ndisc6 components
     cp tmp/bin/rdisc6 rootfs/bin
 
