@@ -145,7 +145,7 @@ function create_cpio {
 
 
     # btrfs-tools components
-    cp tmp/sbin/mkfs.btrfs rootfs/sbin/
+    cp tmp/bin/mkfs.btrfs rootfs/sbin/
     cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
 
     # busybox-static components
