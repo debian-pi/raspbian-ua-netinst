@@ -32,6 +32,7 @@ packages+=("f2fs-tools")
 packages+=("gpgv")
 packages+=("lsb-base")
 packages+=("netbase")
+packages+=("wpasupplicant")
 packages+=("ntpdate")
 packages+=("raspbian-archive-keyring")
 
