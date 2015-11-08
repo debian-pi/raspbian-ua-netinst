@@ -323,7 +323,7 @@ if [ -d config ] ; then
     cp -r config/* bootfs/config
 fi
 
-ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
+ZIPFILE=raspbian-ua-netinst.zip
 rm -f $ZIPFILE
 
 cd bootfs && zip -r -9 ../$ZIPFILE *; cd ..
