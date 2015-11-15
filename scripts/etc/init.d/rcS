@@ -35,7 +35,7 @@ online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 rootfstype=ext4
-build_hardware_versions=detect
+hardware_versions=detect
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -300,10 +300,10 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
-if [ "$build_hardware_versions" = "detect" ]; then
+if [ "$hardware_versions" = "detect" ]; then
     case $rpi_hardware_version in
-        1) build_hardware_versions="1" ;;
-        2) build_hardware_versions="2" ;;
+        1) hardware_versions="1" ;;
+        2) hardware_versions="2" ;;
         *)
            echo ""
            echo "================================================="
@@ -312,7 +312,7 @@ if [ "$build_hardware_versions" = "detect" ]; then
            echo "          Building for both Pi and Pi 2.         "
            echo "================================================="
            echo ""
-           build_hardware_versions="1 2"
+           hardware_versions="1 2"
            ;;
     esac
 fi
@@ -365,7 +365,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # base
     base_packages="cpufrequtils,kmod"
-    for hv in ${build_hardware_versions}
+    for hv in ${hardware_versions}
     do
         case $hv in
             1) kernel_meta_package=linux-image-rpi-rpfv ;;
@@ -477,7 +477,7 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
-echo "  build_hardware_versions = $build_hardware_versions"
+echo "  hardware_versions = $hardware_versions"
 echo
 
 echo -n "Waiting 5 seconds"
@@ -870,7 +870,7 @@ if [ ! -f /rootfs/boot/config.txt ] ; then
     touch /rootfs/boot/config.txt
 fi
 
-for hv in ${build_hardware_versions}
+for hv in ${hardware_versions}
 do
     # find kernel/initramfs version
     eval kernel_meta_package=\${kernel_meta_package_${hv}}
