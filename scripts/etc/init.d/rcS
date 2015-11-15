@@ -735,11 +735,6 @@ echo ""
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
 
-# remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
-echo -n "Removing cdebootstrap-helper-rc.d... " 
-chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
-echo "OK"
-
 # copy apt's sources.list to the target system
 echo "Configuring apt:"
 echo -n "  Copying raspbian repo to sources.list... "
@@ -885,6 +880,11 @@ if [ -e /bootfs/post-install.txt ]; then
     echo "=== Finished executing post-install.txt. ==="
     echo "================================================="
 fi
+
+# remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
+echo -n "Removing cdebootstrap-helper-rc.d... "
+chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
+echo "OK"
 
 # save current time if fake-hwclock
 echo "Saving current time for fake-hwclock..."
