@@ -911,6 +911,9 @@ case ${final_action} in
     poweroff)
         echo -n "Finished! Powering off in 5 seconds..."
         ;;
+    halt)
+        echo -n "Finished! Halting in 5 seconds..."
+        ;;
     *)
         echo -n "Finished! Rebooting to installed system in 5 seconds..."
         final_action=reboot
