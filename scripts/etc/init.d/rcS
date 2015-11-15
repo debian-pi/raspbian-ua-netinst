@@ -123,23 +123,6 @@ case $rpi_hardware in
     *) rpi_hardware_version="unknown" ;;
 esac
 
-if [ "$build_hardware_versions" = "detect" ]; then
-    case $rpi_hardware_version in
-        1) build_hardware_versions="1" ;;
-        2) build_hardware_versions="2" ;;
-        *)
-           echo ""
-           echo "================================================="
-           echo "     No Raspberry Pi hardware detected!!"
-           echo " Value of rpi_hardware variable: '${rpi_hardware}'"
-           echo "          Building for both Pi and Pi 2.         "
-           echo "================================================="
-           echo ""
-           build_hardware_versions="1 2"
-           ;;
-    esac
-fi
-
 echo ""
 echo "================================================="
 echo "raspbian-ua-netinst"
@@ -147,7 +130,6 @@ echo "================================================="
 echo "Revision __VERSION__"
 echo "Built on __DATE__"
 echo "Running on Raspberry Pi version ${rpi_hardware_version}"
-echo "Building for Raspberry Pi versions ${build_hardware_versions}"
 echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
@@ -316,6 +298,23 @@ if [ "$online_config" != "" ]; then
     source /online-config.txt
     echo "=== Finished executing online-config.txt. ==="
     echo "================================================="
+fi
+
+if [ "$build_hardware_versions" = "detect" ]; then
+    case $rpi_hardware_version in
+        1) build_hardware_versions="1" ;;
+        2) build_hardware_versions="2" ;;
+        *)
+           echo ""
+           echo "================================================="
+           echo "     No Raspberry Pi hardware detected!!"
+           echo " Value of rpi_hardware variable: '${rpi_hardware}'"
+           echo "          Building for both Pi and Pi 2.         "
+           echo "================================================="
+           echo ""
+           build_hardware_versions="1 2"
+           ;;
+    esac
 fi
 
 # prepare rootfs mount options
