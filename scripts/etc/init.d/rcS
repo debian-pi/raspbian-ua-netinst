@@ -35,6 +35,7 @@ online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 rootfstype=ext4
+final_action=reboot
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -451,6 +452,7 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
+echo "  final_action = $final_action"
 echo
 
 echo -n "Waiting 5 seconds"
@@ -905,11 +907,22 @@ umount /rootfs/boot
 umount /rootfs
 echo "OK"
 
-echo -n "Finished! Rebooting to installed system in 5 seconds..."
+case ${final_action} in
+    poweroff)
+        echo -n "Finished! Powering off in 5 seconds..."
+        ;;
+    halt)
+        echo -n "Finished! Halting in 5 seconds..."
+        ;;
+    *)
+        echo -n "Finished! Rebooting to installed system in 5 seconds..."
+        final_action=reboot
+esac
+
 for i in `seq 5 -1 1`; do
     sleep 1
 
     echo -n "$i.. "
 done
-echo " rebooting now"
-reboot
+echo " now"
+${final_action}

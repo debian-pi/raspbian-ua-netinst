@@ -128,6 +128,7 @@ The format of the _installer&#8209;config.txt_ file and the current defaults:
     rootfs_mkfs_options=
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
+    final_action=reboot  # what to do at the end of install, one of poweroff / halt / reboot
 
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
 
