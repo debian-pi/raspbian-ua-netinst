@@ -28,7 +28,7 @@ We currently have 2 development branches, v1.0.x and v1.1.x.
 The master branch is currently synched with the v1.0.x branch.
 Since we follow [semantic versioning](http://semver.org/), that means that pull request that require a new (configuration) parameter need to be submitted to the v1.1.x branch. Pull request that don't need a new parameter, such as a bug-fix, should be submitted to the v1.0.x branch.
 
-When you want to create an pull request, the best way to do that is by creating a [topic branch](https://github.com/dchelimsky/rspec/wiki/topic-branches) on your forked repository with a name describing what the branch is about. When you're writing the code for your pull request, we prefer smaller (atomic) commits over 1 commit with a lot of 'unrelated' changes. 
+When you want to create an pull request, the best way to do that is by creating a [topic branch](https://github.com/dchelimsky/rspec/wiki/topic-branches), branched off of either v1.0.x or v1.1.x according to the criteria outlined above, preferably with a name describing what the branch is about. When you're writing the code for your pull request, we prefer smaller (atomic) commits over 1 commit with a lot of 'unrelated' changes. 
 Each commit should have a clear message saying what has changed. If you want to provide more context to your commit, that's an excellent candidate for the second line of your commit message. 
 An example is the following commit: [Fixed permission on raspbian-ua-netinst.log on installed system.](https://github.com/debian-pi/raspbian-ua-netinst/commit/ba7f975175decd92d0e11b910a1eef25e112fb1b)
 
