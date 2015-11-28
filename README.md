@@ -155,6 +155,10 @@ If you want to reinstall with the same settings you did your first install you c
 
 **Remember to backup all your data and original config.txt before doing this!**
 
+## Reporting bugs and improving the installer
+When you encounter issues, have wishes or have code or documentation improvements, we'd like to hear from you! 
+We've actually written a document on how to best do this and you can find it [here](CONTRIBUTING.md).
+
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
 
