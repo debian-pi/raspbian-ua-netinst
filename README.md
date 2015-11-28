@@ -78,20 +78,20 @@ If you have a serial cable, then remove 'console=tty1' at then end of the `cmdli
 
 ## Installer customization
 You can use the installer _as is_ and get a minimal system installed which you can then use and customize to your needs.  
-But you can also customize the installation process and the primary way to do that is through a file named _installer&#8209;config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer&#8209;config.txt_ file alongside that file.
-The defaults for _installer&#8209;config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer&#8209;config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer&#8209;config.txt_ file with the following contents:
+But you can also customize the installation process and the primary way to do that is through a file named _installer-config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer-config.txt_ file alongside that file.
+The defaults for _installer-config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer-config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer-config.txt_ file with the following contents:
 ```
 packages=vim,aptitude
 ```
 and that's it! While most settings stand on their own, some settings influence each other. For example `rootfstype` is tightly linked to the other settings that start with `rootfs_`.  
 So don't copy and paste the defaults from below!
 
-The _installer&#8209;config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
-There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer&#8209;config.txt_.
+The _installer-config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
+There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer-config.txt_.
 The _post&#8209;install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
-The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to. 
+The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to.
 
-The format of the _installer&#8209;config.txt_ file and the current defaults:
+The format of the _installer-config.txt_ file and the current defaults:
 
     preset=server
     packages= # comma separated list of extra packages
