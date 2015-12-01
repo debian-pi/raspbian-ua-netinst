@@ -1,5 +1,19 @@
 # raspbian-ua-netinst
 
+- [Intro](#intro)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Writing the installer to the SD card](#writing-the-installer-to-the-sd-card)
+- [Installing](#installing)
+- [Installer customization](#installer-customization)
+- [Logging](#logging)
+- [First boot](#first-boot)
+- [Reinstalling or replacing an existing system](#reinstalling-or-replacing-an-existing-system)
+- [Reporting bugs and improving the installer](#reporting-bugs-and-improving-the-installer)
+- [Disclaimer](#disclaimer)
+
+## Intro
+
 The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+ and 2B.  
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
@@ -31,7 +45,7 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
 
 ## Writing the installer to the SD card
 ### Obtaining installer files on Windows and Mac
-Installer archive is around **17MB** and contains all firmware files and the installer.
+Installer archive is around **19MB** and contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
@@ -40,7 +54,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ### Alternative method for Mac, writing image to SD card
-Prebuilt image is around **17MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is around **20MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -56,7 +70,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ### SD card image for Linux
-Prebuilt image is around **11MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is around **17MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
@@ -78,20 +92,20 @@ If you have a serial cable, then remove 'console=tty1' at then end of the `cmdli
 
 ## Installer customization
 You can use the installer _as is_ and get a minimal system installed which you can then use and customize to your needs.  
-But you can also customize the installation process and the primary way to do that is through a file named _installer&#8209;config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer&#8209;config.txt_ file alongside that file.
-The defaults for _installer&#8209;config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer&#8209;config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer&#8209;config.txt_ file with the following contents:
+But you can also customize the installation process and the primary way to do that is through a file named _installer-config.txt_. When you've written the installer to a SD card, you'll see a file named _cmdline.txt_ and you create the _installer-config.txt_ file alongside that file.
+The defaults for _installer-config.txt_ are displayed below. If you want one of those settings changed for your installation, you should **only** place that changed setting in the _installer-config.txt_ file. So if you want to have vim and aptitude installed by default, create a _installer-config.txt_ file with the following contents:
 ```
 packages=vim,aptitude
 ```
 and that's it! While most settings stand on their own, some settings influence each other. For example `rootfstype` is tightly linked to the other settings that start with `rootfs_`.  
 So don't copy and paste the defaults from below!
 
-The _installer&#8209;config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
-There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer&#8209;config.txt_.
+The _installer-config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
+There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer-config.txt_.
 The _post&#8209;install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
-The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to. 
+The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to.
 
-The format of the _installer&#8209;config.txt_ file and the current defaults:
+The format of the _installer-config.txt_ file and the current defaults:
 
     preset=server
     packages= # comma separated list of extra packages
@@ -157,7 +171,7 @@ The latest kernel and firmware packages are now automatically installed during t
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
 
 > Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap && chown og-r /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
 > Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
 
 ## Reinstalling or replacing an existing system
@@ -167,6 +181,10 @@ If you want to reinstall with the same settings you did your first install you c
     reboot
 
 **Remember to backup all your data and original config.txt before doing this!**
+
+## Reporting bugs and improving the installer
+When you encounter issues, have wishes or have code or documentation improvements, we'd like to hear from you! 
+We've actually written a document on how to best do this and you can find it [here](CONTRIBUTING.md).
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.

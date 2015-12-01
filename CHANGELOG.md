@@ -1,3 +1,19 @@
+# Release v1.0.8 (2015-12-01)
+
+The following changes are part of this release:
+- Changed default release from wheezy to jessie.
+- Changed the retrieval of date/time from rdate to ntpdate.
+- Moved setting of `/tmp` to `/etc/fstab` so it works across init systems.
+- Make sure kernel gets installed on all preset values. This fixes [issue 253](https://github.com/debian-pi/raspbian-ua-netinst/issues/253), [issue 277](https://github.com/debian-pi/raspbian-ua-netinst/issues/277) and [issue 279](https://github.com/debian-pi/raspbian-ua-netinst/issues/279).
+- Improved the checks on the archive keys and extracted the code for it into separate functions.
+- Added gzip compression to the cpio files to reduce the size of the installer.
+- Changed setting of various filesystem parameter to be after loading of `online_config` so it can be set from there.
+- Various improvements to the build process.
+- Various improvements to the documentation.
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.8/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.7 (2015-05-05)
 
 Below are the changes since the 1.0.6 release.
