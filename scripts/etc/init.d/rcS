@@ -36,6 +36,7 @@ usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 rootfstype=ext4
 final_action=reboot
+hardware_versions=detect
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -116,26 +117,12 @@ tee < ${LOGFILE}.pipe $LOGFILE &
 exec &> ${LOGFILE}.pipe
 rm ${LOGFILE}.pipe
 
-RPI1_HARDWARE="BCM2708"
-RPI2_HARDWARE="BCM2709"
 rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
-rpi_hardware_version="UNKNOWN !!"
-kernel_meta_package=""
-
-if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
-    rpi_hardware_version="1"
-    kernel_meta_package="linux-image-rpi-rpfv"
-elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
-    rpi_hardware_version="2"
-    kernel_meta_package="linux-image-rpi2-rpfv"
-else
-    echo ""
-    echo "================================================="
-    echo "     No Raspberry Pi hardware detected!!"
-    echo " Value of rpi_hardware variable: '${rpi_hardware}'"
-    echo "================================================="
-    echo ""
-fi
+case $rpi_hardware in
+    BCM2708) rpi_hardware_version="1" ;;
+    BCM2709) rpi_hardware_version="2" ;;
+    *) rpi_hardware_version="unknown" ;;
+esac
 
 echo ""
 echo "================================================="
@@ -314,6 +301,23 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+if [ "$hardware_versions" = "detect" ]; then
+    case $rpi_hardware_version in
+        1) hardware_versions="1" ;;
+        2) hardware_versions="2" ;;
+        *)
+           echo ""
+           echo "================================================="
+           echo "     No Raspberry Pi hardware detected!!"
+           echo " Value of rpi_hardware variable: '${rpi_hardware}'"
+           echo "          Building for both Pi and Pi 2.         "
+           echo "================================================="
+           echo ""
+           hardware_versions="1 2"
+           ;;
+    esac
+fi
+
 # prepare rootfs mount options
 case "$rootfstype" in
   "btrfs")
@@ -361,7 +365,29 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     fi
 
     # base
-    base_packages="${kernel_meta_package},cpufrequtils,kmod"
+    base_packages="cpufrequtils,kmod"
+    for hv in ${hardware_versions}
+    do
+        case $hv in
+            1) kernel_meta_package=linux-image-rpi-rpfv ;;
+            2) kernel_meta_package=linux-image-rpi2-rpfv ;;
+            *)
+                echo ""
+                echo "================================================="
+                echo "  I don't understand a hardware version of ${hv} "
+                echo "    Skipping the kernel work for that hardware.  "
+                echo "================================================="
+                echo ""
+
+                kernel_meta_package=none ;;
+        esac
+
+        eval kernel_meta_package_${hv}=${kernel_meta_package}
+        if [ ${kernel_meta_package} != "none" ] ; then
+            base_packages="${kernel_meta_package},${base_packages}"
+        fi
+    done
+
     if [ "$init_system" = "systemd" ] ; then
         base_packages="${base_packages},libpam-systemd"
     fi
@@ -453,6 +479,7 @@ echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
 echo "  final_action = $final_action"
+echo "  hardware_versions = $hardware_versions"
 echo
 
 echo -n "Waiting 5 seconds"
@@ -834,39 +861,47 @@ echo "snd-bcm2835" >> /rootfs/etc/modules
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
 
-# find kernel/initramfs version
-KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
-echo "Kernel version: '${KERNEL_VERSION}'"
-
 # no kernel-upgrade-script for the time being
 # just add the kernel/initramfs lines to /boot/config.txt for now
 if [ ! -f /rootfs/boot/config.txt ] ; then
     touch /rootfs/boot/config.txt
 fi
-echo "[pi${rpi_hardware_version}]" >> /rootfs/boot/config.txt
-echo "kernel=vmlinuz-$KERNEL_VERSION" >> /rootfs/boot/config.txt
-echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/config.txt
-if [ "${rpi_hardware_version}" = "1" ] ; then
-    echo "# to enable DeviceTree, comment out the next line " >> /rootfs/boot/config.txt
-    echo "device_tree=" >> /rootfs/boot/config.txt
-fi
 
-# set the default kernel file based on the hardware
-default_kernel_file="kernel.img"
-if [ "${rpi_hardware_version}" = "2" ] ; then
-    default_kernel_file="kernel7.img"
-fi
+for hv in ${hardware_versions}
+do
+    # find kernel/initramfs version
+    eval kernel_meta_package=\${kernel_meta_package_${hv}}
+    if [ ${kernel_meta_package} != "none" ]
+    then
+        KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
+        echo "Adding boot config for kernel version: '${KERNEL_VERSION}'"
 
-# make sure there is a /boot/kernel.img or /boot/kernel7.img present
-if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
-    echo -n "Copying kernel to /boot/${default_kernel_file}... "
-    cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "FAILED !"
+        echo "[pi${hv}]" >> /rootfs/boot/config.txt
+        echo "kernel=vmlinuz-$KERNEL_VERSION" >> /rootfs/boot/config.txt
+        echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/config.txt
+        if [ "${hv}" = "1" ] ; then
+            echo "# to enable DeviceTree, comment out the next line " >> /rootfs/boot/config.txt
+            echo "device_tree=" >> /rootfs/boot/config.txt
+        fi
+
+        # set the default kernel file based on the hardware
+        case ${hv} in
+            2) default_kernel_file="kernel7.img" ;;
+            *) default_kernel_file="kernel.img" ;;
+        esac
+
+        # make sure there is a /boot/kernel.img or /boot/kernel7.img present
+        if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
+            echo -n "Copying kernel to /boot/${default_kernel_file}... "
+            cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
+            if [ $? -eq 0 ]; then
+                echo "OK"
+            else
+                echo "FAILED !"
+            fi
+        fi
     fi
-fi
+done
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "
