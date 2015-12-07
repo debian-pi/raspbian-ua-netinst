@@ -617,7 +617,7 @@ if [ ! "$disable_root" = "1" ]; then
     fi
     if [ ! -z "$rootpw" ]; then
         # openssh-server in jessie doesn't allow root to login with a password
-        if [ "$release" = "jessie" ] ; then
+        if [ "$release" = "jessie" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
             echo -n "  Allowing root to login with password on jessie... "
             sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
             echo "OK"
