@@ -565,7 +565,7 @@ echo "OK"
 
 # openssh-server in jessie doesn't allow root to login using password anymore
 # this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] ; then
+if [ "$release" = "jessie" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
     echo -n "  Allowing root to login with password... "
     sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
     echo "OK"
