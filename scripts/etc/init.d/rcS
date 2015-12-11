@@ -102,10 +102,14 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bu
 # put PATH in /etc/profile so it's also available when we get a busybox shell
 echo "export PATH=${PATH}" > /etc/profile
 
-mount -t proc none /proc
-mount -t sysfs none /sys
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
 
 echo /sbin/mdev > /proc/sys/kernel/hotplug
+mount -t tmpfs -o size=64k,mode=0755 tmpfs /dev
+mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+
 mdev -s
 
 klogd -c 1
