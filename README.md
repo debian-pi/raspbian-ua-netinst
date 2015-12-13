@@ -131,7 +131,7 @@ The format of the _installer-config.txt_ file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
 
-The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
+The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
 
 Available presets: _server_, _minimal_ and _base_.
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
