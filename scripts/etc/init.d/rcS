@@ -19,6 +19,7 @@ user_ssh_pubkey=
 user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+128M
+bootoffset=
 rootsize=
 timeserver=time.nist.gov
 timezone=Etc/UTC
@@ -465,6 +466,7 @@ echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
 echo "  boot_volume_label = $boot_volume_label"
 echo "  bootsize = $bootsize"
+echo "  bootoffset = $bootoffset"
 echo "  rootsize = $rootsize"
 echo "  boot_volume_label = $boot_volume_label"
 echo "  timeserver = $timeserver"
@@ -490,36 +492,86 @@ for i in `seq 1 5`; do
 done
 echo
 
+# fdisk's boot offset is 2048, so only handle $bootoffset is it's larger then that
+if [ -n "$bootoffset" ] && [ "$bootoffset" -gt 2048 ] ; then
+    emptyspaceend=$((bootoffset - 1))
+else
+    emptyspaceend=
+fi
+
 # Create a file for partitioning sd card only
 FDISK_SCHEME_SD_ONLY=/etc/raspbian-ua-netinst/fdisk-sd-only.config
-echo "n" > ${FDISK_SCHEME_SD_ONLY}
+touch $FDISK_SCHEME_SD_ONLY
+if [ -n "$emptyspaceend" ] ; then
+    # we have a custom bootoffset, so first create a temporary
+    # partition occupying the space before it.
+    # We'll remove it before committing the changes again.
+    echo "n" >> ${FDISK_SCHEME_SD_ONLY}
+    echo "p" >> ${FDISK_SCHEME_SD_ONLY}
+    echo "4" >> ${FDISK_SCHEME_SD_ONLY}
+    echo "" >> ${FDISK_SCHEME_SD_ONLY}
+    echo "$emptyspaceend" >> ${FDISK_SCHEME_SD_ONLY}
+fi
+echo "n" >> ${FDISK_SCHEME_SD_ONLY}
 echo "p" >> ${FDISK_SCHEME_SD_ONLY}
 echo "1" >> ${FDISK_SCHEME_SD_ONLY}
 echo "" >> ${FDISK_SCHEME_SD_ONLY}
 echo "$bootsize" >> ${FDISK_SCHEME_SD_ONLY}
 echo "t" >> ${FDISK_SCHEME_SD_ONLY}
+if [ -n "$emptyspaceend" ] ; then
+    # because we now have more then 1 partition
+    # we need to select the one to operate on
+    echo "1" >> ${FDISK_SCHEME_SD_ONLY}
+fi
 echo "b" >> ${FDISK_SCHEME_SD_ONLY}
 echo "n" >> ${FDISK_SCHEME_SD_ONLY}
 echo "p" >> ${FDISK_SCHEME_SD_ONLY}
 echo "2" >> ${FDISK_SCHEME_SD_ONLY}
 echo "" >> ${FDISK_SCHEME_SD_ONLY}
 echo "$rootsize" >> ${FDISK_SCHEME_SD_ONLY}
+if [ -n "$emptyspaceend" ] ; then
+    # now remove the temporary partition again
+    echo "d" >> ${FDISK_SCHEME_SD_ONLY}
+    echo "4" >> ${FDISK_SCHEME_SD_ONLY}
+fi
 echo "w" >> ${FDISK_SCHEME_SD_ONLY}
 
 # Create a file for partitioning when only /boot/ is on sd card
 FDISK_SCHEME_SD_BOOT=/etc/raspbian-ua-netinst/fdisk-sd-boot.config
-echo "n" > ${FDISK_SCHEME_SD_BOOT}
+touch $FDISK_SCHEME_SD_BOOT
+if [ -n "$emptyspaceend" ] ; then
+    # we have a custom bootoffset, so first create a temporary
+    # partition occupying the space before it.
+    # We'll remove it before committing the changes again.
+    echo "n" >> ${FDISK_SCHEME_SD_BOOT}
+    echo "p" >> ${FDISK_SCHEME_SD_BOOT}
+    echo "4" >> ${FDISK_SCHEME_SD_BOOT}
+    echo "" >> ${FDISK_SCHEME_SD_BOOT}
+    echo "$emptyspaceend" >> ${FDISK_SCHEME_SD_BOOT}
+fi
+echo "n" >> ${FDISK_SCHEME_SD_BOOT}
 echo "p" >> ${FDISK_SCHEME_SD_BOOT}
 echo "1" >> ${FDISK_SCHEME_SD_BOOT}
 echo "" >> ${FDISK_SCHEME_SD_BOOT}
 echo "$bootsize" >> ${FDISK_SCHEME_SD_BOOT}
 echo "t" >> ${FDISK_SCHEME_SD_BOOT}
+if [ -n "$emptyspaceend" ] ; then
+    # because we now have more then 1 partition
+    # we need to select the one to operate on
+    echo "1" >> ${FDISK_SCHEME_SD_BOOT}
+fi
 echo "b" >> ${FDISK_SCHEME_SD_BOOT}
+if [ -n "$emptyspaceend" ] ; then
+    # now remove the temporary partition again
+    echo "d" >> ${FDISK_SCHEME_SD_BOOT}
+    echo "4" >> ${FDISK_SCHEME_SD_BOOT}
+fi
 echo "w" >> ${FDISK_SCHEME_SD_BOOT}
 
 # Create a file for partitioning when / is on usb
 FDISK_SCHEME_USB_ROOT=/etc/raspbian-ua-netinst/fdisk-usb-root.config
-echo "n" > ${FDISK_SCHEME_USB_ROOT}
+touch $FDISK_SCHEME_USB_ROOT
+echo "n" >> ${FDISK_SCHEME_USB_ROOT}
 echo "p" >> ${FDISK_SCHEME_USB_ROOT}
 echo "1" >> ${FDISK_SCHEME_USB_ROOT}
 echo "" >> ${FDISK_SCHEME_USB_ROOT}
