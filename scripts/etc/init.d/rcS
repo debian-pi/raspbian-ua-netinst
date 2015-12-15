@@ -37,6 +37,7 @@ cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 conso
 rootfstype=ext4
 final_action=reboot
 hardware_versions=detect
+gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -480,6 +481,7 @@ echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
 echo "  final_action = $final_action"
 echo "  hardware_versions = $hardware_versions"
+echo "  gpu_mem = $gpu_mem"
 echo
 
 echo -n "Waiting 5 seconds"
@@ -902,6 +904,11 @@ do
         fi
     fi
 done
+
+# set gpu_mem if specified in the configuration file
+if [ -n "${gpu_mem}" ] ; then
+    echo "gpu_mem=${gpu_mem}" >> /rootfs/boot/config.txt
+fi
 
 # default cmdline.txt
 echo -n "Creating default cmdline.txt... "

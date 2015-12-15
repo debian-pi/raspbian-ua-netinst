@@ -144,6 +144,7 @@ The format of the _installer-config.txt_ file and the current defaults:
     rootfs_mount_options='errors=remount-ro,noatime'
     final_action=reboot  # what to do at the end of install, one of poweroff / halt / reboot
     hardware_versions=detect  # "detect" supports the install hardware only, set to "1 2" to produce an install that supports both Pi1 and Pi2
+    gpu_mem=    # specify the amount of RAM in MB that should be reserved for the GPU
 
 The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
 
