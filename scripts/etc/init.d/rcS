@@ -815,6 +815,16 @@ do
     fi
 done
 
+# iterate through all the *.gpg files and add them to /etc/apt/trusted.gpg.d
+for keyring in ./*.gpg
+do
+    if [ -e "$keyring" ]; then
+        echo -n "  Copying $keyring to /etc/apt/trusted.gpg.d/... "
+        cp "$keyring" "/rootfs/etc/apt/trusted.gpg.d/$keyring" || fail
+        echo "OK"
+    fi
+done
+
 # return to the old location for the rest of the processing
 cd $old_dir
 
