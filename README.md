@@ -145,7 +145,7 @@ The format of the _installer-config.txt_ file and the current defaults:
     final_action=reboot  # what to do at the end of install, one of poweroff / halt / reboot
     hardware_versions=detect  # "detect" supports the install hardware only, set to "1 2" to produce an install that supports both Pi1 and Pi2
 
-The time server is only used during installation and is for _rdate_ which doesn't support the NTP protocol.  
+The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
 
 Available presets: _server_, _minimal_ and _base_.
 Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
@@ -172,7 +172,7 @@ The latest kernel and firmware packages are now automatically installed during t
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
 
 > Optional: `apt-get install raspi-copies-and-fills` for improved memory management performance.  
-> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap && chown og-r /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
+> Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap && chmod 600 /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
 > Optional: `apt-get install rng-tools` and add `bcm2708-rng` to `/etc/modules` to auto-load and use the kernel module for the hardware random number generator. This improves the performance of various server applications needing random numbers significantly.
 
 ## Reinstalling or replacing an existing system
