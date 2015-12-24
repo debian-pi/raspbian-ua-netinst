@@ -1,3 +1,13 @@
+# Release v1.0.8.1 (2015-12-24)
+
+The following changes are part of this release:
+- Added check for existence of file before operating on it.
+- Fixed wrong command when setting security on swap file in documentation. This fixes [issue 327](https://github.com/debian-pi/raspbian-ua-netinst/issues/327) and fixes [issue 343](https://github.com/debian-pi/raspbian-ua-netinst/issues/343).
+- Added info to documentation to make clear that `ntpdate` is used primarily and `rdate` only as fallback.
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.8.1/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.8 (2015-12-01)
 
 The following changes are part of this release:
