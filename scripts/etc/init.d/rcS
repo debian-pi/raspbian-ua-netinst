@@ -58,7 +58,7 @@ fail()
         mount $bootpartition /boot
         fail_boot_mounted=true
     fi
-    cp -- $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
+    cp -- $LOGFILE /boot/raspbian-ua-netinst-$(date +%Y%m%dT%H%M%S).log
     sync
     
     # if we mounted /boot in the fail command, unmount it.
@@ -193,7 +193,7 @@ fi
 
 echo "Waiting for $ifname... "
 
-for i in `seq 1 10`; do
+for i in $(seq 1 10); do
 
     ifconfig $ifname &>/dev/null
     if [ $? -eq 0 ]; then
@@ -492,7 +492,7 @@ echo "  gpu_mem = $gpu_mem"
 echo
 
 echo -n "Waiting 5 seconds"
-for i in `seq 1 5`; do
+for i in $(seq 1 5); do
     echo -n "."
     sleep 1
 done
@@ -586,9 +586,9 @@ echo "w" >> ${FDISK_SCHEME_USB_ROOT}
 
 
 echo -n "Waiting for $rootdev... "
-for i in `seq 1 10`; do
+for i in $(seq 1 10); do
 
-    if [ "`fdisk -l $rootdev 2>&1 | fgrep Disk`" != "" ]; then
+    if [ "$(fdisk -l $rootdev 2>&1 | fgrep Disk)" != "" ]; then
         echo "OK"
         break
     fi
@@ -1044,7 +1044,7 @@ case ${final_action} in
         final_action=reboot
 esac
 
-for i in `seq 5 -1 1`; do
+for i in $(seq 5 -1 1); do
     sleep 1
 
     echo -n "$i.. "
