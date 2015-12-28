@@ -58,7 +58,7 @@ fail()
         mount $bootpartition /boot
         fail_boot_mounted=true
     fi
-    cp -- $LOGFILE /boot/raspbian-ua-netinst-$(date +%Y%m%dT%H%M%S).log
+    cp -- $LOGFILE /boot/raspbian-ua-netinst-"$(date +%Y%m%dT%H%M%S)".log
     sync
     
     # if we mounted /boot in the fail command, unmount it.
@@ -799,7 +799,7 @@ if [ "$locales" != "" ]; then
     echo -n "  Enabling locales... "
     for locale in $locales; do
         echo -n "$locale... "
-        if [ -f /rootfs/etc/locale.gen ] && [ $(grep -c $locale /rootfs/etc/locale.gen) -gt 0 ]; then
+        if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c $locale /rootfs/etc/locale.gen)" -gt 0 ]; then
             sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
         else
             echo -n "NOT found... "
