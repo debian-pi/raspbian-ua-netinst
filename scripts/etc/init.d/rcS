@@ -290,7 +290,7 @@ fi
 STARTTIME=$(date +%s)
 # And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
 # REAL starting time.
-REAL_STARTTIME=$(($STARTTIME - $PRE_NETWORK_DURATION))
+REAL_STARTTIME=$((STARTTIME - PRE_NETWORK_DURATION))
 echo ""
 echo "Installation started at $(date --date="@$REAL_STARTTIME" --utc)."
 echo ""
@@ -1017,9 +1017,9 @@ sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
 
 ENDTIME=$(date +%s)
-DURATION=$(($ENDTIME - $REAL_STARTTIME))
+DURATION=$((ENDTIME - REAL_STARTTIME))
 echo -n "Installation finished at $(date --date="@$ENDTIME" --utc)"
-echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
+echo " and took $((DURATION/60)) min $((DURATION%60)) sec ($DURATION seconds)"
 
 # copy logfile to standard log directory
 sleep 1
