@@ -877,7 +877,7 @@ cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key ad
 
 # save the current location so that we can go back to it later on
 old_dir=$(pwd)
-cd /rootfs/boot/config/apt/
+cd /rootfs/boot/config/apt/ || fail
 
 # iterate through all the *.list files and add them to /etc/apt/sources.list.d
 for listfile in ./*.list
@@ -920,7 +920,7 @@ do
 done
 
 # return to the old location for the rest of the processing
-cd $old_dir
+cd $old_dir || fail
 
 
 echo -n "Updating package lists... "
