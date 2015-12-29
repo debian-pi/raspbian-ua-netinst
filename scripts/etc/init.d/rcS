@@ -508,81 +508,87 @@ fi
 # Create a file for partitioning sd card only
 FDISK_SCHEME_SD_ONLY=/etc/raspbian-ua-netinst/fdisk-sd-only.config
 touch $FDISK_SCHEME_SD_ONLY
-if [ -n "$emptyspaceend" ] ; then
-    # we have a custom bootoffset, so first create a temporary
-    # partition occupying the space before it.
-    # We'll remove it before committing the changes again.
-    echo "n" >> ${FDISK_SCHEME_SD_ONLY}
-    echo "p" >> ${FDISK_SCHEME_SD_ONLY}
-    echo "4" >> ${FDISK_SCHEME_SD_ONLY}
-    echo "" >> ${FDISK_SCHEME_SD_ONLY}
-    echo "$emptyspaceend" >> ${FDISK_SCHEME_SD_ONLY}
-fi
-echo "n" >> ${FDISK_SCHEME_SD_ONLY}
-echo "p" >> ${FDISK_SCHEME_SD_ONLY}
-echo "1" >> ${FDISK_SCHEME_SD_ONLY}
-echo "" >> ${FDISK_SCHEME_SD_ONLY}
-echo "$bootsize" >> ${FDISK_SCHEME_SD_ONLY}
-echo "t" >> ${FDISK_SCHEME_SD_ONLY}
-if [ -n "$emptyspaceend" ] ; then
-    # because we now have more then 1 partition
-    # we need to select the one to operate on
-    echo "1" >> ${FDISK_SCHEME_SD_ONLY}
-fi
-echo "b" >> ${FDISK_SCHEME_SD_ONLY}
-echo "n" >> ${FDISK_SCHEME_SD_ONLY}
-echo "p" >> ${FDISK_SCHEME_SD_ONLY}
-echo "2" >> ${FDISK_SCHEME_SD_ONLY}
-echo "" >> ${FDISK_SCHEME_SD_ONLY}
-echo "$rootsize" >> ${FDISK_SCHEME_SD_ONLY}
-if [ -n "$emptyspaceend" ] ; then
-    # now remove the temporary partition again
-    echo "d" >> ${FDISK_SCHEME_SD_ONLY}
-    echo "4" >> ${FDISK_SCHEME_SD_ONLY}
-fi
-echo "w" >> ${FDISK_SCHEME_SD_ONLY}
+{
+    if [ -n "$emptyspaceend" ] ; then
+        # we have a custom bootoffset, so first create a temporary
+        # partition occupying the space before it.
+        # We'll remove it before committing the changes again.
+        echo "n"
+        echo "p"
+        echo "4"
+        echo ""
+        echo "$emptyspaceend"
+    fi
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$bootsize"
+    echo "t"
+    if [ -n "$emptyspaceend" ] ; then
+        # because we now have more then 1 partition
+        # we need to select the one to operate on
+        echo "1"
+    fi
+    echo "b"
+    echo "n"
+    echo "p"
+    echo "2"
+    echo ""
+    echo "$rootsize"
+    if [ -n "$emptyspaceend" ] ; then
+        # now remove the temporary partition again
+        echo "d"
+        echo "4"
+    fi
+    echo "w"
+} >> ${FDISK_SCHEME_SD_ONLY}
 
 # Create a file for partitioning when only /boot/ is on sd card
 FDISK_SCHEME_SD_BOOT=/etc/raspbian-ua-netinst/fdisk-sd-boot.config
 touch $FDISK_SCHEME_SD_BOOT
-if [ -n "$emptyspaceend" ] ; then
-    # we have a custom bootoffset, so first create a temporary
-    # partition occupying the space before it.
-    # We'll remove it before committing the changes again.
-    echo "n" >> ${FDISK_SCHEME_SD_BOOT}
-    echo "p" >> ${FDISK_SCHEME_SD_BOOT}
-    echo "4" >> ${FDISK_SCHEME_SD_BOOT}
-    echo "" >> ${FDISK_SCHEME_SD_BOOT}
-    echo "$emptyspaceend" >> ${FDISK_SCHEME_SD_BOOT}
-fi
-echo "n" >> ${FDISK_SCHEME_SD_BOOT}
-echo "p" >> ${FDISK_SCHEME_SD_BOOT}
-echo "1" >> ${FDISK_SCHEME_SD_BOOT}
-echo "" >> ${FDISK_SCHEME_SD_BOOT}
-echo "$bootsize" >> ${FDISK_SCHEME_SD_BOOT}
-echo "t" >> ${FDISK_SCHEME_SD_BOOT}
-if [ -n "$emptyspaceend" ] ; then
-    # because we now have more then 1 partition
-    # we need to select the one to operate on
-    echo "1" >> ${FDISK_SCHEME_SD_BOOT}
-fi
-echo "b" >> ${FDISK_SCHEME_SD_BOOT}
-if [ -n "$emptyspaceend" ] ; then
-    # now remove the temporary partition again
-    echo "d" >> ${FDISK_SCHEME_SD_BOOT}
-    echo "4" >> ${FDISK_SCHEME_SD_BOOT}
-fi
-echo "w" >> ${FDISK_SCHEME_SD_BOOT}
+{
+    if [ -n "$emptyspaceend" ] ; then
+        # we have a custom bootoffset, so first create a temporary
+        # partition occupying the space before it.
+        # We'll remove it before committing the changes again.
+        echo "n"
+        echo "p"
+        echo "4"
+        echo ""
+        echo "$emptyspaceend"
+    fi
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$bootsize"
+    echo "t"
+    if [ -n "$emptyspaceend" ] ; then
+        # because we now have more then 1 partition
+        # we need to select the one to operate on
+        echo "1"
+    fi
+    echo "b"
+    if [ -n "$emptyspaceend" ] ; then
+        # now remove the temporary partition again
+        echo "d"
+        echo "4"
+    fi
+    echo "w"
+} >> ${FDISK_SCHEME_SD_BOOT}
 
 # Create a file for partitioning when / is on usb
 FDISK_SCHEME_USB_ROOT=/etc/raspbian-ua-netinst/fdisk-usb-root.config
 touch $FDISK_SCHEME_USB_ROOT
-echo "n" >> ${FDISK_SCHEME_USB_ROOT}
-echo "p" >> ${FDISK_SCHEME_USB_ROOT}
-echo "1" >> ${FDISK_SCHEME_USB_ROOT}
-echo "" >> ${FDISK_SCHEME_USB_ROOT}
-echo "$rootsize" >> ${FDISK_SCHEME_USB_ROOT}
-echo "w" >> ${FDISK_SCHEME_USB_ROOT}
+{
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$rootsize"
+    echo "w"
+} >> ${FDISK_SCHEME_USB_ROOT}
 
 
 echo -n "Waiting for $rootdev... "
@@ -731,57 +737,72 @@ fi
 
 # default mounts
 echo -n "  Configuring /etc/fstab... "
-echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
-if [ "$rootfstype" = "f2fs" ]; then
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
-elif [ "$rootfstype" = "btrfs" ]; then
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
-else
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
-fi
-# also specify /tmp on tmpfs in /etc/fstab so it works across init systems
-echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0" >> /rootfs/etc/fstab || fail
+touch /rootfs/etc/fstab || fail
+{
+    echo "$bootpartition /boot vfat defaults 0 2"
+    if [ "$rootfstype" = "f2fs" ]; then
+        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
+    elif [ "$rootfstype" = "btrfs" ]; then
+        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
+    else
+        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
+    fi
+    # also specify /tmp on tmpfs in /etc/fstab so it works across init systems
+    echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0"
+} >> /rootfs/etc/fstab || fail
 echo "OK"
 
 # default hostname
 echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
-echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
-if [ "$domainname" = "" ]; then
-     echo "127.0.1.1	$hostname" >> /rootfs/etc/hosts || fail
-else
-     echo "127.0.1.1	$hostname.$domainname	$hostname" >> /rootfs/etc/hosts || fail
-fi
+touch /rootfs/etc/hosts
+{
+    echo "127.0.0.1	localhost"
+    if [ "$domainname" = "" ]; then
+         echo "127.0.1.1	$hostname"
+    else
+         echo "127.0.1.1	$hostname.$domainname	$hostname"
+    fi
+} >> /rootfs/etc/hosts || fail
 echo "OK"
 
 # networking
 echo -n "  Configuring network settings... "
-echo "auto lo" > /rootfs/etc/network/interfaces || fail
-echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
-echo "" >>  /rootfs/etc/network/interfaces || fail
+touch /rootfs/etc/network/interfaces || fail
+{
+    echo "auto lo"
+    echo "iface lo inet loopback"
+    echo ""
 
-# eth0 config
-echo "auto $ifname" >> /rootfs/etc/network/interfaces || fail
-if [ "$ip_addr" = "dhcp" ]; then
-    echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces || fail
-else
-    echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces || fail
-    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || fail
-    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || fail
-    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || fail
-    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || fail
+    # eth0 config
+    echo "auto $ifname"
+    if [ "$ip_addr" = "dhcp" ]; then
+        echo "iface $ifname inet dhcp"
+    else
+        echo "iface $ifname inet static"
+        echo "    address $ip_addr"
+        echo "    netmask $ip_netmask"
+        echo "    broadcast $ip_broadcast"
+        echo "    gateway $ip_gateway"
+    fi
+    if [ "$ifname" != "eth0" ]; then
+        echo "wpa-conf /boot/config/wpa_supplicant.conf"
+    fi
+} >> /rootfs/etc/network/interfaces || fail
 
+if [ "$ip_addr" != "dhcp" ]; then
     cp /etc/resolv.conf /rootfs/etc/ || fail
 fi
-if [ "$ifname" != "eth0" ]; then
-    echo "wpa-conf /boot/config/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces || fail
-fi
+
 echo "OK"
 
 # enable serial console on installed system
 echo -n "  Enabling serial console... "
-echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
-echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
+touch /rootfs/etc/inittab
+{
+    echo "#Spawn a getty on Raspberry Pi serial line"
+    echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100"
+} >> /rootfs/etc/inittab
 echo "OK"
 
 # set timezone and reconfigure tzdata package
@@ -959,13 +980,15 @@ do
         KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
         echo "Adding boot config for kernel version: '${KERNEL_VERSION}'"
 
-        echo "[pi${hv}]" >> /rootfs/boot/config.txt
-        echo "kernel=vmlinuz-$KERNEL_VERSION" >> /rootfs/boot/config.txt
-        echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/config.txt
-        if [ "${hv}" = "1" ] ; then
-            echo "# to enable DeviceTree, comment out the next line " >> /rootfs/boot/config.txt
-            echo "device_tree=" >> /rootfs/boot/config.txt
-        fi
+        {
+            echo "[pi${hv}]"
+            echo "kernel=vmlinuz-$KERNEL_VERSION"
+            echo "initramfs initrd.img-${KERNEL_VERSION} followkernel"
+            if [ "${hv}" = "1" ] ; then
+                echo "# to enable DeviceTree, comment out the next line "
+                echo "device_tree="
+            fi
+        } >> /rootfs/boot/config.txt
 
         # set the default kernel file based on the hardware
         case ${hv} in
