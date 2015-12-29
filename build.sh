@@ -495,6 +495,7 @@ function create_cpio {
     # drivers
     mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net
     cp -r tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/net/wireless rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
+    cp -r tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/net/usb rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
 
     INITRAMFS="../installer-${target_system}.cpio.gz"
     (cd rootfs && find . | cpio -H newc -ov | gzip --best > $INITRAMFS)
