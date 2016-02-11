@@ -631,6 +631,7 @@ fi
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
+echo "bcm2708-rng" >> /rootfs/etc/modules
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
