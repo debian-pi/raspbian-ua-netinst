@@ -144,9 +144,9 @@ echo "OK"
 echo -n "Starting HWRNG "
 modprobe bcm2708-rng
 if [ $? -eq 0 ]; then
-  echo "succeeded!"
+    echo "succeeded!"
 else
-  echo "FAILED!"
+    echo "FAILED! (continuing to use the software RNG)"
 fi
 
 if [ -e /bootfs/installer-config.txt ]; then
