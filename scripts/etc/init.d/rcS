@@ -141,7 +141,15 @@ echo "Running on Raspberry Pi version ${rpi_hardware_version}"
 echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
-
+ 
+echo -n "Starting HWRNG "
+modprobe bcm2708-rng
+if [ $? -eq 0 ]; then
+    echo "succeeded!"
+else
+    echo "FAILED! (continuing to use the software RNG)"
+fi
+ 
 echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
