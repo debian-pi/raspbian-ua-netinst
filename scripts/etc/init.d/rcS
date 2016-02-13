@@ -148,7 +148,6 @@ if [ $? -eq 0 ]; then
 else
     echo "FAILED! (continuing to use the software RNG)"
 fi
-/etc/init.d/rng-tools start
 
 if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
@@ -325,7 +324,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     fi
 
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,rng-tools"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
 
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
