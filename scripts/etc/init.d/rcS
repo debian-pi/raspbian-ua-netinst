@@ -148,6 +148,7 @@ if [ $? -eq 0 ]; then
 else
     echo "FAILED! (continuing to use the software RNG)"
 fi
+/etc/init.d/rng-tools start
 
 if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
