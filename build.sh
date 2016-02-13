@@ -7,6 +7,7 @@ KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/fs/btrfs/btrfs.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/char/hw_random/bcm2708-rng.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/usb/storage/usb-storage.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sd_mod.ko"
