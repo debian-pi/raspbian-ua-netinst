@@ -141,6 +141,14 @@ cp -r /boot/* /bootfs/ || fail
 umount /boot || fail
 echo "OK"
 
+echo -n "Starting HWRNG "
+modprobe bcm2708-rng
+if [ $? -eq 0 ]; then
+    echo "succeeded!"
+else
+    echo "FAILED! (continuing to use the software RNG)"
+fi
+
 if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
     echo "=== Start executing installer-config.txt. ==="
@@ -316,7 +324,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     fi
 
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,rng-tools"
 
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
@@ -623,6 +631,7 @@ fi
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
+echo "bcm2708-rng" >> /rootfs/etc/modules
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
