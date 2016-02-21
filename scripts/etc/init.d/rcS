@@ -27,11 +27,14 @@ locales=
 system_default_locale=
 disable_predictable_nin=1
 ifname=eth0
-ip_addr=dhcp
-ip_netmask=0.0.0.0
-ip_broadcast=0.0.0.0
-ip_gateway=0.0.0.0
-ip_nameservers=
+ip4_addr=dhcp
+ip4_prefixlength=0
+ip4_gateway=0.0.0.0
+ip4_nameservers=
+ip6_addr=disable
+ip6_prefixlength=0
+ip6_gateway=auto
+ip6_nameservers=auto
 drivers_to_load=
 online_config=
 usbroot=
@@ -238,15 +241,52 @@ if [ -e /bootfs/config/wpa_supplicant.conf ]; then
     sanitize_inputfile /bootfs/config/wpa_supplicant.conf
 fi
 
+# Provide backwards compatibility for v1.0 configurations which used
+# "ip_" prefix instead of "ip4_"
+
+if [ ! -z "$ip_addr" ]; then
+   ip4_addr="$ip_addr"
+fi
+
+if [ ! -z "$ip_gateway" ]; then
+   ip4_gateway="$ip_gateway"
+fi
+
+if [ ! -z "$ip_nameservers" ]; then
+   ip4_nameservers="$ip_nameservers"
+fi
+
+# Provide backwards compatibility for v1.0 configurations which used
+# "ip_netmask" instead of "ip4_prefixlength"
+
+if [ ! -z "$ip_netmask" ]; then
+   ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
+fi
+
 echo
 echo "Network configuration:"
-echo "  ip_addr = $ip_addr"
+echo "  ip4_addr = $ip4_addr"
 
-if [ "$ip_addr" != "dhcp" ]; then
-    echo "  ip_netmask = $ip_netmask"
-    echo "  ip_broadcast = $ip_broadcast"
-    echo "  ip_gateway = $ip_gateway"
-    echo "  ip_nameservers = $ip_nameservers"
+if [ "$ip4_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip4_addr" != "dhcp" ]; then
+    echo "  ip4_prefixlength = $ip4_prefixlength"
+    echo "  ip4_gateway = $ip4_gateway"
+    echo "  ip4_nameservers = $ip4_nameservers"
+fi
+
+echo "  ip6_addr = $ip6_addr"
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo "  ip6_nameservers = $ip6_nameservers"
+else
+    echo "  ip6_prefixlength = $ip6_prefixlength"
+    echo "  ip6_gateway = $ip6_gateway"
+    echo "  ip6_nameservers = $ip6_nameservers"
 fi
 
 echo "  online_config = $online_config"
@@ -297,25 +337,148 @@ if [ "$ifname" != "eth0" ]; then
     fi
 fi
 
-if [ "$ip_addr" = "dhcp" ]; then
-    echo -n "Configuring $ifname with DHCP... "
+echo "OK"
+
+# do some IPv6 configuration which must be done before the
+# network interface is brought up
+if [ "$ip6_addr" != "disable" ]; then
+    modprobe ipv6
+    if [ "$ip6_addr" != "auto" ]; then
+        if [ "$ip6_gateway" != "auto" ]; then
+            # disable the acceptance of incoming Router Advertisement (RA)
+            # messages, otherwise the kernel might automatically add routes
+            echo 0 > /proc/sys/net/ipv6/conf/$ifname/accept_ra
+        else
+            # disable automatic generation of IPv6 addresses, which the kernel
+            # will do when it receives a suitable RA
+            echo 0 > /proc/sys/net/ipv6/conf/$ifname/autoconf
+	fi
+    fi
+fi
+
+ip link set lo up
+ip link set $ifname up
+
+touch /etc/resolv.conf
+if [ "$ip4_addr" = "disable" ]; then
+    # if IPv4 is disabled, configure the DNS resolver in glibc
+    # to prefer IPv6 addresses (by performing AAAA lookups
+    # before A lookups)
+    echo "options inet6" >> /etc/resolv.conf
+elif [ "$ip4_addr" = "dhcp" ]; then
+    echo -n "Configuring $ifname for IPv4 using DHCP... "
 
     udhcpc -i $ifname &>/dev/null
     if [ $? -eq 0 ]; then
-        ifconfig $ifname | fgrep addr: | awk '{print $2}' | cut -d: -f2
+        have_ip4=$(ip -4 addr ls $ifname | grep 'scope global' | awk '{print $2}')
+	echo $have_ip4
     else
         echo "FAILED"
-        fail
     fi
 else
-    echo -n "Configuring $ifname with static ip $ip_addr... "
-    ifconfig $ifname up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || fail
-    route add default gw $ip_gateway || fail
-    echo -n > /etc/resolv.conf
-    for i in $ip_nameservers; do
+    echo -n "Configuring $ifname for IPv4 using static $ip4_addr... "
+    ip addr add $ip4_addr/$ip4_prefixlength dev $ifname || fail
+    ip route add default via $ip4_gateway || fail
+    for i in $ip4_nameservers; do
         echo "nameserver $i" >> /etc/resolv.conf
     done
+    have_ip4=$ip4_addr
     echo "OK"
+fi
+
+if [ "$ip6_addr" != "disable" ]; then
+    echo -n "Waiting for IPv6 link-local address on $ifname... "
+
+    for i in $(seq 1 10); do
+        if ip -6 addr show dev $ifname scope link | grep -q 'scope link'; then
+            break
+        fi
+
+        if [ $i -eq 10 ]; then
+            echo "FAILED"
+            fail
+        fi
+
+        sleep 1
+
+        echo -n "$i.. "
+    done
+
+    # ensure that the IPv6 stack is ready; race conditions are fun!
+    sleep 2
+    echo "OK"
+    rdisc6 $ifname > /tmp/ip6_ra
+    # the 'awk' usage below is to trim whitespace around the value
+    ip6_ra_m=$(grep 'Stateful address' /tmp/ip6_ra | cut -d: -f2- | awk '{$1=$1};1')
+    if [ "$ip6_ra_m" = "Yes" ]; then
+        echo "IPv6 on this network is provided by DHCPv6, but this installer does not support DHCPv6."
+        echo "IPv6 will be disabled."
+        ip6_addr=disable
+    fi
+    # the 'awk' usage below is to trim whitespace around the value
+    ip6_ra_o=$(grep 'Stateful other' /tmp/ip6_ra | cut -d: -f2- | awk '{$1=$1};1')
+    if [ "$ip6_ra_o" = "Yes" ]; then
+        echo "IPv6 DNS and other information on this network is provided by DHCPv6, but this installer does not support DHCPv6."
+        echo "IPv6 will be disabled."
+        ip6_addr=disable
+    fi
+fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo -n "Configuring $ifname for IPv6 using SLAAC... "
+
+    for i in $(seq 1 10); do
+        ip -6 addr ls $ifname | grep -q 'scope global'
+        if [ $? -eq 0 ]; then
+            have_ip6=$(ip -6 addr ls $ifname | grep 'scope global' | awk '{print $2}')
+            echo $have_ip6
+            break
+        fi
+
+        if [ $i -eq 10 ]; then
+            echo "FAILED"
+        fi
+
+        sleep 1
+
+        echo -n "$i.. "
+    done
+else
+    echo -n "Configuring $ifname for IPv6 using static $ip6_addr... "
+    ip addr add $ip6_addr/$ip6_prefixlength dev $ifname || fail
+    if [ "$ip6_gateway" != "auto" ]; then
+        ip route add default via $ip6_gateway || fail
+    fi
+    have_ip6=$ip6_addr
+    echo "OK"
+fi
+
+if [ -n "$have_ip6" ]; then
+    if [ "$ip6_nameservers" = "auto" ]; then
+        echo -n "Obtaining IPv6 recursive DNS server address(es) via RDNSS... "
+        have_ip6_nameservers=$(grep 'Recursive DNS' /tmp/ip6_ra | cut -d: -f2-)
+        if [ -z "$have_ip6_nameservers" ]; then
+            echo "FAILED"
+        else
+            echo "$have_ip6_nameservers"
+        fi
+    elif [ "$ip6_nameservers" != "disable" ]; then
+        have_ip6_nameservers=$ip6_nameservers
+    fi
+    if [ -n "$have_ip6_nameservers" ]; then
+        for i in $have_ip6_nameservers; do
+            echo "nameserver $i" >> /etc/resolv.conf
+        done
+    fi
+    echo "OK"
+fi
+
+if [ -z "$have_ip4" ] && [ -z "$have_ip6" ]; then
+   echo "No IPv4 or IPv6 addresses were configured or obtained. Installation cannot continue."
+   fail
 fi
 
 # This will record the time to get to this point
@@ -491,7 +654,10 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
       base_packages="$base_packages,rng-tools"
     fi
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools,resolvconf"
+    if [ -n "$have_ip6" ] && [ "$ip6_nameservers" = "auto" ]; then
+        minimal_packages="${minimal_packages},rdnssd"
+    fi
 
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
@@ -515,7 +681,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     dhcp_client_package="isc-dhcp-client"
     # add IPv4 DHCP client if needed
-    if [ "$ip_addr" = "dhcp" ]; then
+    if [ "$ip4_addr" = "dhcp" ]; then
         cdebootstrap_cmdline="${cdebootstrap_cmdline},${dhcp_client_package}"
     fi
 
@@ -848,26 +1014,62 @@ echo $hostname > /rootfs/etc/hostname || fail
 echo "OK"
 
 echo -n "  Configuring hosts... "
-touch /rootfs/etc/hosts
-# Add localhost to hosts (if needed)
+rm /rootfs/etc/hosts
+# Add localhost to hosts
 if ! grep -q "localhost" /rootfs/etc/hosts; then
     echo -n "adding localhost... "
     echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
+    if [ -n "$have_ip6" ]; then
+        echo "::1 localhost" >> /rootfs/etc/hosts || fail
+    fi
 fi
 # Remove any existing 127.0.1.1 entries
 sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
-# Create the 127.0.1.1 entry
-if [ "$domainname" = "" ]; then
-    echo -n "adding ${hostname}... "
-    echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
-else
-    echo -n "adding ${hostname}.${domainname}... "
-    echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+
+# Create appropriate hostname entries for IPv4
+if [ -n "$have_ip4" ]; then
+    if [ "$ip4_addr" = "dhcp" ]; then
+        hostfile_addr=127.0.1.1
+    else
+        hostfile_addr=$ip4_addr
+    fi
+    if [ "$domainname" = "" ]; then
+        echo -n "adding ${hostname} for IPv4... "
+        echo "${hostfile_addr} ${hostname}" >> /rootfs/etc/hosts || fail
+    else
+        echo -n "adding ${hostname}.${domainname} for IPv4... "
+        echo "${hostfile_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+    fi
+fi
+echo "OK"
+
+# Create appropriate hostname entries for IPv6
+if [ -n "$have_ip6" ] && [ "$ip6_addr" != "auto" ]; then
+    if [ "$domainname" = "" ]; then
+        echo -n "adding ${hostname} for IPv6... "
+        echo "${ip6_addr} ${hostname}" >> /rootfs/etc/hosts || fail
+    else
+        echo -n "adding ${hostname}.${domainname} for IPv6... "
+        echo "${ip6_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+    fi
 fi
 echo "OK"
 
 # networking
 echo -n "  Configuring network settings... "
+
+if [ "$ip4_addr" = "disable" ]; then
+    # if IPv4 is disabled, configure the DNS resolver in glibc
+    # to prefer IPv6 addresses (by performing AAAA lookups
+    # before A lookups); since resolvconf is installed, this is
+    # done by adding the proper line to the resolvconf 'head'
+    echo "options inet6" >> /etc/resolvconf/resolv.conf.d/head
+fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    echo net.ipv6.conf.all.disable_ipv6=1 > /rootfs/etc/sysctl.d/disable_ipv6.conf
+fi
+
 touch /rootfs/etc/network/interfaces || fail
 # lo interface may already be there, so first check for it
 if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
@@ -879,14 +1081,34 @@ fi
 echo "" >> /rootfs/etc/network/interfaces
 echo "auto $ifname" >> /rootfs/etc/network/interfaces
 echo "allow-hotplug $ifname" >> /rootfs/etc/network/interfaces
-if [ "$ip_addr" = "dhcp" ]; then
+
+if [ "$ip4_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip4_addr" = "dhcp" ]; then
     echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
 else
     echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces
-    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces
-    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces
-    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces
-    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces
+    echo "    address $ip4_addr/$ip4_prefixlength" >> /rootfs/etc/network/interfaces
+    echo "    gateway $ip4_gateway" >> /rootfs/etc/network/interfaces
+    echo "    dns-nameservers $ip4_nameservers" >> /rootfs/etc/network/interfaces
+fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo "iface $ifname inet6 auto" >> /rootfs/etc/network/interfaces
+else
+    echo "iface $ifname inet6 static" >> /rootfs/etc/network/interfaces
+    echo "    address $ip6_addr/$ip6_prefixlength" >> /rootfs/etc/network/interfaces
+    if [ "$ip6_gateway" != "auto" ]; then
+        echo "    gateway $ip6_gateway" >> /rootfs/etc/network/interfaces
+        echo "    accept_ra 0" >> /rootfs/etc/network/interfaces
+    fi
+    if [ "$ip6_nameservers" != "auto" ] && [ "$ip6_nameservers" != "disable" ]; then
+        echo "    dns-nameservers $ip6_nameservers" >> /rootfs/etc/network/interfaces
+    fi
 fi
 
 # wlan config
@@ -896,10 +1118,6 @@ if [ "$ifname" != "eth0" ]; then
         cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
         echo "    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
     fi
-    echo "" >> /rootfs/etc/network/interfaces
-    echo "auto eth0" >> /rootfs/etc/network/interfaces
-    echo "allow-hotplug eth0" >> /rootfs/etc/network/interfaces
-    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces
 fi
 
 if [ "${disable_predictable_nin}" = "1" ]; then
@@ -907,10 +1125,6 @@ if [ "${disable_predictable_nin}" = "1" ]; then
     # adding net.ifnames=0 to /boot/cmdline and disabling the persistent-net-generator.rules
     cmdline="${cmdline} net.ifnames=0"
     ln -s /dev/null /rootfs/etc/udev/rules.d/75-persistent-net-generator.rules
-fi
-
-if [ "$ip_addr" != "dhcp" ]; then
-    cp /etc/resolv.conf /rootfs/etc/ || fail
 fi
 
 echo "OK"
