@@ -40,6 +40,7 @@ packages+=("raspbian-archive-keyring")
 packages+=("tar")
 packages+=("util-linux")
 packages+=("wpasupplicant")
+packages+=("ndisc6")
 
 # libraries
 packages+=("libacl1")

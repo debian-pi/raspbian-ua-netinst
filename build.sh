@@ -297,6 +297,9 @@ function create_cpio {
     cd ../../../..
     cp tmp/usr/sbin/arpd rootfs/usr/sbin/
 
+    # ndisc6 components
+    cp tmp/bin/rdisc6 rootfs/bin
+
     # lsb-base components
     cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
     cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
