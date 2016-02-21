@@ -423,7 +423,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     esac
 
     dhcp_client_package="isc-dhcp-client"
-    # add dhcp client if using dhcp
+    # add IPv4 DHCP client if needed
     if [ "$ip_addr" = "dhcp" ]; then
         cdebootstrap_cmdline="${cdebootstrap_cmdline},${dhcp_client_package}"
     fi
@@ -473,7 +473,6 @@ echo "  boot_volume_label = $boot_volume_label"
 echo "  bootsize = $bootsize"
 echo "  bootoffset = $bootoffset"
 echo "  rootsize = $rootsize"
-echo "  boot_volume_label = $boot_volume_label"
 echo "  timeserver = $timeserver"
 echo "  timezone = $timezone"
 echo "  locales = $locales"
@@ -927,7 +926,7 @@ echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
 echo "OK"
 
-# firmware package can't be installed during cdebootstrap fase, so do so now
+# firmware package can't be installed during cdebootstrap phase, so do so now
 if [ "$kernel_module" = true ] ; then
   echo -n "Installing bootloader package (=firmware)... "
   chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
@@ -947,7 +946,7 @@ else
     echo "FAILED !"
 fi
 
-# if eth0 was not used during initial boot, a wireless interfaces was used
+# if eth0 was not used during initial boot, a wireless interface was used
 if [ "$ifname" != "eth0" ]; then
     # Install wireless dependencies
     echo -n "Installing wpasupplicant package... "
