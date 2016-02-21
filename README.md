@@ -112,21 +112,27 @@ The format of the _installer-config.txt_ file and the current defaults:
     mirror=http://mirrordirector.raspbian.org/raspbian/
     release=jessie
     hostname=pi
-    boot_volume_label=        # Sets the volume name of the boot partition. The volume name can be up to 11 characters long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the SD-card on the desktop and can be useful when using multiple SD-cards.
+    boot_volume_label=        # Sets the volume name of the boot partition. The volume name can be up to 11 characters
+                              # long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the
+                              # SD-card on the desktop and can be useful when using multiple SD-cards.
     domainname=
     rootpw=raspbian
-    root_ssh_pubkey=          # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for root if set; the public SSH key must be on a single line, enclosed in quotes
+    root_ssh_pubkey=          # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for
+                              # root if set; the public SSH key must be on a single line, enclosed in quotes
     disable_root=             # set to 1 to disable root login (and password) altogether
     username=                 # username of the user to create
     userpw=                   # password to use for created user
-    user_ssh_pubkey=          # public SSH key for created user; the public SSH key must be on a single line, enclosed in quotes
+    user_ssh_pubkey=          # public SSH key for created user; the public SSH key must be on a single line, enclosed
+                              # in quotes
     user_is_admin=            # set to 1 to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
     bootsize=+128M            # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
-    rootsize=                 # / partition size in megabytes, provide it in the form '+<number>M' (without quotes), leave empty to use all free space
+    rootsize=                 # / partition size in megabytes, provide it in the form '+<number>M' (without quotes),
+                              # leave empty to use all free space
     timeserver=time.nist.gov
     timezone=Etc/UTC          # set to desired timezone (e.g. Europe/Ljubljana)
-    locales=                  # a space delimited list of locales that will be generated during install (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
+    locales=                  # a space delimited list of locales that will be generated during install
+                              # (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
     system_default_locale=    # the default system locale to set (using the LANG environment variable)
     ifname=eth0
     ip_addr=dhcp
@@ -143,7 +149,8 @@ The format of the _installer-config.txt_ file and the current defaults:
     rootfs_install_mount_options='noatime,data=writeback,nobarrier,noinit_itable'
     rootfs_mount_options='errors=remount-ro,noatime'
     final_action=reboot       # what to do at the end of install, one of poweroff / halt / reboot
-    hardware_versions=detect  # "detect" supports the install hardware only, set to "1 2" to produce an install that supports both Pi1 and Pi2
+    hardware_versions=detect  # "detect" supports the install hardware only, set to "1 2" to produce an install that
+                              # supports both Pi1 and Pi2
     gpu_mem=                  # specify the amount of RAM in MB that should be reserved for the GPU
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
