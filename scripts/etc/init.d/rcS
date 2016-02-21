@@ -400,7 +400,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     fi
 
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools,resolvconf"
 
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
