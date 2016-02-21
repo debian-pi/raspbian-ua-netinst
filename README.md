@@ -127,6 +127,8 @@ The format of the _installer-config.txt_ file and the current defaults:
     user_is_admin=            # set to 1 to install sudo and make the user a sudo user
     cdebootstrap_cmdline=
     bootsize=+128M            # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
+    bootoffset=8192           # position in sectors where the boot partition should start. Valid values are > 2048.
+                              # a bootoffset of 8192 is equal to 4MB and that should make for proper alignment
     rootsize=                 # / partition size in megabytes, provide it in the form '+<number>M' (without quotes),
                               # leave empty to use all free space
     timeserver=time.nist.gov
