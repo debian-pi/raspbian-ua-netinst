@@ -385,6 +385,10 @@ function create_cpio {
 
     # libc6 components
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
+    # some executables require the dynamic linker to be found
+    # at this path, so leave a symlink there
+    mkdir rootfs/lib/arm-linux-gnueabihf
+    ln -s /lib/ld-linux-armhf.so.3 rootfs/lib/arm-linux-gnueabihf/ld-linux.so.3
     cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
     cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
