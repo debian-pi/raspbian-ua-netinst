@@ -320,6 +320,12 @@ function create_cpio {
 
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+    
+    # rng-tools components
+    cp tmp/usr/bin/rngtest rootfs/usr/bin/
+    cp tmp/usr/sbin/rngd rootfs/usr/sbin/
+    cp tmp/etc/default/rng-tools rootfs/etc/default/
+    cp tmp/etc/init.d/rng-tools rootfs/etc/init.d/
 
     # tar components
     cp tmp/bin/tar rootfs/bin/

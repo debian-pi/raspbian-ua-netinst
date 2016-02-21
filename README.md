@@ -144,6 +144,7 @@ The format of the _installer-config.txt_ file and the current defaults:
     rootfs_mount_options='errors=remount-ro,noatime'
     final_action=reboot  # what to do at the end of install, one of poweroff / halt / reboot
     hardware_versions=detect  # "detect" supports the install hardware only, set to "1 2" to produce an install that supports both Pi1 and Pi2
+    hwrng_support=1  # install support for the ARM hardware random number generator. 1 = enable; 0 = disable.
     gpu_mem=    # specify the amount of RAM in MB that should be reserved for the GPU
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
@@ -185,7 +186,7 @@ If you want to reinstall with the same settings you did your first install you c
 **Remember to backup all your data and original config.txt before doing this!**
 
 ## Reporting bugs and improving the installer
-When you encounter issues, have wishes or have code or documentation improvements, we'd like to hear from you! 
+When you encounter issues, have wishes or have code or documentation improvements, we'd like to hear from you!
 We've actually written a document on how to best do this and you can find it [here](CONTRIBUTING.md).
 
 ## Disclaimer
