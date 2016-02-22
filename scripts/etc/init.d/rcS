@@ -2,43 +2,44 @@
 
 LOGFILE=/tmp/raspbian-ua-netinst.log
 
-# default options, can be overriden in installer-config.txt
-preset=server
-packages=
-mirror=http://mirrordirector.raspbian.org/raspbian/
-release=jessie
-hostname=pi
+# default options for the v1.1.x installer,
+# can be overriden in installer-config.txt
 boot_volume_label=
-domainname=
-rootpw=raspbian
-root_ssh_pubkey=
+bootoffset=
+bootsize=+128M
+cdebootstrap_cmdline=
+cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 disable_root=
+domainname=
+drivers_to_load=
+final_action=reboot
+gpu_mem=
+hardware_versions=detect
+hostname=pi
+ifname=eth0
+ip_addr=dhcp
+ip_broadcast=0.0.0.0
+ip_gateway=0.0.0.0
+ip_netmask=0.0.0.0
+ip_nameservers=
+locales=
+mirror=http://mirrordirector.raspbian.org/raspbian/
+online_config=
+packages=
+preset=server
+release=jessie
+rootfstype=ext4
+rootpw=raspbian
+rootsize=
+root_ssh_pubkey=
+system_default_locale=
+timeserver=time.nist.gov
+timezone=Etc/UTC
+usbroot=
 username=
 userpw=
 user_ssh_pubkey=
 user_is_admin=
-cdebootstrap_cmdline=
-bootsize=+128M
-bootoffset=
-rootsize=
-timeserver=time.nist.gov
-timezone=Etc/UTC
-locales=
-system_default_locale=
-ifname=eth0
-ip_addr=dhcp
-ip_netmask=0.0.0.0
-ip_broadcast=0.0.0.0
-ip_gateway=0.0.0.0
-ip_nameservers=
-drivers_to_load=
-online_config=
-usbroot=
-cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
-rootfstype=ext4
-final_action=reboot
-hardware_versions=detect
-gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -60,7 +61,7 @@ fail()
     fi
     cp -- $LOGFILE /boot/raspbian-ua-netinst-"$(date +%Y%m%dT%H%M%S)".log
     sync
-    
+
     # if we mounted /boot in the fail command, unmount it.
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
@@ -288,7 +289,7 @@ fi
 
 # Record the time now that the time is set to a correct value
 STARTTIME=$(date +%s)
-# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the
 # REAL starting time.
 REAL_STARTTIME=$((STARTTIME - PRE_NETWORK_DURATION))
 echo ""
@@ -357,7 +358,7 @@ if [ "$user_is_admin" = "1" ]; then
         packages="sudo"
     else
         packages="$packages,sudo"
-    fi        
+    fi
 fi
 
 # configure different kinds of presets
