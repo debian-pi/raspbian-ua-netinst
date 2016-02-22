@@ -95,6 +95,7 @@ function create_cpio {
     mkdir -p rootfs
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
+    mkdir -p rootfs/lib/arm-linux-gnueabihf/
     mkdir -p rootfs/lib/lsb/init-functions.d/
     mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
@@ -387,7 +388,6 @@ function create_cpio {
     cp tmp/lib/*/ld-*.so rootfs/lib/ld-linux-armhf.so.3
     # some executables require the dynamic linker to be found
     # at this path, so leave a symlink there
-    mkdir rootfs/lib/arm-linux-gnueabihf
     ln -s /lib/ld-linux-armhf.so.3 rootfs/lib/arm-linux-gnueabihf/ld-linux.so.3
     cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
     cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
