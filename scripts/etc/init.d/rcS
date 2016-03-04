@@ -38,7 +38,6 @@ cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 conso
 rootfstype=ext4
 final_action=reboot
 hardware_versions=detect
-hwrng_support=1
 gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
@@ -61,7 +60,7 @@ fail()
     fi
     cp -- $LOGFILE /boot/raspbian-ua-netinst-"$(date +%Y%m%dT%H%M%S)".log
     sync
-
+    
     # if we mounted /boot in the fail command, unmount it.
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
@@ -142,15 +141,6 @@ echo "Running on Raspberry Pi version ${rpi_hardware_version}"
 echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
-
-echo -n "Starting HWRNG "
-modprobe bcm2708-rng
-if [ $? -eq 0 ]; then
-    echo "succeeded!"
-else
-    echo "FAILED! (continuing to use the software RNG)"
-fi
-/usr/sbin/rngd -r /dev/hwrng
 
 echo -n "Copying boot files... "
 # copy boot data to safety
@@ -298,7 +288,7 @@ fi
 
 # Record the time now that the time is set to a correct value
 STARTTIME=$(date +%s)
-# And substract the PRE_NETWORK_DURATION from STARTTIME to get the
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
 # REAL starting time.
 REAL_STARTTIME=$((STARTTIME - PRE_NETWORK_DURATION))
 echo ""
@@ -367,7 +357,7 @@ if [ "$user_is_admin" = "1" ]; then
         packages="sudo"
     else
         packages="$packages,sudo"
-    fi
+    fi        
 fi
 
 # configure different kinds of presets
@@ -411,9 +401,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # minimal
     minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools"
-    if [ "$hwrng_support" = "1" ]; then
-      minimal_packages="$minimal_packages,rng-tools"
-    fi
+
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
 
@@ -972,9 +960,6 @@ fi
 
 # add reasonable default modules, works only after kernel is properly installed
 echo "snd-bcm2835" >> /rootfs/etc/modules
-if [ "$hwrng_support" = "1" ]; then
-    echo "bcm2708-rng" >> /rootfs/etc/modules
-fi
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
