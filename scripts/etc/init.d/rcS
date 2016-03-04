@@ -145,6 +145,7 @@ echo "================================================="
 
 echo -n "Starting HWRNG "
 modprobe bcm2708-rng
+/usr/sbin/rngd -r /dev/hwrng
 if [ $? -eq 0 ]; then
     echo "succeeded!"
 else
