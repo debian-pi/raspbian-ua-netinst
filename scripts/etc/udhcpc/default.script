@@ -19,7 +19,7 @@ PEERDNS_IF=eth0
 case "$1" in
   deconfig)
     # bring interface up, but with no IP configured:
-    ip addr flush dev $interface
+    ip -f inet addr flush dev $interface
     ip link set $interface up
     # remove any stored config info for this $interface:
     rm -f $CFG
@@ -35,9 +35,9 @@ case "$1" in
     # save config info for $interface:
     set > $CFG
     # configure interface and routes:
-    ip addr flush dev $interface
-    ip addr add ${ip}/${mask} dev $interface
-    [ -n "$router" ] && ip route add default via ${router%% *} dev $interface
+    ip -f inet addr flush dev $interface
+    ip -f inet addr add ${ip}/${mask} dev $interface
+    [ -n "$router" ] && ip -f inet route add default via ${router%% *} dev $interface
     # save pre-dhcp config files and generate new ones:
     if [ "$interface" == "$PEERDNS_IF" ] ; then
       [ -f $RESOLV_CONF ] && mv -f $RESOLV_CONF ${RESOLV_CONF}.dhcsave
@@ -76,9 +76,9 @@ case "$1" in
     mv -f ${CFG}.new $CFG
     # make only necessary changes, as per config comparison:
     if [ -n "$REDO_NET" ] ; then
-      ip addr flush dev $interface
-      ip addr add ${ip}/${mask} dev $interface
-      [ -n "$router" ] && ip route add default via ${router%% *} dev $interface
+      ip -f inet addr flush dev $interface
+      ip -f inet addr add ${ip}/${mask} dev $interface
+      [ -n "$router" ] && ip -f inet route add default via ${router%% *} dev $interface
     fi
     if [ -n "$REDO_DNS" -a "$interface" == "$PEERDNS_IF" ] ; then
       [ -n "$domain" ] && echo search $domain > $RESOLV_CONF
