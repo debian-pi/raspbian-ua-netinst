@@ -121,7 +121,7 @@ klogd -c 1
 # Check if there's an alternative rcS file and excute it
 # instead of this file. Only do this if this isn't the
 # alternative script already
-if [ -z ${am_subshell} ]; then
+if [ -z ${am_subscript} ]; then
     mkdir -p /boot
     mount $bootpartition /boot
     if [ -e /boot/config/rcS ]; then
@@ -130,7 +130,7 @@ if [ -z ${am_subshell} ]; then
         echo "============================================="
         echo "=== Start executing alternative rcS ========="
         echo "---------------------------------------------"
-        export am_subshell=true
+        export am_subscript=true
         source /rcS
         echo "---------------------------------------------"
         echo "=== Execution of alternative rcS finished ==="
