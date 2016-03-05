@@ -537,10 +537,13 @@ fi
 echo "OK"
 
 # networking
+# wheezy seems to add the lo interface, so first check for it
 echo -n "  Configuring network settings... "
-echo "auto lo" > /rootfs/etc/network/interfaces || fail
-echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
-echo "" >>  /rootfs/etc/network/interfaces || fail
+if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+    echo "auto lo" > /rootfs/etc/network/interfaces || fail
+    echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
+    echo "" >>  /rootfs/etc/network/interfaces || fail
+fi
 
 # eth0 config
 echo "auto eth0" >> /rootfs/etc/network/interfaces || fail
