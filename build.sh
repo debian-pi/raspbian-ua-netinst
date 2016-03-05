@@ -7,6 +7,7 @@ KERNEL_VERSION_RPI2=3.18.0-trunk-rpi2
 
 INSTALL_MODULES="kernel/fs/f2fs/f2fs.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/fs/btrfs/btrfs.ko"
+INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/char/hw_random/bcm2708-rng.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/usb/storage/usb-storage.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sd_mod.ko"
@@ -113,6 +114,7 @@ function create_cpio {
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
     mkdir -p rootfs/var/lib/ntpdate
     mkdir -p rootfs/var/log/
+    mkdir -p rootfs/var/run/
 
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
 
@@ -315,11 +317,17 @@ function create_cpio {
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
 
-    # raspberrypi.org GPG key 
+    # raspberrypi.org GPG key
     cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
 
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
+
+    # rng-tools components
+    cp tmp/usr/bin/rngtest rootfs/usr/bin/
+    cp tmp/usr/sbin/rngd rootfs/usr/sbin/
+    cp tmp/etc/default/rng-tools rootfs/etc/default/
+    cp tmp/etc/init.d/rng-tools rootfs/etc/init.d/
 
     # tar components
     cp tmp/bin/tar rootfs/bin/
