@@ -151,7 +151,6 @@ if [ $? -eq 0 ]; then
 else
     echo "FAILED! (continuing to use the software RNG)"
 fi
-/usr/sbin/rngd -r /dev/hwrng
 
 echo -n "Copying boot files... "
 # copy boot data to safety
