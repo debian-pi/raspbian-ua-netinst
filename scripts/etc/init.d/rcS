@@ -34,7 +34,7 @@ ip_nameservers=
 drivers_to_load=
 online_config=
 usbroot=
-cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
+cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=noop"
 rootfstype=ext4
 final_action=reboot
 hardware_versions=detect
