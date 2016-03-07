@@ -528,7 +528,13 @@ echo "OK"
 # default hostname
 echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
-echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
+if [ ! -f /rootfs/etc/hosts ]; then
+    echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
+else
+    if ! grep -q "localhost" /rootfs/etc/hosts; then
+        echo "127.0.0.1	localhost" >> /rootfs/etc/hosts
+    fi
+fi
 if [ "$domainname" = "" ]; then
      echo "127.0.1.1	$hostname" >> /rootfs/etc/hosts || fail
 else
