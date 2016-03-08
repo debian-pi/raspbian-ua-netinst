@@ -124,8 +124,8 @@ klogd -c 1
 if [ -z ${am_subscript} ]; then
     mkdir -p /boot
     mount $bootpartition /boot
-    if [ -e /boot/config/rcS ]; then
-        cp /boot/config/rcS /rcS
+    if [ -e /boot/config/installer/rcS ]; then
+        cp /boot/config/installer/rcS /rcS
         umount /boot
         echo "============================================="
         echo "=== Start executing alternative rcS ========="
