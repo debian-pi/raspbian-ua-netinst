@@ -168,6 +168,12 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
 
+### Custom installer script
+
+It is possible to replace the installer script completely, without rebuilding the installer image. To do this, place a custom `rcS` file in the config directory of your SD card. The installer script will check this location and run this script instead of itself. Take great care when doing this, as it is intended to be used for development purposes.
+
+Should you still choose to go this route, please use the original [rcs](https://github.com/debian-pi/raspbian-ua-netinst/blob/master/scripts/etc/init.d/rcS) file as a starting point.
+
 ## Logging
 The output of the installation process is now also logged to file.  
 When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  

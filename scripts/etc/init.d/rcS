@@ -118,6 +118,30 @@ mdev -s
 
 klogd -c 1
 
+# Check if there's an alternative rcS file and excute it
+# instead of this file. Only do this if this isn't the
+# alternative script already
+if [ -z ${am_subscript} ]; then
+    mkdir -p /boot
+    mount $bootpartition /boot
+    if [ -e /boot/config/installer/rcS ]; then
+        cp /boot/config/installer/rcS /rcS
+        umount /boot
+        echo "============================================="
+        echo "=== Start executing alternative rcS ========="
+        echo "---------------------------------------------"
+        export am_subscript=true
+        source /rcS
+        echo "---------------------------------------------"
+        echo "=== Execution of alternative rcS finished ==="
+        echo "============================================="
+        ${final_action} || reboot || exit
+    else
+        # Clean up, so the rest of the script continues as expected
+        umount /boot
+    fi
+fi
+
 # redirect stdout and stderr also to logfile
 # http://stackoverflow.com/questions/3173131/redirect-copy-of-stdout-to-log-file-from-within-bash-script-itself/6635197#6635197
 mkfifo ${LOGFILE}.pipe
