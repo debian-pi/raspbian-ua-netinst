@@ -792,7 +792,13 @@ echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
 touch /rootfs/etc/hosts
 {
-    echo "127.0.0.1	localhost"
+    # Add localhost to hosts (if needed)
+    if ! grep -q "localhost" /rootfs/etc/hosts; then
+        echo "127.0.0.1	localhost"
+    fi
+    # Remove any existing 127.0.1.1 entries
+    sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
+    # Create the 127.0.1.1 entry
     if [ "$domainname" = "" ]; then
          echo "127.0.1.1	$hostname"
     else
