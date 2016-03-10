@@ -811,9 +811,12 @@ echo "OK"
 echo -n "  Configuring network settings... "
 touch /rootfs/etc/network/interfaces || fail
 {
-    echo "auto lo"
-    echo "iface lo inet loopback"
-    echo ""
+    # wheezy seems to add the lo interface, so first check for it
+    if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+        echo "auto lo"
+        echo "iface lo inet loopback"
+        echo ""
+    fi
 
     # eth0 config
     echo "auto $ifname"
