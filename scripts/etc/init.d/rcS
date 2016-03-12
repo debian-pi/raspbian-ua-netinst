@@ -792,7 +792,13 @@ echo -n "  Configuring hostname... "
 echo -n $hostname > /rootfs/etc/hostname || fail
 touch /rootfs/etc/hosts
 {
-    echo "127.0.0.1	localhost"
+    # Add localhost to hosts (if needed)
+    if ! grep -q "localhost" /rootfs/etc/hosts; then
+        echo "127.0.0.1	localhost"
+    fi
+    # Remove any existing 127.0.1.1 entries
+    sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
+    # Create the 127.0.1.1 entry
     if [ "$domainname" = "" ]; then
          echo "127.0.1.1	$hostname"
     else
@@ -805,9 +811,12 @@ echo "OK"
 echo -n "  Configuring network settings... "
 touch /rootfs/etc/network/interfaces || fail
 {
-    echo "auto lo"
-    echo "iface lo inet loopback"
-    echo ""
+    # wheezy seems to add the lo interface, so first check for it
+    if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+        echo "auto lo"
+        echo "iface lo inet loopback"
+        echo ""
+    fi
 
     # eth0 config
     echo "auto $ifname"
