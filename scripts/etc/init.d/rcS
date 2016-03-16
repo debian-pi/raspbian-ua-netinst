@@ -789,22 +789,26 @@ echo "OK"
 
 # default hostname
 echo -n "  Configuring hostname... "
-echo -n $hostname > /rootfs/etc/hostname || fail
+echo $hostname > /rootfs/etc/hostname || fail
+echo "OK"
+
+echo -n "  Configuring hosts... "
 touch /rootfs/etc/hosts
-{
-    # Add localhost to hosts (if needed)
-    if ! grep -q "localhost" /rootfs/etc/hosts; then
-        echo "127.0.0.1	localhost"
-    fi
-    # Remove any existing 127.0.1.1 entries
-    sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
-    # Create the 127.0.1.1 entry
-    if [ "$domainname" = "" ]; then
-         echo "127.0.1.1	$hostname"
-    else
-         echo "127.0.1.1	$hostname.$domainname	$hostname"
-    fi
-} >> /rootfs/etc/hosts || fail
+# Add localhost to hosts (if needed)
+if ! grep -q "localhost" /rootfs/etc/hosts; then
+	echo -n "adding localhost... "
+    echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
+fi
+# Remove any existing 127.0.1.1 entries
+sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
+# Create the 127.0.1.1 entry
+if [ "$domainname" = "" ]; then
+	echo -n "adding ${hostname}... "
+     echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
+else
+	echo -n "adding ${hostname}.${domainname}... "
+     echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+fi
 echo "OK"
 
 # networking
