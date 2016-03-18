@@ -25,6 +25,7 @@ timeserver=time.nist.gov
 timezone=Etc/UTC
 locales=
 system_default_locale=
+disable_predictable_nin=1
 ifname=eth0
 ip_addr=dhcp
 ip_netmask=0.0.0.0
@@ -833,6 +834,11 @@ touch /rootfs/etc/network/interfaces || fail
         echo "wpa-conf /boot/config/wpa_supplicant.conf"
     fi
 } >> /rootfs/etc/network/interfaces || fail
+
+if [ "${disable_predictable_nin}" = "1" ]; then
+    # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
+    ln -s /dev/null /rootfs/etc/udev/rules.d/80-net-setup-link.rules
+fi
 
 if [ "$ip_addr" != "dhcp" ]; then
     cp /etc/resolv.conf /rootfs/etc/ || fail
