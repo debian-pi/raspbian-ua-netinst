@@ -39,6 +39,7 @@ rootfstype=ext4
 final_action=reboot
 hardware_versions=detect
 hwrng_support=1
+enable_watchdog=1
 gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
@@ -1007,6 +1008,12 @@ fi
 echo "snd-bcm2835" >> /rootfs/etc/modules
 if [ "$hwrng_support" = "1" ]; then
     echo "bcm2708-rng" >> /rootfs/etc/modules
+fi
+
+# (conditionaly) enable hardware watchdog and set up systemd to use it
+if [ "${enable_watchdog}" = "1" ]; then
+    echo "bcm2708_wdog" >> /rootfs/etc/modules
+    sed -i 's/^.*RuntimeWatchdogSec=.*$/RuntimeWatchdogSec=20s/' /rootfs/etc/systemd/system.conf
 fi
 
 echo "Configuring bootloader to start the installed system..."
