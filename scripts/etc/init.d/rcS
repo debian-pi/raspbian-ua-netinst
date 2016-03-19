@@ -838,7 +838,7 @@ touch /rootfs/etc/network/interfaces || fail
 if [ "${disable_predictable_nin}" = "1" ]; then
     # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
     # adding net.ifnames=0 to /boot/cmdline
-    sed -i 's/^\(.*\)$/\1 net.ifnames=0/' /bootfs/cmdline
+    cmdline="${cmdline} net.ifnames=0"
 fi
 
 if [ "$ip_addr" != "dhcp" ]; then
