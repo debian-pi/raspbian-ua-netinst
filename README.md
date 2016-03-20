@@ -136,6 +136,10 @@ The format of the _installer-config.txt_ file and the current defaults:
     locales=                  # a space delimited list of locales that will be generated during install
                               # (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
     system_default_locale=    # the default system locale to set (using the LANG environment variable)
+    disable_predictable_nin=1 # Disable Predictable Network Interface Names. Set to 0 if you want to use predictable
+                              # network interface names, which means if you use the same SD card on a different
+                              # RPi board, your network device might be named differently. This will result in the
+                              # board having no network connectivity.
     ifname=eth0
     ip_addr=dhcp
     ip_netmask=0.0.0.0
