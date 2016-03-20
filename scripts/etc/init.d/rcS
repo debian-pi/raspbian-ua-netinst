@@ -837,8 +837,9 @@ touch /rootfs/etc/network/interfaces || fail
 
 if [ "${disable_predictable_nin}" = "1" ]; then
     # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
-    # adding net.ifnames=0 to /boot/cmdline
+    # adding net.ifnames=0 to /boot/cmdline and disabling the persistent-net-generator.rules
     cmdline="${cmdline} net.ifnames=0"
+    ln -s /dev/null /rootfs/etc/udev/rules.d/75-persistent-net-generator.rules
 fi
 
 if [ "$ip_addr" != "dhcp" ]; then
