@@ -161,6 +161,8 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # enabled (1) on all presets. Users requiring a `base` install are advised that
                               # `hwrng_support=0` must be added in `installer-config.txt` if HWRNG support is
                               # undesirable.
+    enable_watchdog=0         # loads up the hardware watchdog module and configures systemd to use it. Set to
+                              # "1" to enable this functionality.
     gpu_mem=                  # specify the amount of RAM in MB that should be reserved for the GPU
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
