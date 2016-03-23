@@ -25,6 +25,7 @@ timeserver=time.nist.gov
 timezone=Etc/UTC
 locales=
 system_default_locale=
+disable_predictable_nin=1
 ifname=eth0
 ip_addr=dhcp
 ip_netmask=0.0.0.0
@@ -39,6 +40,7 @@ rootfstype=ext4
 final_action=reboot
 hardware_versions=detect
 hwrng_support=1
+enable_watchdog=0
 gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
@@ -117,6 +119,30 @@ echo /opt/busybox/bin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 klogd -c 1
+
+# Check if there's an alternative rcS file and excute it
+# instead of this file. Only do this if this isn't the
+# alternative script already
+if [ -z ${am_subscript} ]; then
+    mkdir -p /boot
+    mount $bootpartition /boot
+    if [ -e /boot/config/installer/rcS ]; then
+        cp /boot/config/installer/rcS /rcS
+        umount /boot
+        echo "============================================="
+        echo "=== Start executing alternative rcS ========="
+        echo "---------------------------------------------"
+        export am_subscript=true
+        source /rcS
+        echo "---------------------------------------------"
+        echo "=== Execution of alternative rcS finished ==="
+        echo "============================================="
+        ${final_action} || reboot || exit
+    else
+        # Clean up, so the rest of the script continues as expected
+        umount /boot
+    fi
+fi
 
 # redirect stdout and stderr also to logfile
 # http://stackoverflow.com/questions/3173131/redirect-copy-of-stdout-to-log-file-from-within-bash-script-itself/6635197#6635197
@@ -765,25 +791,38 @@ echo "OK"
 
 # default hostname
 echo -n "  Configuring hostname... "
-echo -n $hostname > /rootfs/etc/hostname || fail
+echo $hostname > /rootfs/etc/hostname || fail
+echo "OK"
+
+echo -n "  Configuring hosts... "
 touch /rootfs/etc/hosts
-{
-    echo "127.0.0.1	localhost"
-    if [ "$domainname" = "" ]; then
-         echo "127.0.1.1	$hostname"
-    else
-         echo "127.0.1.1	$hostname.$domainname	$hostname"
-    fi
-} >> /rootfs/etc/hosts || fail
+# Add localhost to hosts (if needed)
+if ! grep -q "localhost" /rootfs/etc/hosts; then
+	echo -n "adding localhost... "
+    echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
+fi
+# Remove any existing 127.0.1.1 entries
+sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
+# Create the 127.0.1.1 entry
+if [ "$domainname" = "" ]; then
+	echo -n "adding ${hostname}... "
+     echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
+else
+	echo -n "adding ${hostname}.${domainname}... "
+     echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+fi
 echo "OK"
 
 # networking
 echo -n "  Configuring network settings... "
 touch /rootfs/etc/network/interfaces || fail
 {
-    echo "auto lo"
-    echo "iface lo inet loopback"
-    echo ""
+    # wheezy seems to add the lo interface, so first check for it
+    if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+        echo "auto lo"
+        echo "iface lo inet loopback"
+        echo ""
+    fi
 
     # eth0 config
     echo "auto $ifname"
@@ -800,6 +839,13 @@ touch /rootfs/etc/network/interfaces || fail
         echo "wpa-conf /boot/config/wpa_supplicant.conf"
     fi
 } >> /rootfs/etc/network/interfaces || fail
+
+if [ "${disable_predictable_nin}" = "1" ]; then
+    # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
+    # adding net.ifnames=0 to /boot/cmdline and disabling the persistent-net-generator.rules
+    cmdline="${cmdline} net.ifnames=0"
+    ln -s /dev/null /rootfs/etc/udev/rules.d/75-persistent-net-generator.rules
+fi
 
 if [ "$ip_addr" != "dhcp" ]; then
     cp /etc/resolv.conf /rootfs/etc/ || fail
@@ -974,6 +1020,12 @@ fi
 echo "snd-bcm2835" >> /rootfs/etc/modules
 if [ "$hwrng_support" = "1" ]; then
     echo "bcm2708-rng" >> /rootfs/etc/modules
+fi
+
+# (conditionaly) enable hardware watchdog and set up systemd to use it
+if [ "${enable_watchdog}" = "1" ]; then
+    echo "bcm2708_wdog" >> /rootfs/etc/modules
+    sed -i 's/^.*RuntimeWatchdogSec=.*$/RuntimeWatchdogSec=14s/' /rootfs/etc/systemd/system.conf
 fi
 
 echo "Configuring bootloader to start the installed system..."

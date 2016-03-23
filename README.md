@@ -136,6 +136,10 @@ The format of the _installer-config.txt_ file and the current defaults:
     locales=                  # a space delimited list of locales that will be generated during install
                               # (e.g. "en_US.UTF-8 nl_NL sl_SI.UTF-8")
     system_default_locale=    # the default system locale to set (using the LANG environment variable)
+    disable_predictable_nin=1 # Disable Predictable Network Interface Names. Set to 0 if you want to use predictable
+                              # network interface names, which means if you use the same SD card on a different
+                              # RPi board, your network device might be named differently. This will result in the
+                              # board having no network connectivity.
     ifname=eth0
     ip_addr=dhcp
     ip_netmask=0.0.0.0
@@ -157,6 +161,8 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # enabled (1) on all presets. Users requiring a `base` install are advised that
                               # `hwrng_support=0` must be added in `installer-config.txt` if HWRNG support is
                               # undesirable.
+    enable_watchdog=0         # loads up the hardware watchdog module and configures systemd to use it. Set to
+                              # "1" to enable this functionality.
     gpu_mem=                  # specify the amount of RAM in MB that should be reserved for the GPU
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
@@ -167,6 +173,12 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 > _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
+
+### Custom installer script
+
+It is possible to replace the installer script completely, without rebuilding the installer image. To do this, place a custom `rcS` file in the config directory of your SD card. The installer script will check this location and run this script instead of itself. Take great care when doing this, as it is intended to be used for development purposes.
+
+Should you still choose to go this route, please use the original [rcs](https://github.com/debian-pi/raspbian-ua-netinst/blob/master/scripts/etc/init.d/rcS) file as a starting point.
 
 ## Logging
 The output of the installation process is now also logged to file.  
