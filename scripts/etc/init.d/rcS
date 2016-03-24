@@ -1086,11 +1086,11 @@ echo "OK"
 
 # Here we allow for the end-user to replace just about any file on the
 # target system.
-# Files in the `addthese` directory-tree will be placed in the target system based on
+# Files in the `files` directory-tree will be placed in the target system based on
 # their location in the tree.
-# e.g. `/etc/network/interfaces` is stored here as
-# `/bootfs/config/addthese/etc/network/interfaces`
-tree="/bootfs/config/addthese"
+# e.g. `/bootfs/config/files/etc/network/interfaces` would be copies to
+#                   '/rootfs/etc/network/interfaces`
+tree="/bootfs/config/files"
 if [ -d $tree ]; then
   echo "Copy configuration files... "
   cp -rv $tree/* /rootfs/
