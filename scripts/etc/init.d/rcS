@@ -1096,22 +1096,6 @@ if [ -d $tree ]; then
   cp -rv $tree/* /rootfs/
 fi
 
-# Files in the `addthese2` directory have their path encoded
-# with @'s to replace the `/` in the full pathname
-# e.g. `/etc/network/interfaces` is stored here as
-# `/bootfs/config/addthese2/etc@network@interfaces`
-tree="/bootfs/config/addthese2"
-if [ -d $tree ]; then
-  echo "Copy configuration files..."
-  for f in $tree/*; do
-    # following must be `busybox sh` compatible! Can`t use bash replacements :-(
-    g=$(echo $(basename $f) | sed 's/@/\//g')
-    echo $f " --> " $g
-    # path must already exist for this to work:
-    mkdir -p /rootfs/$(dirname $g) && cp $f /rootfs/$g
-  done
-fi
-
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
