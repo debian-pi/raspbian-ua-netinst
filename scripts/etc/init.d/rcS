@@ -85,6 +85,24 @@ sanitize_inputfile()
     fi
 }
 
+install_files()
+{
+  file_to_read=$1
+  sanitize_inputfile file_to_read
+  while read -r line; do
+    comment=$(echo "$line" | cut -c1)
+    if [ ! "$comment" = "#" ]; then               # lines starting with # get ignored
+      owner=$(echo "$line" | awk '{ print $1 }')
+      perms=$(echo "$line" | awk '{ print $2 }')
+      file=$(echo  "$line" | awk '{ print $3 }')
+      mkdir -p ../rootfs"$(dirname "$file")"
+      cp -v config/files"$file" ../rootfs"$file"
+      chmod "$perms" ../rootfs"$file"
+      chroot /rootfs chown "$owner" "$file"
+    fi
+  done < "$file_to_read"
+}
+
 # set screen blank period to an hour
 # hopefully the install should be done by then
 echo -en '\033[9;60]'
@@ -1082,20 +1100,6 @@ fi
 echo -n "Creating default cmdline.txt... "
 echo "$cmdline root=$rootpartition rootfstype=$rootfstype rootwait" > /rootfs/boot/cmdline.txt
 echo "OK"
-
-
-# Here we allow for the end-user to replace just about any file on the
-# target system.
-# Files in the `files` directory-tree will be placed in the target system based on
-# their location in the tree.
-# e.g. `/bootfs/config/files/etc/network/interfaces` would be copies to
-#                   '/rootfs/etc/network/interfaces`
-tree="/bootfs/config/files"
-if [ -d $tree ]; then
-  echo "Copy configuration files... "
-  cp -rv $tree/* /rootfs/
-fi
-
 
 # run post install script if exists
 if [ -e /bootfs/post-install.txt ]; then
