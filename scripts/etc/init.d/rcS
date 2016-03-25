@@ -96,7 +96,9 @@ install_files()
       perms=$(echo "$line" | awk '{ print $2 }')
       file=$(echo  "$line" | awk '{ print $3 }')
       mkdir -p "/rootfs$(dirname "$file")"
-      cp -v "config/files$file" "/rootfs$file"
+      if [ ! -d "config/files$file" ]; then
+        cp -v "config/files$file" "/rootfs$file"
+      fi
       chmod "$perms" "/rootfs$file"
       chroot /rootfs chown "$owner" "$file"
     fi
