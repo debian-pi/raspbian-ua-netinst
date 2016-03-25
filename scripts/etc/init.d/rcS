@@ -95,8 +95,8 @@ install_files()
       owner=$(echo "$line" | awk '{ print $1 }')
       perms=$(echo "$line" | awk '{ print $2 }')
       file=$(echo  "$line" | awk '{ print $3 }')
-      mkdir -p "/rootfs$(dirname "$file")"
       if [ ! -d "config/files$file" ]; then
+        mkdir -p "/rootfs$(dirname "$file")"
         cp -v "config/files$file" "/rootfs$file"
       else
         mkdir -p "../rootfs/$file"
