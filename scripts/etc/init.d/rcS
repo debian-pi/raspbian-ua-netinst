@@ -98,6 +98,8 @@ install_files()
       mkdir -p "/rootfs$(dirname "$file")"
       if [ ! -d "config/files$file" ]; then
         cp -v "config/files$file" "/rootfs$file"
+      else
+        mkdir -p "../rootfs/$file"
       fi
       chmod "$perms" "/rootfs$file"
       chroot /rootfs chown "$owner" "$file"
