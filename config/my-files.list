@@ -2,7 +2,7 @@
 # Add one line per file using this format: 
 # <ownership> <permission> <path/filename>
 #
-# <ownership>     [OWNER][:[GROUP]] (see `man chown`)
+# <ownership>     OWNER[:GROUP] (see `man chown`)
 # <permission>    MODE  (see `man chmod`)
 # <path/file>     /path/as/it/will/appear/on/the/target/system.txt
 # 
