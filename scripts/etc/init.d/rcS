@@ -97,7 +97,7 @@ install_files()
       mkdir -p "/rootfs$(dirname "$file")"
       cp "config/files$file" "/rootfs$file"
     else
-      mkdir -p "../rootfs/$file"
+      mkdir -p "/rootfs/$file"
     fi
     chmod "$perms" "/rootfs$file"
     chroot /rootfs chown "$owner" "$file"
