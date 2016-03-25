@@ -95,9 +95,9 @@ install_files()
       owner=$(echo "$line" | awk '{ print $1 }')
       perms=$(echo "$line" | awk '{ print $2 }')
       file=$(echo  "$line" | awk '{ print $3 }')
-      mkdir -p /rootfs"$(dirname "$file")"
-      cp -v config/files"$file" /rootfs"$file"
-      chmod "$perms" /rootfs"$file"
+      mkdir -p "/rootfs$(dirname "$file")"
+      cp -v "config/files$file" "/rootfs$file"
+      chmod "$perms" "/rootfs$file"
       chroot /rootfs chown "$owner" "$file"
     fi
   done < "$file_to_read"
