@@ -89,7 +89,7 @@ install_files()
 {
   file_to_read=$1
   sanitize_inputfile file_to_read
-  grep -v "^#\|^$" "${file_to_read}" | while read -r line; do
+  grep -v "^[[:space:]]*#\|^[[:space:]]*$" "${file_to_read}" | while read -r line; do
     owner=$(echo "$line" | awk '{ print $1 }')
     perms=$(echo "$line" | awk '{ print $2 }')
     file=$(echo  "$line" | awk '{ print $3 }')
