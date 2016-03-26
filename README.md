@@ -181,7 +181,8 @@ To have the installer actually copy the files to the target system, add the foll
 ```
 install_files my-files.list
 ```
-  where `my-files.list` is the name of the file containing the list of files.
+where `my-files.list` is the name of the file containing the list of files.
+If needed, you can call `install_files` multiple times with different list files.  
 Please be aware that some restrictions may apply to the sum of the file sizes. If you wish to supply large files in this manner you may need to adjust the value of the `bootsize` parameter.
 
 ### Custom installer script
