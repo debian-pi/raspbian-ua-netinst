@@ -174,6 +174,17 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
 
+### Bring your own files
+You can have the installer place your custom configuration files (or any other file you wish to add) on the installed system during the installation. For this, you need to provide the necessary files in the `/config/files/` directory of your SD card (you may need to create this directory if it doesn't exist). The `/config/files/` directory is the root-point. It must have the same structure as inside the installed system. So, a file that you place on the SD card in `/config/files/etc/wpa_supplicant/wpa_supplicant.conf` will end up on the installed system as `/etc/wpa_supplicant/wpa_supplicant.conf`.
+Each file or directory that you wish to place on the target system must also be listed in a configuration file in the directory `/config` on your SD card. This allows you to specify the owner (and group) and the permissions of the file. An example file is provided with the installer (see `/config/my-files.list` for more information). ONLY files listed there are copied over to the installed system.
+To have the installer actually copy the files to the target system, add the following command at an appropriate point in your `post-install.txt` file:
+```
+install_files my-files.list
+```
+where `my-files.list` is the name of the file containing the list of files.
+If needed, you can call `install_files` multiple times with different list files.  
+Please be aware that some restrictions may apply to the sum of the file sizes. If you wish to supply large files in this manner you may need to adjust the value of the `bootsize` parameter.
+
 ### Custom installer script
 
 It is possible to replace the installer script completely, without rebuilding the installer image. To do this, place a custom `rcS` file in the config directory of your SD card. The installer script will check this location and run this script instead of itself. Take great care when doing this, as it is intended to be used for development purposes.
