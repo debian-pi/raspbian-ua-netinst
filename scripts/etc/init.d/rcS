@@ -104,7 +104,7 @@ install_files()
     chmod "$perms" "/rootfs$file"
     chroot /rootfs chown "$owner" "$file"
   done
-  echo " "
+  echo ""
 }
 
 # set screen blank period to an hour
