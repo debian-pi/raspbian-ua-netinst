@@ -820,18 +820,18 @@ echo -n "  Configuring hosts... "
 touch /rootfs/etc/hosts
 # Add localhost to hosts (if needed)
 if ! grep -q "localhost" /rootfs/etc/hosts; then
-  echo -n "adding localhost... "
+    echo -n "adding localhost... "
     echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
 fi
 # Remove any existing 127.0.1.1 entries
 sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
 # Create the 127.0.1.1 entry
 if [ "$domainname" = "" ]; then
-  echo -n "adding ${hostname}... "
-     echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
+    echo -n "adding ${hostname}... "
+    echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
 else
-  echo -n "adding ${hostname}.${domainname}... "
-     echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+    echo -n "adding ${hostname}.${domainname}... "
+    echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
 fi
 echo "OK"
 
