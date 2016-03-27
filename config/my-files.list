@@ -1,0 +1,19 @@
+# To add custom files on the target system:
+# Add one line per file using this format: 
+# <ownership> <permission> <path/filename>
+#
+# <ownership>     OWNER[:GROUP] (see `man chown`)
+# <permission>    MODE  (see `man chmod`)
+# <path/file>     /path/as/it/will/appear/on/the/target/system.txt
+# 
+# Source files are stored in the directory `config/files` in the same path as
+# where they will be stored on the target system.
+#
+# EXAMPLE:
+# A file placed on the SD-card in /config/files/home/pi/.bashrc is listed as follows:
+# pi:pi  755  /home/pi/.bashrc
+#
+# Don't forget to call the function:
+# install_files my-files.list
+# from your `post-install.txt` where "my-files.list" is this file. 
+# The function `install_files` will assume the file is located in the `config` directory.
