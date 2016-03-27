@@ -88,14 +88,14 @@ sanitize_inputfile()
 install_files()
 {
   file_to_read="$1"
-  sanitize_inputfile "$file_to_read"
-  grep -v "^[[:space:]]*#\|^[[:space:]]*$" "${file_to_read}" | while read -r line; do
+  sanitize_inputfile "/bootfs/config/$file_to_read"
+  grep -v "^[[:space:]]*#\|^[[:space:]]*$" "/bootfs/config/${file_to_read}" | while read -r line; do
     owner=$(echo "$line" | awk '{ print $1 }')
     perms=$(echo "$line" | awk '{ print $2 }')
     file=$(echo  "$line" | awk '{ print $3 }')
-    if [ ! -d "config/files$file" ]; then
+    if [ ! -d "/bootfs/config/files$file" ]; then
       mkdir -p "/rootfs$(dirname "$file")"
-      cp "config/files$file" "/rootfs$file"
+      cp "/bootfs/config/files$file" "/rootfs$file"
     else
       mkdir -p "/rootfs/$file"
     fi
