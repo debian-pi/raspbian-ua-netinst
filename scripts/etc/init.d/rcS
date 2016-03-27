@@ -858,7 +858,7 @@ touch /rootfs/etc/network/interfaces || fail
         echo "    gateway $ip_gateway"
     fi
     if [ "$ifname" != "eth0" ]; then
-        echo "wpa-conf /boot/config/wpa_supplicant.conf"
+        echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"
     fi
 } >> /rootfs/etc/network/interfaces || fail
 
