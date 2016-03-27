@@ -218,8 +218,8 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
 fi
 
-if [ -e /bootfs/config/wpa_supplicant.conf ]; then
-    sanitize_inputfile /bootfs/config/wpa_supplicant.conf
+if [ -e /bootfs/config/files/etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    sanitize_inputfile /bootfs/config/files/etc/wpa_supplicant/wpa_supplicant.conf
 fi
 
 echo
@@ -273,7 +273,7 @@ if [ "$ifname" != "eth0" ]; then
     sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
     # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
     echo -n "Running wpa_supplicant... "
-    wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
+    wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/files/etc/wpa_supplicant/wpa_supplicant.conf -i$ifname >& /dev/null || fail
     echo "OK"
 fi
 
