@@ -88,11 +88,13 @@ sanitize_inputfile()
 install_files()
 {
   file_to_read="$1"
+  echo "Adding files & folders listed in /bootfs/config/$file_to_read"
   sanitize_inputfile "/bootfs/config/$file_to_read"
   grep -v "^[[:space:]]*#\|^[[:space:]]*$" "/bootfs/config/${file_to_read}" | while read -r line; do
     owner=$(echo "$line" | awk '{ print $1 }')
     perms=$(echo "$line" | awk '{ print $2 }')
     file=$(echo  "$line" | awk '{ print $3 }')
+    echo "$file"
     if [ ! -d "/bootfs/config/files$file" ]; then
       mkdir -p "/rootfs$(dirname "$file")"
       cp "/bootfs/config/files$file" "/rootfs$file"
@@ -102,6 +104,7 @@ install_files()
     chmod "$perms" "/rootfs$file"
     chroot /rootfs chown "$owner" "$file"
   done
+  echo " "
 }
 
 # set screen blank period to an hour
@@ -817,17 +820,17 @@ echo -n "  Configuring hosts... "
 touch /rootfs/etc/hosts
 # Add localhost to hosts (if needed)
 if ! grep -q "localhost" /rootfs/etc/hosts; then
-	echo -n "adding localhost... "
+  echo -n "adding localhost... "
     echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
 fi
 # Remove any existing 127.0.1.1 entries
 sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
 # Create the 127.0.1.1 entry
 if [ "$domainname" = "" ]; then
-	echo -n "adding ${hostname}... "
+  echo -n "adding ${hostname}... "
      echo "127.0.1.1 ${hostname}" >> /rootfs/etc/hosts || fail
 else
-	echo -n "adding ${hostname}.${domainname}... "
+  echo -n "adding ${hostname}.${domainname}... "
      echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
 fi
 echo "OK"
