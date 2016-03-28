@@ -868,7 +868,6 @@ if [ "$ifname" != "eth0" ]; then
     else
         echo "FAILED !"
     fi
-    # 
     if [ -e /bootfs/config/wpa_supplicant.conf ]; then
         # copy the installer version of `wpa_supplicant.conf`
         cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
