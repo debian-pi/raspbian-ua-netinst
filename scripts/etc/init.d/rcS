@@ -842,14 +842,15 @@ touch /rootfs/etc/network/interfaces || fail
 if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
     echo "auto lo" >> /rootfs/etc/network/interfaces
     echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces
-    echo  >> /rootfs/etc/network/interfaces
 fi
 
 # eth0 config
 echo "auto $ifname" >> /rootfs/etc/network/interfaces
 if [ "$ip_addr" = "dhcp" ]; then
+    echo  >> /rootfs/etc/network/interfaces
     echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
 else
+    echo  >> /rootfs/etc/network/interfaces
     echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces
     echo "    address $ip_addr" >> /rootfs/etc/network/interfaces
     echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces
