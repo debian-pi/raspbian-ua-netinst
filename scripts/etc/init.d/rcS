@@ -872,7 +872,7 @@ if [ "$ifname" != "eth0" ]; then
         # copy the installer version of `wpa_supplicant.conf`
         cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
     fi
-    echo "wpa-conf /boot/config/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
+    echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
 fi
 
 
