@@ -1117,6 +1117,15 @@ if [ -e /bootfs/post-install.txt ]; then
     echo "================================================="
 fi
 
+# modify installed network settings
+if [ -f /rootfs/etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    if [ $(grep "iface" /rootfs/etc/network/interfaces |grep -v "lo\|eth0" |wc -l) -ne 0 ]; then
+        if [ $(grep "wpa[-_]" /rootfs/etc/network/interfaces |wc -l) -eq 0 ]; then
+            echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces
+        fi
+    fi
+fi
+
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
