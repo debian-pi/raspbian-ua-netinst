@@ -842,7 +842,7 @@ touch /rootfs/etc/network/interfaces || fail
 if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
     echo "auto lo" >> /rootfs/etc/network/interfaces
     echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces
-    echo ""  >> /rootfs/etc/network/interfaces
+    echo  >> /rootfs/etc/network/interfaces
 fi
 
 # eth0 config
