@@ -838,29 +838,43 @@ echo "OK"
 # networking
 echo -n "  Configuring network settings... "
 touch /rootfs/etc/network/interfaces || fail
-{
-    # wheezy seems to add the lo interface, so first check for it
-    if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
-        echo "auto lo"
-        echo "iface lo inet loopback"
-        echo ""
-    fi
+# lo interface may already be there, so first check for it
+if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+    echo "auto lo" >> /rootfs/etc/network/interfaces
+    echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces
+fi
 
-    # eth0 config
-    echo "auto $ifname"
-    if [ "$ip_addr" = "dhcp" ]; then
-        echo "iface $ifname inet dhcp"
+# eth0 config
+echo "auto $ifname" >> /rootfs/etc/network/interfaces
+if [ "$ip_addr" = "dhcp" ]; then
+    echo  >> /rootfs/etc/network/interfaces
+    echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
+else
+    echo  >> /rootfs/etc/network/interfaces
+    echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces
+    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces
+    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces
+    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces
+    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces
+fi
+
+# wlan config
+if [ "$ifname" != "eth0" ]; then
+    # Install wireless dependencies
+    echo -n "Installing wpasupplicant package... "
+    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
+    if [ $? -eq 0 ]; then
+        echo "OK"
     else
-        echo "iface $ifname inet static"
-        echo "    address $ip_addr"
-        echo "    netmask $ip_netmask"
-        echo "    broadcast $ip_broadcast"
-        echo "    gateway $ip_gateway"
+        echo "FAILED !"
     fi
-    if [ "$ifname" != "eth0" ]; then
-        echo "wpa-conf /boot/config/wpa_supplicant.conf"
+    if [ -e /bootfs/config/wpa_supplicant.conf ]; then
+        # copy the installer version of `wpa_supplicant.conf`
+        cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
+        echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
     fi
-} >> /rootfs/etc/network/interfaces || fail
+fi
+
 
 if [ "${disable_predictable_nin}" = "1" ]; then
     # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
@@ -1026,18 +1040,6 @@ else
     echo "FAILED !"
 fi
 
-# if eth0 was not used during initial boot, a wireless interface was used
-if [ "$ifname" != "eth0" ]; then
-    # Install wireless dependencies
-    echo -n "Installing wpasupplicant package... "
-    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "FAILED !"
-    fi
-fi
-
 if [ "$hwrng_support" = "1" ]; then
     echo "bcm2708-rng" >> /rootfs/etc/modules
 fi
@@ -1113,6 +1115,15 @@ if [ -e /bootfs/post-install.txt ]; then
     source /bootfs/post-install.txt
     echo "=== Finished executing post-install.txt. ==="
     echo "================================================="
+fi
+
+# modify installed network settings
+if [ -f /rootfs/etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    if [ $(grep "iface" /rootfs/etc/network/interfaces |grep -v "lo\|eth0" |wc -l) -ne 0 ]; then
+        if [ $(grep "wpa[-_]" /rootfs/etc/network/interfaces |wc -l) -eq 0 ]; then
+            echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces
+        fi
+    fi
 fi
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
