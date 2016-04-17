@@ -30,10 +30,9 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - always installs the latest version of Raspbian
  - configurable default settings
  - extra configuration over HTTP possible - gives unlimited flexibility
- - installation takes about **15 minutes** with fast Internet from power on to sshd running
  - can fit on 512MB SD card, but 1GB is more reasonable
- - default install includes fake-hwclock to save time on shutdown
- - default install includes NTP to keep time
+ - default install includes fake-hwclock to save the current date and time on shutdown
+ - default install includes NTP to keep the time up-to-date if a network connection is available.
  - /tmp is mounted as tmpfs to improve speed
  - no clutter included, you only get the bare essential packages
  - option to install root to USB drive
