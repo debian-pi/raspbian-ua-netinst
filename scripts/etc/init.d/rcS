@@ -866,6 +866,7 @@ fi
 if [ "$ifname" != "eth0" ]; then
     # Install wireless dependencies
     echo -n "Installing wpasupplicant package... "
+    mkdir -p /rootfs/etc/wpa_supplicant/
     chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
     if [ $? -eq 0 ]; then
         echo "OK"
