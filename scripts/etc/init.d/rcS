@@ -413,6 +413,15 @@ case "$rootfstype" in
     ;;
 esac
 
+# check if we need wpasupplicant package
+if [ "$ifname" != "eth0" ]; then
+    if [ -z "$packages" ]; then
+        packages="wpasupplicant"
+    else
+        packages="$packages,wpasupplicant"
+    fi
+fi
+
 # check if we need the sudo package and add it if so
 if [ "$user_is_admin" = "1" ]; then
     if [ -z "$packages" ]; then
@@ -864,15 +873,6 @@ fi
 
 # wlan config
 if [ "$ifname" != "eth0" ]; then
-    # Install wireless dependencies
-    echo -n "Installing wpasupplicant package... "
-    mkdir -p /rootfs/etc/wpa_supplicant/
-    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "FAILED !"
-    fi
     if [ -e /bootfs/config/wpa_supplicant.conf ]; then
         # copy the installer version of `wpa_supplicant.conf`
         cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
