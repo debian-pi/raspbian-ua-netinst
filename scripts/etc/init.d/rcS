@@ -272,13 +272,13 @@ if [ "$ifname" != "eth0" ]; then
     # Replace eth0 as udhcpc dns interface
     sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
     # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
-    echo -n "Running wpa_supplicant... "
-    if [ "$drivers_to_load" = "" ] ; then
-      # select linux default wireless driver if not configured by user
-      drivers_to_load=nl80211
+    echo -n "Starting wpa_supplicant... "
+    wpa_supplicant -B -Dnl80211 -c/bootfs/config/wpa_supplicant.conf -i$ifname
+    if [ $? -ne 0 ]; then
+        echo "nl80211 driver is not working. Trying generic driver (wext)..."
+        wpa_supplicant -B -Dwext -c/bootfs/config/wpa_supplicant.conf -i$ifname || fail
+        echo "OK"
     fi
-    wpa_supplicant -B -D$drivers_to_load,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
-    echo "OK"
 fi
 
 if [ "$ip_addr" = "dhcp" ]; then
@@ -879,7 +879,6 @@ if [ "$ifname" != "eth0" ]; then
         echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
     fi
 fi
-
 
 if [ "${disable_predictable_nin}" = "1" ]; then
     # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
