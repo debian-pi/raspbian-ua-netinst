@@ -275,7 +275,7 @@ if [ "$ifname" != "eth0" ]; then
     echo "Starting wpa_supplicant... "
     wpa_supplicant -B -Dnl80211 -c/bootfs/config/wpa_supplicant.conf -i$ifname
     if [ $? -ne 0 ]; then
-        echo "nl80211 driver is not working. Trying generic driver (wext)..."
+        echo "nl80211 driver didn't work. Trying generic driver (wext)..."
         wpa_supplicant -B -Dwext -c/bootfs/config/wpa_supplicant.conf -i$ifname || fail
         echo "OK"
     fi
