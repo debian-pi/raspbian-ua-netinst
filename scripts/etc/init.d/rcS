@@ -413,7 +413,7 @@ case "$rootfstype" in
     ;;
 esac
 
-# check if we need wpasupplicant package
+# check if we need to install wpasupplicant package
 if [ "$ifname" != "eth0" ]; then
     if [ -z "$packages" ]; then
         packages="wpasupplicant"
