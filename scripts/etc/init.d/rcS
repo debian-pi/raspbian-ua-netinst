@@ -192,7 +192,6 @@ echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
 
 echo -n "Starting HWRNG "
-modprobe bcm2708-rng
 /usr/sbin/rngd -r /dev/hwrng
 if [ $? -eq 0 ]; then
     echo "succeeded!"
@@ -1046,10 +1045,6 @@ if [ $? -eq 0 ]; then
     echo "OK"
 else
     echo "FAILED !"
-fi
-
-if [ "$hwrng_support" = "1" ]; then
-    echo "bcm2708-rng" >> /rootfs/etc/modules
 fi
 
 # (conditionaly) enable hardware watchdog and set up systemd to use it
