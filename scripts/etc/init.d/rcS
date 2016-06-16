@@ -272,9 +272,13 @@ if [ "$ifname" != "eth0" ]; then
     # Replace eth0 as udhcpc dns interface
     sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
     # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
-    echo -n "Running wpa_supplicant... "
-    wpa_supplicant -B -Dnl80211,wext -c/bootfs/config/wpa_supplicant.conf -i$ifname >& /dev/null || fail
-    echo "OK"
+    echo "Starting wpa_supplicant... "
+    wpa_supplicant -B -Dnl80211 -c/bootfs/config/wpa_supplicant.conf -i$ifname
+    if [ $? -ne 0 ]; then
+        echo "nl80211 driver didn't work. Trying generic driver (wext)..."
+        wpa_supplicant -B -Dwext -c/bootfs/config/wpa_supplicant.conf -i$ifname || fail
+        echo "OK"
+    fi
 fi
 
 if [ "$ip_addr" = "dhcp" ]; then
@@ -408,6 +412,15 @@ case "$rootfstype" in
     fail
     ;;
 esac
+
+# check if we need to install wpasupplicant package
+if [ "$ifname" != "eth0" ]; then
+    if [ -z "$packages" ]; then
+        packages="wpasupplicant"
+    else
+        packages="$packages,wpasupplicant"
+    fi
+fi
 
 # check if we need the sudo package and add it if so
 if [ "$user_is_admin" = "1" ]; then
@@ -838,29 +851,38 @@ echo "OK"
 # networking
 echo -n "  Configuring network settings... "
 touch /rootfs/etc/network/interfaces || fail
-{
-    # wheezy seems to add the lo interface, so first check for it
-    if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
-        echo "auto lo"
-        echo "iface lo inet loopback"
-        echo ""
-    fi
+# lo interface may already be there, so first check for it
+if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
+    echo "auto lo" >> /rootfs/etc/network/interfaces
+    echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces
+fi
 
-    # eth0 config
-    echo "auto $ifname"
-    if [ "$ip_addr" = "dhcp" ]; then
-        echo "iface $ifname inet dhcp"
-    else
-        echo "iface $ifname inet static"
-        echo "    address $ip_addr"
-        echo "    netmask $ip_netmask"
-        echo "    broadcast $ip_broadcast"
-        echo "    gateway $ip_gateway"
+# configured interface
+echo "" >> /rootfs/etc/network/interfaces
+echo "auto $ifname" >> /rootfs/etc/network/interfaces
+echo "allow-hotplug $ifname" >> /rootfs/etc/network/interfaces
+if [ "$ip_addr" = "dhcp" ]; then
+    echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
+else
+    echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces
+    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces
+    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces
+    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces
+    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces
+fi
+
+# wlan config
+if [ "$ifname" != "eth0" ]; then
+    if [ -e /bootfs/config/wpa_supplicant.conf ]; then
+        # copy the installer version of `wpa_supplicant.conf`
+        cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
+        echo "    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
     fi
-    if [ "$ifname" != "eth0" ]; then
-        echo "wpa-conf /boot/config/wpa_supplicant.conf"
-    fi
-} >> /rootfs/etc/network/interfaces || fail
+    echo "" >> /rootfs/etc/network/interfaces
+    echo "auto eth0" >> /rootfs/etc/network/interfaces
+    echo "allow-hotplug eth0" >> /rootfs/etc/network/interfaces
+    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces
+fi
 
 if [ "${disable_predictable_nin}" = "1" ]; then
     # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
@@ -1026,18 +1048,6 @@ else
     echo "FAILED !"
 fi
 
-# if eth0 was not used during initial boot, a wireless interface was used
-if [ "$ifname" != "eth0" ]; then
-    # Install wireless dependencies
-    echo -n "Installing wpasupplicant package... "
-    chroot /rootfs /usr/bin/apt-get -y install wpasupplicant >& /dev/null
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "FAILED !"
-    fi
-fi
-
 if [ "$hwrng_support" = "1" ]; then
     echo "bcm2708-rng" >> /rootfs/etc/modules
 fi
@@ -1113,6 +1123,15 @@ if [ -e /bootfs/post-install.txt ]; then
     source /bootfs/post-install.txt
     echo "=== Finished executing post-install.txt. ==="
     echo "================================================="
+fi
+
+# modify installed network settings
+if [ -f /rootfs/etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    if [ $(grep "iface" /rootfs/etc/network/interfaces | grep -v "lo\|eth0" | wc -l) -ne 0 ]; then
+        if [ $(grep "wpa[-_]" /rootfs/etc/network/interfaces | wc -l) -eq 0 ]; then
+            echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces
+        fi
+    fi
 fi
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
