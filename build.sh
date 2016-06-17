@@ -545,7 +545,7 @@ cp installer-rpi1.cpio.gz bootfs/
 echo "[pi1]" >> bootfs/config.txt
 echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
 echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
-echo "device_tree=" >> bootfs/config.txt
+#echo "device_tree=" >> bootfs/config.txt
 
 create_cpio "rpi2"
 cp installer-rpi2.cpio.gz bootfs/

@@ -1076,8 +1076,8 @@ do
             echo "kernel=vmlinuz-$KERNEL_VERSION"
             echo "initramfs initrd.img-${KERNEL_VERSION} followkernel"
             if [ "${hv}" = "1" ] ; then
-                echo "# to enable DeviceTree, comment out the next line "
-                echo "device_tree="
+                echo "# to disable DeviceTree, uncomment the next line "
+                echo "#device_tree="
             fi
         } >> /rootfs/boot/config.txt
 
