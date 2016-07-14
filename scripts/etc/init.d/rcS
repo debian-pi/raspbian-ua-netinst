@@ -442,7 +442,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     fi
 
     # base
-    base_packages="cpufrequtils,kmod"
+    base_packages="cpufrequtils,kmod,dosfstools"
     for hv in ${hardware_versions}
     do
         case $hv in
