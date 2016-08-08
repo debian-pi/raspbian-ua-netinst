@@ -173,11 +173,28 @@ tee < ${LOGFILE}.pipe $LOGFILE &
 exec &> ${LOGFILE}.pipe
 rm ${LOGFILE}.pipe
 
-rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
-case $rpi_hardware in
-    BCM2708) rpi_hardware_version="1" ;;
-    BCM2709) rpi_hardware_version="2" ;;
-    *) rpi_hardware_version="unknown" ;;
+# we should do this with bitshift operations, I think on the serial
+# http://elinux.org/RPi_HardwareHistory#Board_Revision_History
+cpu_revision=$(grep Revision /proc/cpuinfo | cut -d " " -f 2 | sed 's/^1000//')
+case $cpu_revision in
+    0011|0014)
+        rpi_hardware_version="cm"
+        ;;
+    900092|900093)
+        rpi_hardware_version="0"
+        ;;
+    0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015)
+        rpi_hardware_version="1"
+        ;;
+    a01041|a21041)
+        rpi_hardware_version="2"
+        ;;
+    a02082|a22082)
+        rpi_hardware_version="3"
+        ;;
+    *)
+        rpi_hardware_version="unknown"
+        ;;
 esac
 
 echo ""
