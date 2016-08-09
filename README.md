@@ -14,7 +14,7 @@
 
 ## Intro
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+ and 2B.  
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+, 2B and 3B.
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
