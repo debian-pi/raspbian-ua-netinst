@@ -562,6 +562,11 @@ echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
 # the next statement does that, but consequently also disables bluetooth
 echo "enable_uart=1" >> bootfs/config.txt
 
+# rpi zero uses the same kernel/initramfs as rpi1, so just copy the block
+echo "[pi0]" >> bootfs/config.txt
+echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
+echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
+
 # clean up
 rm -rf tmp
 
