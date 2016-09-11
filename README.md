@@ -219,7 +219,7 @@ The default for IPv4 is to use DHCP to obtain an address/prefix, default gateway
 - Disabled
 
   Set 'ip4_addr' to 'disable'. The remaining 'ip4' configuration options will be ignored if set.
-  
+
 ### IPv6
 
 The default for IPv6 is to disable its use; even if the network advertises IPv6 information, it will not be used. Note that DHCPv6 is *not*
@@ -250,7 +250,7 @@ The installer can be configured in three modes:
 - Disabled
 
   Set 'ip6_addr' to 'disable'. The remaining 'ip6' configuration options will be ignored if set.
-  
+
 #### Gateways
 
 IPv6 networks nearly always distribute gateway (router) addresses via Router Advertisements, as IPv6 routers typically use link-local addresses
@@ -287,7 +287,7 @@ modes:
   do not provide DNS resolution over IPv6.
 
 ## Logging
-The output of the installation process is now also logged to file.  
+The output of the installation process is now also logged to file.
 When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
 When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
 
@@ -297,8 +297,8 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 The default **root** password is **raspbian**.
 
 > Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales`  
-> Configure your timezone: `dpkg-reconfigure tzdata`  
+> Configure your default locale: `dpkg-reconfigure locales`
+> Configure your timezone: `dpkg-reconfigure tzdata`
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.

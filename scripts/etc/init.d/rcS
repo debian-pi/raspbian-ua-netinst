@@ -477,8 +477,8 @@ if [ -n "$have_ip6" ]; then
 fi
 
 if [ -z "$have_ip4" ] && [ -z "$have_ip6" ]; then
-   echo "No IPv4 or IPv6 addresses were configured or obtained. Installation cannot continue."
-   fail
+    echo "No IPv4 or IPv6 addresses were configured or obtained. Installation cannot continue."
+    fail
 fi
 
 # This will record the time to get to this point
