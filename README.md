@@ -223,7 +223,7 @@ The default for IPv4 is to use DHCP to obtain an address/prefix, default gateway
 ### IPv6
 
 The default for IPv6 is to disable its use; even if the network advertises IPv6 information, it will not be used. Note that DHCPv6 is *not*
-supported, as there is no suitable DHCPv6 client available for us in the installer environment. If the network indicates that DHCPv6 is required
+supported, as there is no suitable DHCPv6 client available for use in the installer environment. If the network indicates that DHCPv6 is required
 for addressing or any other network information, the installer will not use IPv6. The installed system can use DHCPv6, but the installer
 is unable to configure it in that mode.
 
