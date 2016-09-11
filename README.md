@@ -231,6 +231,9 @@ For those unfamiliar with IPv6 networking, there are some significant difference
 IPv6 networks can provide automatic addressing, automatic gateway discovery, and automatic DNS resolver discovery, but these can be provided
 independently. As a result, configuration of the installer for IPv6 is done in three parts.
 
+The simplest configuration is when the network supports SLAAC and RDNSS; this is roughly equivalent to IPv4 DHCP, and the installer will be
+able to automatically assign an address, gateway, and get DNS resolver address(es).
+
 #### Addressing
 
 The installer can be configured in three modes:
