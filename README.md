@@ -290,7 +290,7 @@ modes:
   do not provide DNS resolution over IPv6.
 
 ## Logging
-The output of the installation process is now also logged to file.
+The output of the installation process is now also logged to file.  
 When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
 When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
 
@@ -300,8 +300,8 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 The default **root** password is **raspbian**.
 
 > Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales`
-> Configure your timezone: `dpkg-reconfigure tzdata`
+> Configure your default locale: `dpkg-reconfigure locales`  
+> Configure your timezone: `dpkg-reconfigure tzdata`  
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
