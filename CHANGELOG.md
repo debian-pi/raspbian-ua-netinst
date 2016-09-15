@@ -1,3 +1,13 @@
+# Release v1.0.9 (2016-09-18)
+
+The following changes are part of this release:
+- Updated kernel and firmware to support new Raspberry Pi 1B+ revision. This fixes [issue 415](https://github.com/debian-pi/raspbian-ua-netinst/issues/415).
+- Improved various documentation parts. This fixes [issue 407](https://github.com/debian-pi/raspbian-ua-netinst/issues/407).
+- Improved the way `/etc/hostname` and `/etc/network/interfaces` are written to make it more resilient.
+
+See the [README](https://github.com/debian-pi/raspbian-ua-netinst/blob/v1.0.9/README.md) for features/installation instruction/etc for this release.
+
+
 # Release v1.0.8.1 (2015-12-24)
 
 The following changes are part of this release:
