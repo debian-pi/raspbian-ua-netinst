@@ -1016,15 +1016,11 @@ echo "OK"
 echo -n "  Configuring hosts... "
 rm /rootfs/etc/hosts
 # Add localhost to hosts
-if ! grep -q "localhost" /rootfs/etc/hosts; then
-    echo -n "adding localhost... "
-    echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
-    if [ -n "$have_ip6" ]; then
-        echo "::1 localhost" >> /rootfs/etc/hosts || fail
-    fi
+echo -n "adding localhost... "
+echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
+if [ -n "$have_ip6" ]; then
+    echo "::1 localhost" >> /rootfs/etc/hosts || fail
 fi
-# Remove any existing 127.0.1.1 entries
-sed -i 's/^.*127\.0\.1\.1.*$//' /rootfs/etc/hosts
 
 # Create appropriate hostname entries for IPv4
 if [ -n "$have_ip4" ]; then
