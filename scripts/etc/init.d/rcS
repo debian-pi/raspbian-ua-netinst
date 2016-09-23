@@ -1103,7 +1103,7 @@ do
                 # as the statements below disables bluetooth which various/most
                 # people will prefer over the serial console
                 echo "# enable the serial console for the installed system"
-                echo "#device_tree="
+                echo "enable_uart=1"
             fi
         } >> /rootfs/boot/config.txt
 
