@@ -40,14 +40,13 @@ if [ "$losetup_lt_2_22" = "true" ] ; then
 
 else
 
-  losetup -D
-
-  losetup -P /dev/loop0 $IMG
-  mkfs.vfat /dev/loop0p1
-  mount /dev/loop0p1 /mnt
+  losetup --find --partscan $IMG
+  LOOP_DEV="$(losetup --associated $IMG | cut -f1 -d':')"
+  mkfs.vfat ${LOOP_DEV}p1
+  mount ${LOOP_DEV}p1 /mnt
   cp -r bootfs/* /mnt/
   umount /mnt
-  losetup -D || true
+  losetup --detach ${LOOP_DEV}
 
 fi
 
