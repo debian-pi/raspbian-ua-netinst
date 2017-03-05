@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 set -e
 
 KERNEL_VERSION_RPI1=4.4.0-1-rpi
@@ -513,7 +514,7 @@ function create_cpio {
 }
 
 if [ ! -d packages ]; then
-    . ./update.sh
+    . "$DIR"/update.sh
 fi
 
 rm -rf tmp
