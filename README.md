@@ -1,4 +1,5 @@
 # raspbian-ua-netinst
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/debian-pi/raspbian-ua-netinst?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 - [Intro](#intro)
 - [Features](#features)
