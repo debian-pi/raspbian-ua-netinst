@@ -1123,6 +1123,10 @@ if [ "${disable_predictable_nin}" = "1" ]; then
     ln -s /dev/null /rootfs/etc/udev/rules.d/75-persistent-net-generator.rules
 fi
 
+# copy resolver configuration into rootfs, to be used for remainder of installation
+# will be overwritten by resolvconf when the system is rebooted
+cp /etc/resolv.conf /rootfs/run/resolvconf
+
 echo "OK"
 
 # enable serial console on installed system
