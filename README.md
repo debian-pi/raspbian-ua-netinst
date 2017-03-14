@@ -101,7 +101,7 @@ So don't copy and paste the defaults from below!
 
 The _installer-config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
 There is also another configuration file you can provide, _post&#8209;install.txt_, and you place that in the same directory as _installer-config.txt_.
-The _post&#8209;install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
+The _post-install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
 The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to.
 
 The format of the _installer-config.txt_ file and the current defaults:
