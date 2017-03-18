@@ -864,6 +864,8 @@ else
     echo -n "adding ${hostname}.${domainname}... "
     echo "127.0.1.1 ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
 fi
+# Tell the kernel what the hostname is supposed to be
+hostname $hostname
 echo "OK"
 
 # networking
