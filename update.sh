@@ -41,6 +41,7 @@ packages+=("rng-tools")
 packages+=("tar")
 packages+=("util-linux")
 packages+=("wpasupplicant")
+packages+=("ndisc6")
 
 # libraries
 packages+=("libacl1")

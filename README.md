@@ -6,6 +6,7 @@
 - [Writing the installer to the SD card](#writing-the-installer-to-the-sd-card)
 - [Installing](#installing)
 - [Installer customization](#installer-customization)
+- [IP Networking](#ip-networking)
 - [Logging](#logging)
 - [First boot](#first-boot)
 - [Reinstalling or replacing an existing system](#reinstalling-or-replacing-an-existing-system)
@@ -141,11 +142,14 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # RPi board, your network device might be named differently. This will result in the
                               # board having no network connectivity.
     ifname=eth0
-    ip_addr=dhcp
-    ip_netmask=0.0.0.0
-    ip_broadcast=0.0.0.0
-    ip_gateway=0.0.0.0
-    ip_nameservers=
+    ip4_addr=dhcp # options are 'disable', 'dhcp', or an IPv4 address
+    ip4_prefixlength=0
+    ip4_gateway=0.0.0.0
+    ip4_nameservers=
+    ip6_addr=disable # options are 'disable', 'auto', or an IPv6 address
+    ip6_prefixlength=0
+    ip6_gateway=auto # options are 'auto', or an IPv6 address (which will only be applied if ip6_addr is a static address)
+    ip6_nameservers=auto # options are 'auto', 'disable', or an IPv6 address
     drivers_to_load=
     online_config=            # URL to extra config that will be executed after installer-config.txt
     usbroot=                  # set to 1 to install to first USB disk
@@ -190,6 +194,100 @@ Please be aware that some restrictions may apply to the sum of the file sizes. I
 It is possible to replace the installer script completely, without rebuilding the installer image. To do this, place a custom `rcS` file in the config directory of your SD card. The installer script will check this location and run this script instead of itself. Take great care when doing this, as it is intended to be used for development purposes.
 
 Should you still choose to go this route, please use the original [rcs](https://github.com/debian-pi/raspbian-ua-netinst/blob/master/scripts/etc/init.d/rcS) file as a starting point.
+
+## IP Networking
+
+The installer supports both IPv4 and IPv6 networking, although the default configuration is to use only IPv4. Networking can be configured using the 'ip4' and 'ip6'
+options in the installer-config.txt file (details below), and the configuration will be replicated into the installed system.
+
+If the installer cannot configure at least one IP address (either IPv4 or IPv6) it will abort, as networking is required to perform the installation.
+
+### IPv4
+
+The default for IPv4 is to use DHCP to obtain an address/prefix, default gateway, and DNS resolver(s). The installer can be configured in three IPv4 modes:
+
+- DHCP
+
+  Set 'ip4_addr' to 'dhcp'. The remaining 'ip4' configuration options will be ignored if set.
+
+- Static
+
+  Set 'ip4_addr' to an IPv4 address, and 'ip4_prefixlength' to the appropriate value for your network (the most common prefix length is 24, which corresponds to
+  a netmask of 255.255.255.0). Set 'ip4_gateway' to the address of the default gateway, and 'ip4_nameservers' to the address of the DNS resolver which should be used (if
+  there are multiple DNS resolvers, their addresses can be included in this option, separated by spaces).
+
+- Disabled
+
+  Set 'ip4_addr' to 'disable'. The remaining 'ip4' configuration options will be ignored if set.
+
+### IPv6
+
+The default for IPv6 is to disable its use; even if the network advertises IPv6 information, it will not be used. Note that DHCPv6 is *not*
+supported, as there is no suitable DHCPv6 client available for use in the installer environment. If the network indicates that DHCPv6 is required
+for addressing or any other network information, the installer will not use IPv6. The installed system can use DHCPv6, but the installer
+is unable to configure it in that mode.
+
+For those unfamiliar with IPv6 networking, there are some significant differences from IPv4, in addition to the size of addresses. Most importantly,
+IPv6 networks can provide automatic addressing, automatic gateway discovery, and automatic DNS resolver discovery, but these can be provided
+independently. As a result, configuration of the installer for IPv6 is done in three parts.
+
+The simplest configuration is when the network supports SLAAC and RDNSS; this is roughly equivalent to IPv4 DHCP, and the installer will be
+able to automatically assign an address, gateway, and get DNS resolver address(es).
+
+#### Addressing
+
+The installer can be configured in three modes:
+
+- Automatic
+
+  Set 'ip6_addr' to 'auto'. 'ip6_prefixlength' will be ignored if set. In this mode, the kernel will use incoming Router Advertisements
+  to determine network prefix information, and will use SLAAC (RFC 4862 - IPv6 Stateless Address Autoconfiguration) to generate an address.
+  If no RAs are received, or they do not contain on-link prefixes, the kernel will be unable to generate an address, and IPv6 support will be
+  disabled.
+
+- Static
+
+  Set 'ip6_addr' to an IPv6 address, and 'ip6_prefixlength' to the appropriate value for your network (the most common prefix length is 64). In
+  this mode any network prefixes received in RAs will be ignored.
+
+- Disabled
+
+  Set 'ip6_addr' to 'disable'. The remaining 'ip6' configuration options will be ignored if set.
+
+#### Gateways
+
+IPv6 networks nearly always distribute gateway (router) addresses via Router Advertisements, as IPv6 routers typically use link-local addresses
+which can be dynamically changed. However, the installer does support static configuration. There are two configuration modes:
+
+- Automatic
+
+  Set 'ip6_gateway' to 'auto'. In this mode the kernel will determine gateway(s) to use based on Router Advertisements it receives.
+
+- Static
+
+  Set 'ip6_gateway' to an IPv6 address. In this mode any gateway addresses received in RAs will be ignored.
+
+#### DNS Resolvers
+
+Some IPv6 networks distribute DNS resolver information in Router Advertisements, using RDNSS (RFC 6106 - IPv6 Router Advertisment Options for
+DNS Configuration); others require static configuration, or do not provide DNS resolution via IPv6. The installer can be configured in three
+modes:
+
+- Automatic
+
+  Set 'ip6_nameservers' to 'auto'. In this mode the system will determine DNS resolver(s) to use based on Router Advertisements it receives.
+  Note that this mode requires the 'rdnssd' package, which provides a daemon to process the RDNSS options in the RAs, so this package will be
+  added to the installed system.
+
+- Static
+
+  Set 'ip6_nameservers' to the address of the DNS resolver which should be used (if there are multiple DNS resolvers, their addresses
+  can be included in this option, separated by spaces).
+
+- Disabled
+
+  Set 'ip6_nameservers' to 'disable'. This is only necessary to stop the installer from installing the 'rdnssd' package on networks which
+  do not provide DNS resolution over IPv6.
 
 ## Logging
 The output of the installation process is now also logged to file.  
