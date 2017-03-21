@@ -5,3 +5,7 @@
 /raspbian-ua-netinst-*.img
 /raspbian-ua-netinst-*.img.xz
 /raspbian-ua-netinst-*.img.bz2
+installer-config.txt
+
+# Ignore backup files created by gedit
+*~

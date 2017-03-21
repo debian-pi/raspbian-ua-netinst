@@ -361,7 +361,10 @@ if [ "$usbroot" != "" ]; then
     echo "OK"
 fi
 
+manually_specified_root_partition=true
 if [ "$rootpartition" = "" ]; then
+    manually_specified_root_partition=false
+
     if [ "$rootdev" = "/dev/sda" ]; then
         rootpartition=/dev/sda1
     else
@@ -445,9 +448,13 @@ w
 EOF
     echo "OK"
 
-    echo -n "Applying new partition table for $rootdev... "
-    dd if=/dev/zero of=$rootdev bs=512 count=1 &>/dev/null
-    fdisk $rootdev &>/dev/null <<EOF
+    # If the user manually specified a partition, we can suppose the drive is
+    # already partitioned and therefore we don't need to create a new
+    # partition table
+    if [ "$manually_specified_root_partition" = "false" ]; then
+        echo -n "Applying new partition table for $rootdev... "
+        dd if=/dev/zero of=$rootdev bs=512 count=1 &>/dev/null
+        fdisk $rootdev &>/dev/null <<EOF
 n
 p
 1
@@ -455,7 +462,8 @@ p
 $rootsize
 w
 EOF
-    echo "OK"
+        echo "OK"
+    fi
 
 fi
 
