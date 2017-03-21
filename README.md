@@ -139,6 +139,14 @@ Presets set the `cdebootstrap_cmdline` variable. For example, the current _serve
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
 
+### Using a Proxy
+If you want to use a proxy, then simply add these lines to the `installer-config.txt`:
+
+    http_proxy=http://<proxy-server>:<proxy-port>/
+    export http_proxy
+
+where `<proxy-server>` should be replaced by the IP of your proxy server and `<proxy-port>` by the port number to be used.
+
 ## Logging
 The output of the installation process is now also logged to file.  
 When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
