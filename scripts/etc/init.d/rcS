@@ -1011,6 +1011,8 @@ echo "OK"
 # default hostname
 echo -n "  Configuring hostname... "
 echo $hostname > /rootfs/etc/hostname || fail
+# Tell the kernel what the hostname is supposed to be
+hostname $hostname
 echo "OK"
 
 echo -n "  Configuring hosts... "
