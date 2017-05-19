@@ -181,7 +181,7 @@ allfound() {
 }
 
 filter_package_list() {
-    grep -E 'Package:|Filename:|SHA256:|^$'
+    awk -v p="${packages[*]}" 'BEGIN{ split(p, packages) } /^Package:/{ flag=0; for (i in packages) if ($2 == packages[i]) flag=1 }; flag{ print }'
 }
 
 download_package_list() {
