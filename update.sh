@@ -13,6 +13,9 @@ RASPBERRYPI_ARCHIVE_KEY_FILE_NAME="raspberrypi.gpg.key"
 RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_DIRECTORY}/${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}"
 RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
 
+FIRMWARE_PACKAGE=${RASPBERRYPI_ARCHIVE_KEY_DIRECTORY}/pool/main/f/firmware-nonfree/firmware-brcm80211_0.43+rpi5_all.deb
+FIRMWARE_SHA256=a8c247ba7b39b265c3fb2042bc376cb1df08323608b2b442d4bea130782f4d7c
+
 mirror=http://archive.raspbian.org/raspbian/
 release=jessie
 
@@ -74,10 +77,6 @@ packages+=("libssl1.0.0")
 packages+=("libtinfo5")
 packages+=("libuuid1")
 packages+=("zlib1g")
-
-packages_found=
-packages_debs=
-packages_sha256=
 
 check_key() {
     # param 1 = keyfile
@@ -263,6 +262,10 @@ download_package_lists
 
 packages_debs=()
 packages_sha256=()
+
+# add firmware for wireless chipset (RPi 3 and Zero W)
+packages_debs+=("${FIRMWARE_PACKAGE}")
+packages_sha256+=("${FIRMWARE_SHA256}  $(basename ${FIRMWARE_PACKAGE})")
 
 echo -e "\nSearching for required packages..."
 while read k v

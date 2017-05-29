@@ -1273,6 +1273,17 @@ if [ "$kernel_module" = true ] ; then
   fi
 fi
 
+# install firmware for wireless chipset (RPi 3 and Zero W)
+if [ "$ifname" != "eth0" ]; then
+  echo -n "Installing firmware for Broadcom wireless network cards... "
+  chroot /rootfs /usr/bin/apt-get -y install firmware-brcm80211 &>/dev/null
+  if [ $? -eq 0 ]; then
+    echo "OK"
+  else
+    echo "FAILED !"
+  fi
+fi
+
 # install libraspberrypi-bin to provide vcgencmd functionality
 echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
