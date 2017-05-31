@@ -79,19 +79,19 @@ function create_tempfile {
 function add_kernel_modules {
     local KERNEL_VERSION=""
 
-	case "$1" in
-		"rpi1")
-			KERNEL_VERSION=$KERNEL_VERSION_RPI1
-			;;
-		"rpi2")
-			KERNEL_VERSION=$KERNEL_VERSION_RPI2
-			;;
-		*)
-			echo "Invalid parameter to 'create_cpio_kernel' function!"
-			exit 1
+    case "$1" in
+        "rpi1")
+            KERNEL_VERSION=$KERNEL_VERSION_RPI1
+            ;;
+        "rpi2")
+            KERNEL_VERSION=$KERNEL_VERSION_RPI2
+            ;;
+        *)
+            echo "Invalid parameter to 'add_kernel_modules' function!"
+            exit 1
     esac
 
-	# copy builtin modules
+    # copy builtin modules
     mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/
     cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}/
 
@@ -118,23 +118,23 @@ function add_kernel_modules {
     rm -f ${depmod_file}
 
     # copy the needed kernel modules to the rootfs (create directories as needed)
-	srcdir="tmp/lib/modules/${KERNEL_VERSION}"
-	dstdir="rootfs/lib/modules/${KERNEL_VERSION}"
+    srcdir="tmp/lib/modules/${KERNEL_VERSION}"
+    dstdir="rootfs/lib/modules/${KERNEL_VERSION}"
     for module in ${modules[@]}; do
         mkdir -p "${dstdir}/$(dirname ${module})"
         cp -a "${srcdir}/${module}" "${dstdir}/$(dirname ${module})"
-	done
+    done
 
     /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
 }
 
 function create_cpio {
-	local INITRAMFS="$1"
-	
+    local INITRAMFS="$1"
+    
     # initialize rootfs
     rm -rf rootfs
     mkdir -p rootfs
-	
+    
     # create all the directories needed to copy the various components into place
     mkdir -p rootfs/bin/
     mkdir -p rootfs/lib/arm-linux-gnueabihf/
@@ -156,9 +156,9 @@ function create_cpio {
     mkdir -p rootfs/var/log/
     mkdir -p rootfs/var/run/
 
-	# add kernel modules
-	add_kernel_modules "rpi1"
-	add_kernel_modules "rpi2"
+    # add kernel modules
+    add_kernel_modules "rpi1"
+    add_kernel_modules "rpi2"
 
     # install scripts
     cp -r scripts/* rootfs/
@@ -535,7 +535,7 @@ mkdir tmp
 
 # extract debs
 for deb in packages/*.deb; do
-	echo Extracting $(basename $deb)...
+    echo Extracting $(basename $deb)...
     (cd tmp && ar x ../$deb && tar -xf data.tar.*; rm data.tar.*)
 done
 
@@ -560,26 +560,26 @@ cp installer-rpi.cpio.gz bootfs/
 
 # write boot config
 {
-	# rpi zero uses the same kernel as rpi1
-	echo "[pi0]"
-	echo "kernel=kernel-rpi1_install.img"
-	echo "initramfs installer-rpi.cpio.gz"
-	echo "[pi1]"
-	echo "kernel=kernel-rpi1_install.img"
-	echo "initramfs installer-rpi.cpio.gz"
-	# rpi3 uses the same kernel as rpi2
-	echo "[pi2]"
-	echo "kernel=kernel-rpi2_install.img"
-	echo "initramfs installer-rpi.cpio.gz"
-	echo "[pi3]"
-	echo "kernel=kernel-rpi2_install.img"
-	echo "initramfs installer-rpi.cpio.gz"
-	# on the rpi3 the uart port is used by bluetooth by default
-	# but during the installation we want the serial console
-	# the next statement does that, but consequently also disables bluetooth
-	echo "enable_uart=1"
-	# reset filter
-	echo "[all]"
+    # rpi zero uses the same kernel as rpi1
+    echo "[pi0]"
+    echo "kernel=kernel-rpi1_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    echo "[pi1]"
+    echo "kernel=kernel-rpi1_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    # rpi3 uses the same kernel as rpi2
+    echo "[pi2]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    echo "[pi3]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    # on the rpi3 the uart port is used by bluetooth by default
+    # but during the installation we want the serial console
+    # the next statement does that, but consequently also disables bluetooth
+    echo "enable_uart=1"
+    # reset filter
+    echo "[all]"
 } >> bootfs/config.txt
 
 # clean up
