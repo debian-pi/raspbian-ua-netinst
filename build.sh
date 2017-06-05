@@ -36,11 +36,11 @@ function check_dependencies {
     # iterate over the passed modules
     for mod in ${mods[@]}; do
         # find the modules dependencies, convert into array
-        deps=($(cat "${depmod_file}" | grep "^${mod}" | cut -d':' -f2))
+        deps=($(grep "^${mod}" "${depmod_file}" | cut -d':' -f2))
         # iterate over the found dependencies
         for dep in ${deps[@]}; do
             # check if the dependency is in $modules, if not, add to temp array
-            contains_element "${dep}" "${modules[@]}" || new_found=("${dep}")
+            contains_element "${dep}" "${modules[@]}" || new_found+=("${dep}")
         done
     done
     # add the newly found dependencies to the end of the $modules array
