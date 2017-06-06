@@ -297,12 +297,13 @@ echo
 depmod -a
 
 if [ "$enable_autoload_drivers" = "1" ]; then
-	echo "Enabling driver loading on hotplug."
-	mv /etc/mdev.conf.disabled /etc/mdev.conf
+    echo "Enabling driver loading on hotplug."
+    mv /etc/mdev.conf.disabled /etc/mdev.conf
 	
-	echo "Loading drivers."
-	find /sys -name modalias | xargs sort -u | xargs modprobe -abq
-	echo "Finished loading drivers."
+    # coldplug modules
+    echo "Loading drivers."
+    find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
+    echo "Finished loading drivers."
 fi
 
 if [ "$drivers_to_load" != "" ] ; then
