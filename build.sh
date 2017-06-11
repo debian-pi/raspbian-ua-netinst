@@ -2,8 +2,8 @@
 
 set -e
 
-KERNEL_VERSION_RPI1=4.4.0-1-rpi
-KERNEL_VERSION_RPI2=4.4.0-1-rpi2
+KERNEL_VERSION_RPI1=4.9.0-2-rpi
+KERNEL_VERSION_RPI2=4.9.0-2-rpi2
 
 INSTALL_MODULES="kernel/fs/btrfs/btrfs.ko"
 INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
