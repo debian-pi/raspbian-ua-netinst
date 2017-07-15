@@ -212,6 +212,7 @@ echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
 
 echo -n "Starting HWRNG "
+modprobe bcm2835-rng
 /usr/sbin/rngd -r /dev/hwrng
 if [ $? -eq 0 ]; then
     echo "succeeded!"
