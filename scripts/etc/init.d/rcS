@@ -36,7 +36,6 @@ ip6_prefixlength=0
 ip6_gateway=auto
 ip6_nameservers=auto
 drivers_to_load=
-enable_autoload_drivers=
 online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
@@ -296,15 +295,10 @@ echo
 # depmod needs to update modules.dep before using modprobe
 depmod -a
 
-if [ "$enable_autoload_drivers" = "1" ]; then
-    echo "Enabling driver loading on hotplug."
-    mv /etc/mdev.conf.disabled /etc/mdev.conf
-	
-    # coldplug modules
-    echo "Loading drivers."
-    find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
-    echo "Finished loading drivers."
-fi
+# coldplug modules
+echo "Loading drivers."
+find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
+echo "Finished loading drivers."
 
 if [ "$drivers_to_load" != "" ] ; then
    echo "Loading additional drivers."
