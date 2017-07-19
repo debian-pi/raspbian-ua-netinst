@@ -167,6 +167,7 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # undesirable.
     enable_watchdog=0         # loads up the hardware watchdog module and configures systemd to use it. Set to
                               # "1" to enable this functionality.
+    enable_uart=0             # Set to "1" to enable the UART. Disabled by default.
     gpu_mem=                  # specify the amount of RAM in MB that should be reserved for the GPU
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
