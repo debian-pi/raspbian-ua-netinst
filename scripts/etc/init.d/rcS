@@ -44,6 +44,7 @@ final_action=reboot
 hardware_versions=detect
 hwrng_support=1
 enable_watchdog=0
+enable_uart=0
 gpu_mem=
 
 # these shouldn't really be changed unless auto-detection fails
@@ -212,6 +213,7 @@ echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
 
 echo -n "Starting HWRNG "
+modprobe bcm2835-rng
 /usr/sbin/rngd -r /dev/hwrng
 if [ $? -eq 0 ]; then
     echo "succeeded!"
@@ -1315,11 +1317,12 @@ do
                 echo "#device_tree="
             fi
             if [ "${hv}" = "3" ] ; then
-                # we should probably add a config parameter for uart purpose
-                # as the statements below disables bluetooth which various/most
-                # people will prefer over the serial console
-                echo "# enable the serial console for the installed system"
-                echo "enable_uart=1"
+                # Only enable UART if the user explicitly sets that option.
+                # Enabled UART may break the bootprocess / bluetooth support.
+                if [ "${enable_uart}" = "1" ]; then
+                  echo "# enable the serial console for the installed system"
+                  echo "enable_uart=1"
+                fi
             fi
         } >> /rootfs/boot/config.txt
 

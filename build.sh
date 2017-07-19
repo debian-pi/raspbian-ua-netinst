@@ -3,11 +3,12 @@
 set -e
 
 # configuration
-KERNEL_VERSION_RPI1=4.4.0-1-rpi
-KERNEL_VERSION_RPI2=4.4.0-1-rpi2
+KERNEL_VERSION_RPI1=4.9.0-2-rpi
+KERNEL_VERSION_RPI2=4.9.0-2-rpi2
 
 INSTALL_MODULES=("kernel/fs/btrfs/btrfs.ko")
 INSTALL_MODULES+=("kernel/drivers/scsi/sg.ko")
+INSTALL_MODULES+=("kernel/drivers/char/hw_random/bcm2835-rng.ko")
 INSTALL_MODULES+=("kernel/net/ipv6/ipv6.ko")
 
 # checks if first parameter is contained in the array passed as the second parameter

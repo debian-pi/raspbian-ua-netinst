@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-KERNEL_VERSION_RPI1=4.4.0-1-rpi
-KERNEL_VERSION_RPI2=4.4.0-1-rpi2
+KERNEL_VERSION_RPI1=4.9.0-2-rpi
+KERNEL_VERSION_RPI2=4.9.0-2-rpi2
 
 RASPBIAN_ARCHIVE_KEY_DIRECTORY="https://archive.raspbian.org"
 RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
@@ -181,7 +181,7 @@ allfound() {
 }
 
 filter_package_list() {
-    grep -E 'Package:|Filename:|SHA256:|^$'
+    awk -v p="${packages[*]}" 'BEGIN{ split(p, packages) } /^Package:/{ flag=0; for (i in packages) if ($2 == packages[i]) flag=1 }; flag{ print }'
 }
 
 download_package_list() {
