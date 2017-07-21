@@ -578,7 +578,8 @@ cp installer-rpi.cpio.gz bootfs/
     # on the rpi3 the uart port is used by bluetooth by default
     # but during the installation we want the serial console
     # the next statement does that, but consequently also disables bluetooth
-    echo "enable_uart=1"
+    # FIXME: This line leads to a kernel panic with the current firmware/kernel
+    ##echo "enable_uart=1"
     # reset filter
     echo "[all]"
 } >> bootfs/config.txt
