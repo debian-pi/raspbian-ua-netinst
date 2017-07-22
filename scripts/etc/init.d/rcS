@@ -296,6 +296,12 @@ echo
 
 # depmod needs to update modules.dep before using modprobe
 depmod -a
+
+# coldplug modules
+echo "Loading drivers."
+find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
+echo "Finished loading drivers."
+
 if [ "$drivers_to_load" != "" ] ; then
    echo "Loading additional drivers."
    for driver in $drivers_to_load
@@ -1130,6 +1136,9 @@ fi
 # copy resolver configuration into rootfs, to be used for remainder of installation
 # will be overwritten by resolvconf when the system is rebooted
 cp /etc/resolv.conf /rootfs/run/resolvconf
+
+# copy blacklist for rtl8192cu into rootfs; use original Realtek drivers instead
+cp /etc/modprobe.d/blacklist-native-rtl8192.conf /rootfs/etc/modprobe.d/
 
 echo "OK"
 
