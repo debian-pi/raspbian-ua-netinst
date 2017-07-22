@@ -296,6 +296,12 @@ echo
 
 # depmod needs to update modules.dep before using modprobe
 depmod -a
+
+# coldplug modules
+echo "Loading drivers."
+find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
+echo "Finished loading drivers."
+
 if [ "$drivers_to_load" != "" ] ; then
    echo "Loading additional drivers."
    for driver in $drivers_to_load
