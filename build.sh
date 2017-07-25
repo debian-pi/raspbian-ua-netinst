@@ -302,6 +302,12 @@ echo "[pi2]" >> bootfs/config.txt
 echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
 echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
 
+# best add the pi3 eh?
+echo "[pi3]" >> bootfs/config.txt
+echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
+echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
+
+
 # clean up
 rm -rf tmp
 
