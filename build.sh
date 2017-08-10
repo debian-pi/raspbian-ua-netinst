@@ -169,6 +169,10 @@ function create_cpio {
     sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
     sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
 
+    # add firmware for wireless chipset (RPi 3 and Zero W)
+    mkdir -p rootfs/lib/firmware/brcm
+    cp tmp/lib/firmware/brcm/brcmfmac43430-sdio.{bin,txt} rootfs/lib/firmware/brcm
+
     # btrfs-tools components
     cp tmp/sbin/mkfs.btrfs rootfs/sbin/
     cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
