@@ -32,4 +32,8 @@ If for some reason you want to build the docker image yourself, run the followin
 
 `docker build -t <myname> .`
 
+If you build your own image, you can still use the `docker/buildroot.sh` command, just add the name of your local image as an argument:
+
+`docker/buildroot.sh <myname>`
+
 For most cases, just running the prebuilt image should suffice.

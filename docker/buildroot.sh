@@ -2,7 +2,7 @@
 
 set -e
 
-docker_image="goranche/raspbian-ua-netinst"
+docker_image="${1:-goranche/raspbian-ua-netinst}"
 
 if [ "${1}" != "IN_DOCKER" ]; then
 	docker run --privileged -ti --rm -v $(pwd):/raspbian-ua-netinst "${docker_image}"
