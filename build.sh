@@ -5,11 +5,11 @@ set -e
 KERNEL_VERSION_RPI1=4.9.0-2-rpi
 KERNEL_VERSION_RPI2=4.9.0-2-rpi2
 
-INSTALL_MODULES="kernel/fs/btrfs/btrfs.ko"
-INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/scsi/sg.ko"
-INSTALL_MODULES="$INSTALL_MODULES kernel/drivers/char/hw_random/bcm2835-rng.ko"
-INSTALL_MODULES="$INSTALL_MODULES kernel/net/ipv6/ipv6.ko"
-INSTALL_MODULES="$INSTALL_MODULES kernel/net/wireless/cfg80211.ko"
+INSTALL_MODULES=("kernel/fs/btrfs/btrfs.ko")
+INSTALL_MODULES+=("kernel/drivers/scsi/sg.ko")
+INSTALL_MODULES+=("kernel/drivers/char/hw_random/bcm2835-rng.ko")
+INSTALL_MODULES+=("kernel/net/ipv6/ipv6.ko")
+INSTALL_MODULES+=("kernel/net/wireless/cfg80211.ko")
 
 # checks if first parameter is contained in the array passed as the second parameter
 #   use: contains_element "search_for" "${some_array[@]}" || do_if_not_found
@@ -121,7 +121,7 @@ function create_cpio {
     depmod_file=$(create_tempfile)
     /sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
 
-    modules=(${INSTALL_MODULES})
+    modules=("${INSTALL_MODULES[@]}")
 
     # new_count contains the number of new elements in the $modules array for each iteration
     new_count=${#modules[@]}
@@ -153,6 +153,9 @@ function create_cpio {
     sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
     sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
 
+    # add firmware for wireless chipset (RPi 3 and Zero W)
+    mkdir -p rootfs/lib/firmware/brcm
+    cp tmp/lib/firmware/brcm/brcmfmac43430-sdio.{bin,txt} rootfs/lib/firmware/brcm
 
     # btrfs-tools components
     cp tmp/sbin/mkfs.btrfs rootfs/sbin/
