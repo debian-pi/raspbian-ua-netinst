@@ -73,7 +73,7 @@ fail()
         umount /boot
     fi
 
-    read -t 10 || reboot && exit
+    read -t 10 || poweroff && exit
     sh
 }
 
