@@ -571,7 +571,7 @@ if [ "$hardware_versions" = "detect" ]; then
            echo "================================================="
            echo "     No Raspberry Pi hardware detected!!"
            echo " Value of cpu_revision variable: '${cpu_revision}'"
-           echo "        Building for Pi 0. 1, 2 and 3.        "
+           echo "        Building for Pi 0, 1, 2 and 3."
            echo "================================================="
            echo ""
            hardware_versions="1 2 3"
