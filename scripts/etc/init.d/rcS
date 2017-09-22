@@ -111,9 +111,11 @@ install_files()
   echo
 }
 
-# set screen blank period to an hour
+# set screen blank period to an hour unless consoleblank=0 on cmdline
 # hopefully the install should be done by then
-echo -en '\033[9;60]'
+if grep -qv  "consoleblank=0" /proc/cmdline; then
+    echo -en '\033[9;60]'
+fi
 
 mkdir -p /proc
 mkdir -p /sys
