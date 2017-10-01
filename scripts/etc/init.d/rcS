@@ -46,6 +46,7 @@ hwrng_support=1
 enable_watchdog=0
 enable_uart=0
 gpu_mem=
+try_again=0
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -72,8 +73,13 @@ fail()
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
     fi
-
-    read -t 10 || reboot && exit
+    
+    if [ "$try_again" = 1 ] ; then
+        read -t 10 || reboot && exit
+    else
+        read -t 10 || poweroff && exit
+    fi
+    
     sh
 }
 
