@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-KERNEL_VERSION_RPI1=4.9.0-2-rpi
-KERNEL_VERSION_RPI2=4.9.0-2-rpi2
+KERNEL_VERSION_RPI1=4.9.0-3-rpi
+KERNEL_VERSION_RPI2=4.9.0-3-rpi2
 
 RASPBIAN_ARCHIVE_KEY_DIRECTORY="https://archive.raspbian.org"
 RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
