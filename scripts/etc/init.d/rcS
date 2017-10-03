@@ -117,12 +117,6 @@ install_files()
   echo
 }
 
-# set screen blank period to an hour unless consoleblank=0 on cmdline
-# hopefully the install should be done by then
-if grep -qv  "consoleblank=0" /proc/cmdline; then
-    echo -en '\033[9;60]'
-fi
-
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /boot
@@ -153,6 +147,12 @@ echo /opt/busybox/bin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 klogd -c 1
+
+# set screen blank period to an hour unless consoleblank=0 on cmdline
+# hopefully the install should be done by then
+if grep -qv  "consoleblank=0" /proc/cmdline; then
+    echo -en '\033[9;60]'
+fi
 
 # Check if there's an alternative rcS file and excute it
 # instead of this file. Only do this if this isn't the
