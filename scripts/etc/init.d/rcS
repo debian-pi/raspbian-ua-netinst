@@ -146,6 +146,13 @@ mdev -s
 
 klogd -c 1
 
+# remove unused drivers from ram disk
+for folder in /lib/modules/*; do
+    if [ "$(basename "${folder}")" != "$(uname -r)" ]; then
+        rm -r "${folder}"
+    fi
+done
+
 # Check if there's an alternative rcS file and excute it
 # instead of this file. Only do this if this isn't the
 # alternative script already
