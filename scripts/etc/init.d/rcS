@@ -46,6 +46,7 @@ hwrng_support=1
 enable_watchdog=0
 enable_uart=0
 gpu_mem=
+try_again=0
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -72,8 +73,13 @@ fail()
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
     fi
-
-    read -t 10 || reboot && exit
+    
+    if [ "$try_again" = 1 ] ; then
+        read -t 10 || reboot && exit
+    else
+        read -t 10 || poweroff && exit
+    fi
+    
     sh
 }
 
@@ -110,10 +116,6 @@ install_files()
   done
   echo
 }
-
-# set screen blank period to an hour
-# hopefully the install should be done by then
-echo -en '\033[9;60]'
 
 mkdir -p /proc
 mkdir -p /sys
@@ -153,6 +155,12 @@ for folder in /lib/modules/*; do
     fi
 done
 
+# set screen blank period to an hour unless consoleblank=0 on cmdline
+# hopefully the install should be done by then
+if grep -qv  "consoleblank=0" /proc/cmdline; then
+    echo -en '\033[9;60]'
+fi
+
 # Check if there's an alternative rcS file and excute it
 # instead of this file. Only do this if this isn't the
 # alternative script already
@@ -188,21 +196,24 @@ rm ${LOGFILE}.pipe
 # http://elinux.org/RPi_HardwareHistory#Board_Revision_History
 cpu_revision=$(grep Revision /proc/cpuinfo | cut -d " " -f 2 | sed 's/^1000//')
 case $cpu_revision in
-    0011|0014)
-        rpi_hardware_version="cm"
-        ;;
-    900092|900093)
+#    0011|0014)
+#        rpi_hardware_version="cm"  # not supported
+#       ;;
+    900092|900093|920093|9000c1)
         rpi_hardware_version="0"
         ;;
-    0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015|900032)
+    0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015|900021|900032)
         rpi_hardware_version="1"
         ;;
-    a01041|a21041|a22042)
+    a01040|a01041|a21041|a22042)
         rpi_hardware_version="2"
         ;;
-    a02082|a22082)
+    a02082|a22082|a32082)
         rpi_hardware_version="3"
         ;;
+#    a020a0)
+#        rpi_hardware_version="cm3"  # not supported
+#        ;;
     *)
         rpi_hardware_version="unknown"
         ;;
@@ -575,10 +586,10 @@ if [ "$hardware_versions" = "detect" ]; then
            echo "================================================="
            echo "     No Raspberry Pi hardware detected!!"
            echo " Value of cpu_revision variable: '${cpu_revision}'"
-           echo "          Building for Pi 1, 2 and 3.         "
+           echo "        Building for Pi 0, 1, 2 and 3."
            echo "================================================="
            echo ""
-           hardware_versions="1 2 3"
+           hardware_versions="0 1 2 3"
            ;;
     esac
 fi
