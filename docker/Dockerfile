@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
 	gnupg \
 	kmod \
 	kpartx \
+	wget \
 	xz-utils \
 	zip \
 	&& \
