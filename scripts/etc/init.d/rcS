@@ -148,6 +148,13 @@ mdev -s
 
 klogd -c 1
 
+# remove unused drivers from ram disk
+for folder in /lib/modules/*; do
+    if [ "$(basename "${folder}")" != "$(uname -r)" ]; then
+        rm -r "${folder}"
+    fi
+done
+
 # set screen blank period to an hour unless consoleblank=0 on cmdline
 # hopefully the install should be done by then
 if grep -qv  "consoleblank=0" /proc/cmdline; then

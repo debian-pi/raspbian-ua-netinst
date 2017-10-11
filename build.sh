@@ -2,6 +2,7 @@
 
 set -e
 
+# configuration
 KERNEL_VERSION_RPI1=4.9.0-3-rpi
 KERNEL_VERSION_RPI2=4.9.0-3-rpi2
 
@@ -37,15 +38,15 @@ function check_dependencies {
     # iterate over the passed modules
     for mod in ${mods[@]}; do
         # find the modules dependencies, convert into array
-        deps=($(cat "${depmod_file}" | grep "^${mod}" | cut -d':' -f2))
+        deps=($(grep "^${mod}" "${depmod_file}" | cut -d':' -f2))
         # iterate over the found dependencies
         for dep in ${deps[@]}; do
             # check if the dependency is in $modules, if not, add to temp array
-            contains_element "${dep}" "${modules[@]}" || new_found[${#new_found[@]}]="${dep}"
+            contains_element "${dep}" "${modules[@]}" || new_found+=("${dep}")
         done
     done
     # add the newly found dependencies to the end of the $modules array
-    modules=("${modules[@]}" "${new_found[@]}")
+    modules+=("${new_found[@]}")
     # set the global variable to the number of newly found dependencies
     new_count=${#new_found[@]}
 }
@@ -75,47 +76,30 @@ function create_tempfile {
     fi
 }
 
-function create_cpio {
+# copies kernel modules into the rootfs
+#   use: add_kernel_modules "rpi-target-version"
+function add_kernel_modules {
     local KERNEL_VERSION=""
-    local target_system
 
-    if [ "$1" = "rpi1" ] ; then
-        KERNEL_VERSION=$KERNEL_VERSION_RPI1
-        target_system="rpi1"
-    elif [ "$1" = "rpi2" ] ; then
-        KERNEL_VERSION=$KERNEL_VERSION_RPI2
-        target_system="rpi2"
-    else
-        echo "Invalid parameter to 'create_cpio' function!"
-        return 1
-    fi
+    case "$1" in
+        "rpi1")
+            KERNEL_VERSION=$KERNEL_VERSION_RPI1
+            ;;
+        "rpi2")
+            KERNEL_VERSION=$KERNEL_VERSION_RPI2
+            ;;
+        *)
+            echo "Invalid parameter to 'add_kernel_modules' function!"
+            exit 1
+    esac
 
-    # initialize rootfs
-    rm -rf rootfs
-    mkdir -p rootfs
-    # create all the directories needed to copy the various components into place
-    mkdir -p rootfs/bin/
-    mkdir -p rootfs/lib/arm-linux-gnueabihf/
-    mkdir -p rootfs/lib/lsb/init-functions.d/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/}
-    mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
-    mkdir -p rootfs/etc/network/{if-down.d,if-post-down.d,if-pre-up.d,if-up.d,interfaces.d}
-    mkdir -p rootfs/lib/ifupdown/
-    mkdir -p rootfs/lib/lsb/init-functions.d/
-    mkdir -p rootfs/lib/modules/${KERNEL_VERSION}
-    mkdir -p rootfs/sbin/
-    mkdir -p rootfs/usr/bin/
-    mkdir -p rootfs/usr/lib/mime/packages/
-    mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
-    mkdir -p rootfs/usr/lib/{tar,tc}
-    mkdir -p rootfs/usr/sbin/
-    mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
-    mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
-    mkdir -p rootfs/var/lib/ntpdate
-    mkdir -p rootfs/var/log/
-    mkdir -p rootfs/var/run/
+    # copy builtin modules
+    mkdir -p rootfs/lib/modules/${KERNEL_VERSION}/
+    cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}/
 
-    cp -a tmp/lib/modules/${KERNEL_VERSION}/modules.{builtin,order} rootfs/lib/modules/${KERNEL_VERSION}
+    # copy drivers
+    mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
+    cp -r tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/net/{wireless,usb} rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
 
     # calculate module dependencies
     depmod_file=$(create_tempfile)
@@ -136,15 +120,47 @@ function create_cpio {
     rm -f ${depmod_file}
 
     # copy the needed kernel modules to the rootfs (create directories as needed)
+    srcdir="tmp/lib/modules/${KERNEL_VERSION}"
+    dstdir="rootfs/lib/modules/${KERNEL_VERSION}"
     for module in ${modules[@]}; do
-        # calculate the target dir, just so the following line of code is shorter :)
-        dstdir="rootfs/lib/modules/${KERNEL_VERSION}/$(dirname ${module})"
-        # check if destination dir exist, create it otherwise
-        [ -d "${dstdir}" ] || mkdir -p "${dstdir}"
-        cp -a "tmp/lib/modules/${KERNEL_VERSION}/${module}" "${dstdir}"
+        mkdir -p "${dstdir}/$(dirname ${module})"
+        cp -a "${srcdir}/${module}" "${dstdir}/$(dirname ${module})"
     done
 
     /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
+}
+
+function create_cpio {
+    local INITRAMFS="$1"
+    
+    # initialize rootfs
+    rm -rf rootfs
+    mkdir -p rootfs
+    
+    # create all the directories needed to copy the various components into place
+    mkdir -p rootfs/bin/
+    mkdir -p rootfs/lib/arm-linux-gnueabihf/
+    mkdir -p rootfs/lib/lsb/init-functions.d/
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/}
+    mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
+    mkdir -p rootfs/etc/network/{if-down.d,if-post-down.d,if-pre-up.d,if-up.d,interfaces.d}
+    mkdir -p rootfs/lib/ifupdown/
+    mkdir -p rootfs/lib/lsb/init-functions.d/
+    mkdir -p rootfs/sbin/
+    mkdir -p rootfs/usr/bin/
+    mkdir -p rootfs/usr/lib/mime/packages/
+    mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
+    mkdir -p rootfs/usr/lib/{tar,tc}
+    mkdir -p rootfs/usr/sbin/
+    mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
+    mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
+    mkdir -p rootfs/var/lib/ntpdate
+    mkdir -p rootfs/var/log/
+    mkdir -p rootfs/var/run/
+
+    # add kernel modules
+    add_kernel_modules "rpi1"
+    add_kernel_modules "rpi2"
 
     # install scripts
     cp -r scripts/* rootfs/
@@ -163,7 +179,7 @@ function create_cpio {
 
     # busybox components
     cp tmp/bin/busybox rootfs/bin
-    cd rootfs && ln -s bin/busybox init; cd ..
+    ln -s bin/busybox rootfs/init
 
     # cdebootstrap-static components
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
@@ -507,32 +523,27 @@ function create_cpio {
     cp tmp/lib/*/libuuid.so.1.* rootfs/lib/libuuid.so.1
 
     # zlib1g components
-    cp tmp/lib/*/libz.so.1  rootfs/lib/
+    cp tmp/lib/*/libz.so.1 rootfs/lib/
 
-    # drivers
-    mkdir -p rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net
-    cp -r tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/net/wireless rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
-    cp -r tmp/lib/modules/$KERNEL_VERSION/kernel/drivers/net/usb rootfs/lib/modules/$KERNEL_VERSION/kernel/drivers/net/
-
-    INITRAMFS="../installer-${target_system}.cpio.gz"
-    (cd rootfs && find . | cpio -H newc -ov | gzip --best > $INITRAMFS)
+    (cd rootfs && find . | cpio -H newc -ov | gzip --best > "../${INITRAMFS}")
 
     rm -rf rootfs
-
 }
 
+# start
 if [ ! -d packages ]; then
     . ./update.sh
 fi
 
+echo Preparing...
 rm -rf tmp
 mkdir tmp
 
 # extract debs
-for i in packages/*.deb; do
-    cd tmp && ar x ../$i && tar -xf data.tar.*; rm data.tar.*; cd ..
+for deb in packages/*.deb; do
+    echo Extracting $(basename $deb)...
+    (cd tmp && ar x ../$deb && tar -xf data.tar.*; rm data.tar.*)
 done
-
 
 # initialize bootfs
 rm -rf bootfs
@@ -549,33 +560,34 @@ if [ ! -f bootfs/config.txt ] ; then
     touch bootfs/config.txt
 fi
 
-create_cpio "rpi1"
-cp installer-rpi1.cpio.gz bootfs/
-echo "[pi1]" >> bootfs/config.txt
-echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
-#echo "device_tree=" >> bootfs/config.txt
+# initramfs
+create_cpio "installer-rpi.cpio.gz"
+cp installer-rpi.cpio.gz bootfs/
 
-create_cpio "rpi2"
-cp installer-rpi2.cpio.gz bootfs/
-echo "[pi2]" >> bootfs/config.txt
-echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
-
-# rpi3 uses the same kernel/initramfs as rpi2, so just copy the block
-echo "[pi3]" >> bootfs/config.txt
-echo "kernel=kernel-rpi2_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi2.cpio.gz" >> bootfs/config.txt
-# on the rpi3 the uart port is used by bluetooth by default
-# but during the installation we want the serial console
-# the next statement does that, but consequently also disables bluetooth
-# FIXME: This line leads to a kernel panic with the current firmware/kernel
-##echo "enable_uart=1" >> bootfs/config.txt
-
-# rpi zero uses the same kernel/initramfs as rpi1, so just copy the block
-echo "[pi0]" >> bootfs/config.txt
-echo "kernel=kernel-rpi1_install.img" >> bootfs/config.txt
-echo "initramfs installer-rpi1.cpio.gz" >> bootfs/config.txt
+# write boot config
+{
+    # rpi zero uses the same kernel as rpi1
+    echo "[pi0]"
+    echo "kernel=kernel-rpi1_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    echo "[pi1]"
+    echo "kernel=kernel-rpi1_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    # rpi3 uses the same kernel as rpi2
+    echo "[pi2]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    echo "[pi3]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
+    # on the rpi3 the uart port is used by bluetooth by default
+    # but during the installation we want the serial console
+    # the next statement does that, but consequently also disables bluetooth
+    # FIXME: This line leads to a kernel panic with the current firmware/kernel
+    ##echo "enable_uart=1"
+    # reset filter
+    echo "[all]"
+} >> bootfs/config.txt
 
 # clean up
 rm -rf tmp
@@ -598,4 +610,4 @@ fi
 ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
 rm -f $ZIPFILE
 
-cd bootfs && zip -r -9 ../$ZIPFILE *; cd ..
+(cd bootfs && zip -r -9 ../$ZIPFILE *)
