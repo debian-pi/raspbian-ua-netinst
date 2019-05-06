@@ -16,7 +16,7 @@ RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
 
 mirror_raspbian="http://archive.raspbian.org/raspbian"
 mirror_raspberrypi="http://archive.raspberrypi.org/debian"
-release=jessie
+release=buster
 
 packages=()
 
