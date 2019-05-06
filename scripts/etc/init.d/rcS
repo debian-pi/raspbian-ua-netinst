@@ -194,12 +194,10 @@ rm ${LOGFILE}.pipe
 
 # we should do this with bitshift operations, I think on the serial
 # http://elinux.org/RPi_HardwareHistory#Board_Revision_History
+# https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
 cpu_revision=$(grep Revision /proc/cpuinfo | cut -d " " -f 2 | sed 's/^1000//')
 case $cpu_revision in
-#    0011|0014)
-#        rpi_hardware_version="cm"  # not supported
-#       ;;
-    900092|900093|920093|9000c1)
+    900092|900093|9000c1|920092|920093)
         rpi_hardware_version="0"
         ;;
     0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015|900021|900032)
@@ -208,12 +206,12 @@ case $cpu_revision in
     a01040|a01041|a21041|a22042)
         rpi_hardware_version="2"
         ;;
-    a02082|a22082|a32082)
+    9020e0|a02082|a020d3|a22082|a22083|a32082|a52082)
         rpi_hardware_version="3"
         ;;
-#    a020a0)
-#        rpi_hardware_version="cm3"  # not supported
-#        ;;
+    a03111|b03111|c03111)
+        rpi_hardware_version="4"
+        ;;
     *)
         rpi_hardware_version="unknown"
         ;;
@@ -581,15 +579,16 @@ if [ "$hardware_versions" = "detect" ]; then
         1) hardware_versions="1" ;;
         2) hardware_versions="2" ;;
         3) hardware_versions="3" ;;
+        4) hardware_versions="4" ;;
         *)
            echo ""
            echo "================================================="
            echo "     No Raspberry Pi hardware detected!!"
            echo " Value of cpu_revision variable: '${cpu_revision}'"
-           echo "        Building for Pi 0, 1, 2 and 3."
+           echo "        Building for Pi 0, 1, 2, 3 and 4."
            echo "================================================="
            echo ""
-           hardware_versions="0 1 2 3"
+           hardware_versions="0 1 2 3 4"
            ;;
     esac
 fi
@@ -655,7 +654,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     do
         case $hv in
             0|1) kernel_meta_package=linux-image-rpi-rpfv ;;
-            2|3) kernel_meta_package=linux-image-rpi2-rpfv ;;
+            2|3|4) kernel_meta_package=linux-image-rpi2-rpfv ;;
             *)
                 echo ""
                 echo "================================================="

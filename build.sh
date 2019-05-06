@@ -581,6 +581,9 @@ cp installer-rpi.cpio.gz bootfs/
     echo "[pi3]"
     echo "kernel=kernel-rpi2_install.img"
     echo "initramfs installer-rpi.cpio.gz"
+    echo "[pi4]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
     # on the rpi3 the uart port is used by bluetooth by default
     # but during the installation we want the serial console
     # the next statement does that, but consequently also disables bluetooth
