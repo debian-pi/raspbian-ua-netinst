@@ -36,11 +36,11 @@ function check_dependencies {
     local mod
     local dep
     # iterate over the passed modules
-    for mod in ${mods[@]}; do
+    for mod in "${mods[@]}"; do
         # find the modules dependencies, convert into array
         deps=($(grep "^${mod}" "${depmod_file}" | cut -d':' -f2))
         # iterate over the found dependencies
-        for dep in ${deps[@]}; do
+        for dep in "${deps[@]}"; do
             # check if the dependency is in $modules, if not, add to temp array
             contains_element "${dep}" "${modules[@]}" || new_found+=("${dep}")
         done
@@ -62,7 +62,8 @@ function touch_tempfile {
 #   the function checks for different commands and uses the appropriate one
 #   it will fallback to creating a file in /tmp
 function create_tempfile {
-    local tmp_ptrn="/tmp/$(basename "${0}").${$}"
+    local tmp_ptrn
+    tmp_ptrn="/tmp/$(basename "${0}").${$}"
     if type mktemp &> /dev/null; then
         mktemp 2> /dev/null || \
             mktemp -t raspbian-ua-netinst 2> /dev/null || \
@@ -103,7 +104,7 @@ function add_kernel_modules {
 
     # calculate module dependencies
     depmod_file=$(create_tempfile)
-    /sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+    /sbin/depmod -nab tmp ${KERNEL_VERSION} > "${depmod_file}"
 
     modules=("${INSTALL_MODULES[@]}")
 
@@ -117,14 +118,14 @@ function add_kernel_modules {
     done
 
     # do some cleanup
-    rm -f ${depmod_file}
+    rm -f "${depmod_file}"
 
     # copy the needed kernel modules to the rootfs (create directories as needed)
     srcdir="tmp/lib/modules/${KERNEL_VERSION}"
     dstdir="rootfs/lib/modules/${KERNEL_VERSION}"
-    for module in ${modules[@]}; do
-        mkdir -p "${dstdir}/$(dirname ${module})"
-        cp -a "${srcdir}/${module}" "${dstdir}/$(dirname ${module})"
+    for module in "${modules[@]}"; do
+        mkdir -p "${dstdir}/$(dirname "${module}")"
+        cp -a "${srcdir}/${module}" "${dstdir}/$(dirname "${module}")"
     done
 
     /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
@@ -166,8 +167,8 @@ function create_cpio {
     cp -r scripts/* rootfs/
 
     # update version and date
-    sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
-    sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
+    sed -i "s/__VERSION__/git~$(git rev-parse --short "@{0}")/" rootfs/etc/init.d/rcS
+    sed -i "s/__DATE__/$(date)/" rootfs/etc/init.d/rcS
 
     # add firmware for wireless chipset (RPi 3 and Zero W)
     mkdir -p rootfs/lib/firmware/brcm
@@ -541,8 +542,8 @@ mkdir tmp
 
 # extract debs
 for deb in packages/*.deb; do
-    echo Extracting $(basename $deb)...
-    (cd tmp && ar x ../$deb && tar -xf data.tar.*; rm data.tar.*)
+    echo "Extracting " "$(basename "$deb")..."
+    (cd tmp && ar x ../"$deb" && tar -xf data.tar.*; rm data.tar.*)
 done
 
 # initialize bootfs
@@ -607,7 +608,7 @@ if [ -d config ] ; then
     cp -r config/* bootfs/config
 fi
 
-ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
-rm -f $ZIPFILE
+ZIPFILE=raspbian-ua-netinst-$(date +%Y%m%d)-git$(git rev-parse --short "@{0}").zip
+rm -f "$ZIPFILE"
 
-(cd bootfs && zip -r -9 ../$ZIPFILE *)
+(cd bootfs && zip -r -9 ../"$ZIPFILE" -- *)

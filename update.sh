@@ -111,7 +111,7 @@ check_key() {
     echo -n "Checking key file '${KEY_FILE}'... "
 
     # check that there is only 1 public key in the key file
-    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep ^pub: | wc -l)" -ne 1 ] ; then
+    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep -c ^pub:)" -ne 1 ] ; then
         echo "FAILED!"
         echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
         return 1
@@ -171,15 +171,15 @@ setup_archive_keys() {
 }
 
 required() {
-    for i in ${packages[@]}; do
-        [[ $i = $1 ]] && return 0
+    for i in "${packages[@]}"; do
+        [[ $i = "$1" ]] && return 0
     done
     return 1
 }
 
 unset_required() {
-    for i in ${!packages[@]}; do
-        [[ ${packages[$i]} = $1 ]] && unset packages[$i] && return 0
+    for i in "${!packages[@]}"; do
+        [[ ${packages[$i]} = "$1" ]] && unset 'packages[$i]' && return 0
     done
     return 1
 }
@@ -313,7 +313,7 @@ download_packages() {
 
 # Setup
 rm -rf packages/
-mkdir packages/ && cd packages
+mkdir packages/ && cd packages || exit 1
 
 if ! setup_archive_keys ; then
     echo -e "ERROR\nSetting up the archives failed! Exiting."
@@ -335,7 +335,7 @@ search_for_packages raspbian "${mirror_raspbian}"
 
 if ! allfound ; then
     echo "ERROR: Unable to find all required packages in package list!"
-    echo "Missing packages: ${packages[@]}"
+    echo "Missing packages: " "${packages[@]}"
     cd ..
     exit 1
 fi
