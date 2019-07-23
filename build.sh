@@ -186,6 +186,9 @@ function create_cpio {
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
     cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
 
+    # curl components
+    cp tmp/usr/bin/curl rootfs/usr/bin/
+
     # dosfstools components
     cp tmp/sbin/fatlabel rootfs/sbin/
     cp tmp/sbin/fsck.fat rootfs/sbin/
@@ -447,6 +450,9 @@ function create_cpio {
     # libcomerr2 components
     cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
 
+    # libcurl4 components
+    cp tmp/usr/lib/*/libcurl.so.4.* rootfs/usr/lib/libcurl.so.4
+
     # libdb5.3 components
     cp tmp/usr/lib/*/libdb-5.3.so rootfs/usr/lib/libdb5.3.so
 
@@ -454,9 +460,50 @@ function create_cpio {
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
 
+    # libffi6 components
+    cp tmp/usr/lib/*/libffi.so.6.* rootfs/usr/lib/libffi.so.6
+
     # libgcc1 components
     cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
     cp tmp/lib/*/librt.so.1 rootfs/lib/
+
+    # libgcrypt20 components
+    cp tmp/lib/*/libgcrypt.so.20.* rootfs/lib/libgcrypt.so.20
+
+    # libgmp10 components
+    cp tmp/usr/lib/*/libgmp.so.10.* rootfs/usr/lib/libgmp.so.10
+
+    # libgnutls30 components
+    cp tmp/usr/lib/*/libgnutls.so.30.* rootfs/usr/lib/libgnutls.so.30
+
+    # libgpg-error0 components
+    cp tmp/lib/*/libgpg-error.so.0.* rootfs/lib/libgpg-error.so.0
+
+    # libgssapi-krb5-2 components
+    cp tmp/usr/lib/*/libgssapi_krb5.so.2.* rootfs/usr/lib/libgssapi_krb5.so.2
+
+    # libhogweed4 components
+    cp tmp/usr/lib/*/libhogweed.so.4.* rootfs/usr/lib/libhogweed.so.4
+
+    # libidn2-0 components
+    cp tmp/usr/lib/*/libidn2.so.0.* rootfs/usr/lib/libidn2.so.0
+
+    # libk5crypto3 components
+    cp tmp/usr/lib/*/libk5crypto.so.3.* rootfs/usr/lib/libk5crypto.so.3
+
+    # libkeyutils1 components
+    cp tmp/lib/*/libkeyutils.so.1.* rootfs/lib/libkeyutils.so.1
+
+    # libkrb5-3 components
+    cp tmp/usr/lib/*/libkrb5.so.3.* rootfs/usr/lib/libkrb5.so.3
+
+    # libkrb5support0 components
+    cp tmp/usr/lib/*/libkrb5support.so.0.* rootfs/usr/lib/libkrb5support.so.0
+
+    # libldap-2.4-2 components
+    cp tmp/usr/lib/*/liblber-2.4.so.2.* rootfs/usr/lib/liblber-2.4.so.2
+    cp tmp/usr/lib/*/libldap-2.4.so.2 rootfs/usr/lib/
+    cp tmp/usr/lib/*/libldap_r-2.4.so.2.* rootfs/usr/lib/libldap_r-2.4.so.2
 
     # liblzma5 components
     cp tmp/lib/*/liblzma.so.5.* rootfs/lib/liblzma.so.5
@@ -472,12 +519,20 @@ function create_cpio {
     cp tmp/usr/lib/*/libform.so.5.* rootfs/usr/lib/libform.so.5
     cp tmp/usr/lib/*/libmenu.so.5.* rootfs/usr/lib/libmenu.so.5
     cp tmp/usr/lib/*/libpanel.so.5.* rootfs/usr/lib/libpanel.so.5
+    # libnettle6 components
+    cp tmp/usr/lib/*/libnettle.so.6.* rootfs/usr/lib/libnettle.so.6
+
+    # libnghttp2-14 components
+    cp tmp/usr/lib/*/libnghttp2.so.14.* rootfs/usr/lib/libnghttp2.so.14
 
     # libnl-3-200 components
     cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
 
     # libnl-genl-3-200 components
     cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
+
+    # libp11-kit0 components
+    cp tmp/usr/lib/*/libp11-kit.so.0.* rootfs/usr/lib/libp11-kit.so.0
 
     # libpam0g components
     cp tmp/lib/*/libpam.so.0.* rootfs/lib/libpam.so.0
@@ -490,6 +545,15 @@ function create_cpio {
 
     # libpcsclite components
     cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
+
+    # libpsl5 components
+    cp tmp/usr/lib/*/libpsl.so.5.* rootfs/usr/lib/libpsl.so.5
+
+    # librtmp1 components
+    cp tmp/usr/lib/*/librtmp.so.1 rootfs/usr/lib/
+
+    # libsasl2-2 components
+    cp tmp/usr/lib/*/libsasl2.so.2.* rootfs/usr/lib/libsasl2.so.2
 
     # libselinux1 components
     cp tmp/lib/*/libselinux.so.1 rootfs/lib/
@@ -519,6 +583,14 @@ function create_cpio {
     # libtinfo5 components
     cp tmp/lib/*/libtinfo.so.5.* rootfs/lib/libtinfo.so.5
     cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
+    # libssh2-1 components
+    cp tmp/usr/lib/*/libssh2.so.1.* rootfs/usr/lib/libssh2.so.1
+
+    # libtasn1-6 components
+    cp tmp/usr/lib/*/libtasn1.so.6.* rootfs/usr/lib/libtasn1.so.6
+
+    # libunistring2 components
+    cp tmp/usr/lib/*/libunistring.so.2.* rootfs/usr/lib/libunistring.so.2
 
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.* rootfs/lib/libuuid.so.1
