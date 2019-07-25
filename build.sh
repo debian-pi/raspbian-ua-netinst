@@ -150,7 +150,7 @@ function create_cpio {
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
     mkdir -p rootfs/usr/lib/mime/packages/
-    mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
+    mkdir -p rootfs/usr/lib/engines-1.1/
     mkdir -p rootfs/usr/lib/{tar,tc}
     mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
@@ -174,9 +174,8 @@ function create_cpio {
     mkdir -p rootfs/lib/firmware/brcm
     cp tmp/lib/firmware/brcm/brcmfmac43430-sdio.{bin,txt} rootfs/lib/firmware/brcm
 
-    # btrfs-tools components
-    cp tmp/sbin/mkfs.btrfs rootfs/sbin/
-    cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
+    # btrfs-progs components
+    cp tmp/bin/mkfs.btrfs rootfs/bin/
 
     # busybox components
     cp tmp/bin/busybox rootfs/bin
@@ -221,7 +220,7 @@ function create_cpio {
     cp tmp/usr/share/dpkg/abitable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/cputable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/ostable rootfs/usr/share/dpkg/
-    cp tmp/usr/share/dpkg/triplettable rootfs/usr/share/dpkg/
+    cp tmp/usr/share/dpkg/tupletable rootfs/usr/share/dpkg/
     cd rootfs/usr/sbin
     ln -s ../bin/dpkg-divert dpkg-divert
     ln -s ../bin/dpkg-statoverride dpkg-statoverride
@@ -229,7 +228,7 @@ function create_cpio {
     cd ../../..
     touch rootfs/var/lib/dpkg/status
 
-    # e2fslibs components
+    # libext2fs2 components
     cp tmp/lib/*/libe2p.so.2.* rootfs/lib/libe2p.so.2
     cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
 
@@ -265,21 +264,19 @@ function create_cpio {
 
     # f2fs-tools components
     cp tmp/sbin/mkfs.f2fs rootfs/sbin/
-    cp tmp/lib/*/libf2fs.so.0  rootfs/lib/
+
+    # fdisk components
+    cp tmp/sbin/fdisk rootfs/sbin/
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
     # ifupdown components
     cp tmp/etc/default/networking rootfs/etc/default/
-    cp tmp/etc/init/network-interface-container.conf rootfs/etc/init/
-    cp tmp/etc/init/network-interface-security.conf rootfs/etc/init/
-    cp tmp/etc/init/network-interface.conf rootfs/etc/init/
-    cp tmp/etc/init/networking.conf rootfs/etc/init/
     cp tmp/etc/init.d/networking rootfs/etc/init.d/
-    cp tmp/etc/network/if-down.d/upstart rootfs/etc/network/if-down.d/
-    cp tmp/etc/network/if-up.d/upstart rootfs/etc/network/if-up.d/
     cp tmp/lib/ifupdown/settle-dad.sh rootfs/lib/ifupdown/
+    cp tmp/lib/ifupdown/wait-for-ll6.sh rootfs/lib/ifupdown/
+    cp tmp/lib/ifupdown/wait-online.sh rootfs/lib/ifupdown/
     cp tmp/sbin/ifup rootfs/sbin/
     cd rootfs/sbin
     ln -s ifup ifdown
@@ -338,7 +335,6 @@ function create_cpio {
     cp tmp/etc/default/ntpdate rootfs/etc/default/
     # don't use /etc/ntp.conf since we don't have it
     sed -i s/NTPDATE_USE_NTP_CONF=yes/NTPDATE_USE_NTP_CONF=no/ rootfs/etc/default/ntpdate
-    cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
 
@@ -364,7 +360,6 @@ function create_cpio {
     # util-linux components
     cp tmp/sbin/blkid rootfs/sbin/
     cp tmp/sbin/blockdev rootfs/sbin/
-    cp tmp/sbin/fdisk rootfs/sbin/
     cp tmp/sbin/fsck rootfs/sbin/
     cp tmp/sbin/mkswap rootfs/sbin/
     cp tmp/sbin/swaplabel rootfs/sbin/
@@ -374,13 +369,13 @@ function create_cpio {
     cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
 
     # libacl1 components
-    cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
+    cp tmp/usr/lib/*/libacl.so.1.* rootfs/usr/lib/libacl.so.1
 
     # libatm1 components
     cp tmp/lib/*/libatm.so.1.* rootfs/lib/libatm.so.1
 
     # libattr1 components
-    cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
+    cp tmp/usr/lib/*/libattr.so.1.* rootfs/usr/lib/libattr.so.1
 
     # libaudit-common components
     cp tmp/etc/libaudit.conf rootfs/etc/
@@ -401,7 +396,6 @@ function create_cpio {
     cp tmp/etc/gai.conf rootfs/etc/
     cp tmp/etc/ld.so.conf rootfs/etc/
     cp tmp/sbin/ldconfig rootfs/sbin/
-    cp tmp/sbin/ldconfig.real rootfs/sbin/
     cp tmp/usr/bin/catchsegv rootfs/usr/bin/
     cp tmp/usr/bin/getconf rootfs/usr/bin/
     cp tmp/usr/bin/getent rootfs/usr/bin/
@@ -425,7 +419,6 @@ function create_cpio {
     cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
     cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-    cp tmp/lib/*/libcidn-*.so rootfs/lib/libcidn.so.1
     cp tmp/lib/*/libcrypt-*.so rootfs/lib/libcrypt.so.1
     cp tmp/lib/*/libdl-*.so rootfs/lib/libdl.so.2
     cp tmp/lib/*/libm-*.so  rootfs/lib/libm.so.6
@@ -436,6 +429,7 @@ function create_cpio {
     cp tmp/lib/*/libnss_files-*.so rootfs/lib/libnss_files.so.2
     cp tmp/lib/*/libnss_hesiod-*.so rootfs/lib/libnss_hesiod.so.2
     cp tmp/lib/*/libnss_nis-*.so rootfs/lib/libnss_nis.so.2
+    cp tmp/lib/*/libnss_nisplus-*.so rootfs/lib/libnss_nisplus.so.2
     cp tmp/lib/*/libpcprofile.so rootfs/lib/
     cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
     cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
@@ -447,7 +441,7 @@ function create_cpio {
     # libcap2 components
     cp tmp/lib/*/libcap.so.2.* rootfs/lib/libcap.so.2
 
-    # libcomerr2 components
+    # libcom-err2 components
     cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
 
     # libcurl4 components
@@ -459,6 +453,15 @@ function create_cpio {
     # libdbus-1-3 components
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
+
+    # libelf1 components
+    cp tmp/usr/lib/*/libelf-0.*.so rootfs/usr/lib/libelf.so.1
+
+    # libf2fs5 components
+    cp tmp/lib/*/libf2fs.so.5  rootfs/lib/
+
+    # libfdisk1 components
+    cp tmp/lib/*/libfdisk.so.1.* rootfs/lib/libfdisk.so.1
 
     # libffi6 components
     cp tmp/usr/lib/*/libffi.so.6.* rootfs/usr/lib/libffi.so.6
@@ -511,14 +514,12 @@ function create_cpio {
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
+    # libmnl0 components
+    cp tmp/lib/*/libmnl.so.0.* rootfs/lib/libmnl.so.0
+
     # libmount1 components
     cp tmp/lib/*/libmount.so.1.* rootfs/lib/libmount.so.1
 
-    # libncurses5 components
-    cp tmp/lib/*/libncurses.so.5.* rootfs/lib/libncurses.so.5
-    cp tmp/usr/lib/*/libform.so.5.* rootfs/usr/lib/libform.so.5
-    cp tmp/usr/lib/*/libmenu.so.5.* rootfs/usr/lib/libmenu.so.5
-    cp tmp/usr/lib/*/libpanel.so.5.* rootfs/usr/lib/libpanel.so.5
     # libnettle6 components
     cp tmp/usr/lib/*/libnettle.so.6.* rootfs/usr/lib/libnettle.so.6
 
@@ -564,30 +565,25 @@ function create_cpio {
     # libsmartcols1 components
     cp tmp/lib/*/libsmartcols.so.1.* rootfs/lib/libsmartcols.so.1
 
-    # libssl1.0.0 components
-    cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/usr/lib/
-    cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/usr/lib/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/lib4758cca.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libaep.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libatalla.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcapi.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libchil.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcswift.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgmp.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgost.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libnuron.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libpadlock.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libsureware.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libubsec.so rootfs/usr/lib/openssl-1.0.0/engines/
-
-    # libtinfo5 components
-    cp tmp/lib/*/libtinfo.so.5.* rootfs/lib/libtinfo.so.5
-    cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
     # libssh2-1 components
     cp tmp/usr/lib/*/libssh2.so.1.* rootfs/usr/lib/libssh2.so.1
 
+    # libssl1.1.0 components
+    cp tmp/usr/lib/*/libcrypto.so.1.1 rootfs/usr/lib/
+    cp tmp/usr/lib/*/libssl.so.1.1 rootfs/usr/lib/
+    cp tmp/usr/lib/*/engines-1.1/afalg.so rootfs/usr/lib/engines-1.1/
+    cp tmp/usr/lib/*/engines-1.1/capi.so rootfs/usr/lib/engines-1.1/
+    cp tmp/usr/lib/*/engines-1.1/padlock.so rootfs/usr/lib/engines-1.1/
+
     # libtasn1-6 components
     cp tmp/usr/lib/*/libtasn1.so.6.* rootfs/usr/lib/libtasn1.so.6
+
+    # libtinfo6 components
+    cp tmp/lib/*/libtinfo.so.6.* rootfs/lib/libtinfo.so.6
+    cp tmp/usr/lib/*/libtic.so.6.* rootfs/usr/lib/libtic.so.6
+
+    # libudev1 components
+    cp tmp/lib/*/libudev.so.1.* rootfs/lib/libudev.so.1
 
     # libunistring2 components
     cp tmp/usr/lib/*/libunistring.so.2.* rootfs/usr/lib/libunistring.so.2
