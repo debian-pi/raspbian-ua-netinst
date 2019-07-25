@@ -111,10 +111,13 @@ download_file() {
     local source="$1"
     local target="$2"
     local options=(-q --show-progress --no-cache)
+    local wget_retval
+
     if [ -n "${target}" ] ; then
         options+=(-O "${target}")
     fi
-    if ! wget "${options[@]}" "${source}" ; then
+    wget_retval=$(wget "${options[@]}" "${source}")
+    if ! $wget_retval ; then
         echo -e "ERROR\nDownloading file '${source}' failed! Exiting."
         exit 1
     fi
@@ -123,6 +126,8 @@ download_file() {
 check_key() {
     # param 1 = keyfile
     # param 2 = key fingerprint
+    local gpg_key_count
+    local gpg_key_fingerprint
 
     # check input parameters
     if [ -z "$1" ] || [ ! -f "$1" ] ; then
@@ -141,14 +146,16 @@ check_key() {
     echo -n "Checking key file '${KEY_FILE}'... "
 
     # check that there is only 1 public key in the key file
-    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep -c ^pub:)" -ne 1 ] ; then
+    gpg_key_count=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep -c ^pub:)
+    if [ "$gpg_key_count" -ne 1 ] ; then
         echo "FAILED!"
         echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
         return 1
     fi
 
     # check that the key file's fingerprint is correct
-    if [ "$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep ^fpr: | awk -F: '{print $10}')" != "${KEY_FINGERPRINT}" ] ; then
+    gpg_key_fingerprint=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep ^fpr: | awk -F: '{print $10}')
+    if [ "$gpg_key_fingerprint" != "${KEY_FINGERPRINT}" ] ; then
         echo "FAILED!"
         echo "Bad GPG key fingerprint for ${KEY_FILE}!"
         return 1
@@ -228,6 +235,8 @@ download_package_list() {
     # Assume that the repository's base Release file is present
     local source="$1"
     local base_url="$2"
+    local sha256_calc_val_pkg_file
+    local sha256_val_from_release_file
 
     extensions=( '.xz' '.bz2' '.gz' '' )
     for extension in "${extensions[@]}" ; do
@@ -244,9 +253,13 @@ download_package_list() {
             fi
 
             # Verify the checksum of the Packages file, assuming that the last checksums in the Release file are SHA256 sums
+            sha256_val_from_release_file=$(grep "${package_section}/binary-armhf/Packages${extension}" "${source}_Release" | tail -n1 | awk '{print $1}')
+            echo "SHA256 of Packages${extension} from Release file: " "$sha256_val_from_release_file"
+            sha256_calc_val_pkg_file=$(sha256sum "Packages${extension}" | awk '{print $1}')
+            echo "SHA256 calculated on Packages${extension}:        " "$sha256_calc_val_pkg_file"
+
             echo -n "Verifying ${package_section} package list... "
-            if [ "$(grep "${package_section}/binary-armhf/Packages${extension}" "${source}_Release" | tail -n1 | awk '{print $1}')" = \
-                "$(sha256sum "Packages${extension}" | awk '{print $1}')" ] ; then
+            if [ "$sha256_val_from_release_file" = "$sha256_calc_val_pkg_file" ] ; then
                 echo "OK"
             else
                 echo -e "ERROR\nThe checksum of file '${package_section}/binary-armhf/Packages${extension}' doesn't match!"
@@ -274,12 +287,14 @@ download_package_list() {
 download_package_lists() {
     local source="$1"
     local base_url="$2"
+    local gpg_release_verify_retval
 
     echo -e "\nDownloading Release file and its signature..."
     download_file "${base_url}/dists/$release/Release" "${source}_Release"
     download_file "${base_url}/dists/$release/Release.gpg" "${source}_Release.gpg"
     echo -n "Verifying Release file... "
-    if gpg --homedir gnupg --verify "${source}_Release.gpg" "${source}_Release" &> /dev/null ; then
+    gpg_release_verify_retval=$(gpg --homedir gnupg --verify "${source}_Release.gpg" "${source}_Release" &> /dev/null)
+    if $gpg_release_verify_retval ; then
         echo "OK"
     else
         echo -e "ERROR\nBroken GPG signature on Release file!"
@@ -323,8 +338,12 @@ search_for_packages() {
 }
 
 download_packages() {
+    local wget_retval
+    #echo "Files to download:"
+    #echo "${packages_debs[@]}"
     echo -e "\nDownloading packages..."
-    if ! wget -q --show-progress --no-cache -- "${packages_debs[@]}" ; then
+    wget_retval=$(wget -q --show-progress --no-cache -- "${packages_debs[@]}")
+    if ! $wget_retval ; then
         echo -e "ERROR\nDownloading packages failed! Exiting."
         cd ..
         exit 1
