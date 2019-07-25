@@ -7,6 +7,7 @@ preset=server
 packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=jessie
+init_system=systemd
 hostname=pi
 boot_volume_label=
 domainname=
@@ -643,11 +644,6 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # from small to large: base, minimal, server
     # not very logical that minimal > base, but that's how it was historically defined
 
-    init_system=""
-    if [ "$release" = "jessie" ] ; then
-        init_system="systemd"
-    fi
-
     # base
     base_packages="cpufrequtils,kmod"
     for hv in ${hardware_versions}
@@ -673,7 +669,12 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     done
 
     if [ "$init_system" = "systemd" ] ; then
+        base_packages="${base_packages},systemd-sysv"
         base_packages="${base_packages},libpam-systemd"
+    elif [ "$init_system" = "sysvinit" ] ; then
+        base_packages="${base_packages},sysvinit-core"
+    elif [ "$init_system" = "runit" ] ; then
+        base_packages="${base_packages},runit-init"
     fi
     if [ "$hwrng_support" = "1" ]; then
       base_packages="$base_packages,rng-tools"
@@ -741,6 +742,7 @@ echo "  preset = $preset"
 echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
+echo "  init_system = $init_system"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
