@@ -611,7 +611,7 @@ case "$rootfstype" in
     ;;
   "f2fs")
     kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
     rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
