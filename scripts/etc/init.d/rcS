@@ -118,6 +118,10 @@ install_files()
   echo
 }
 
+/bin/busybox mkdir -p /opt/busybox/bin/
+/bin/busybox --install /opt/busybox/bin/
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /boot
@@ -128,12 +132,9 @@ mkdir -p /etc/raspbian-ua-netinst
 mkdir -p /rootfs/boot
 mkdir -p /bootfs
 mkdir -p /tmp/
-mkdir -p /opt/busybox/bin/
 
-/bin/busybox --install /opt/busybox/bin/
 ln -s /opt/busybox/bin/sh /bin/sh
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
 # put PATH in /etc/profile so it's also available when we get a busybox shell
 echo "export PATH=${PATH}" > /etc/profile
 
