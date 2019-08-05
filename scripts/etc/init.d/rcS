@@ -118,6 +118,36 @@ install_files()
   echo
 }
 
+setup_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Setting up chroot in $CHROOT_DIR... "
+        mount --bind /proc "$CHROOT_DIR/proc"
+        mount --bind /sys "$CHROOT_DIR/sys"
+        mount --bind /dev "$CHROOT_DIR/dev"
+        mount --bind /dev/pts "$CHROOT_DIR/dev/pts"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not setting up chroot."
+    fi
+}
+
+teardown_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Tearing down chroot in $CHROOT_DIR... "
+        umount "$CHROOT_DIR/dev/pts"
+        umount "$CHROOT_DIR/dev"
+        umount "$CHROOT_DIR/sys"
+        umount "$CHROOT_DIR/proc"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not tearing down chroot."
+    fi
+}
+
 /bin/busybox mkdir -p /opt/busybox/bin/
 /bin/busybox --install /opt/busybox/bin/
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
@@ -965,6 +995,8 @@ cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror 
 
 echo "Configuring installed system:"
 
+setup_chroot /rootfs
+
 # configure root login
 if [ ! "$disable_root" = "1" ]; then
     # add SSH key for root (if provided)
@@ -1454,6 +1486,8 @@ cd $old_dir || fail
 echo "Regenerating initramfs... "
 chroot /rootfs /usr/sbin/update-initramfs -u || fail
 echo "Regeneration of initramfs succeeded."
+
+teardown_chroot /rootfs
 
 # save current time if fake-hwclock
 echo "Saving current time for fake-hwclock..."
