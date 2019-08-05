@@ -734,8 +734,13 @@ fi
 if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
-    modprobe sd_mod &> /dev/null || fail
-    modprobe usb-storage &> /dev/null || fail
+    # only do modprobe if the module is NOT built into the kernel
+    if [ "$(grep -c "sd_mod" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe sd_mod &> /dev/null || fail
+    fi
+    if [ "$(grep -c "usb-storage" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe usb-storage &> /dev/null || fail
+    fi
     echo "OK"
 fi
 
