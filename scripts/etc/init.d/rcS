@@ -960,11 +960,6 @@ mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
-if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
-    mkdir -p /rootfs/etc/initramfs-tools
-    echo $rootfstype >> /rootfs/etc/initramfs-tools/modules
-fi
-
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
@@ -1422,6 +1417,43 @@ fi
 echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
+
+echo -n "Configuring initramfs... "
+
+# if the root fs type isn't build into the kernel, make sure the module is present in the initramfs
+if [ "$(grep -c $rootfstype /rootfs/lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+{
+    echo "$rootfstype"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+# if the root fs is on a USB drive, make sure the needed modules are present in initramfs as well
+if [ "$usbroot" = "1" ]; then
+{
+    echo "sd_mod"
+    echo "usb-storage"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+echo "OK"
+
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/initramfs-tools/hooks/ || fail
+
+for hook_file in ./*
+do
+    if [ -f $hook_file ]; then
+        echo -n "Copying '$hook_file' to /etc/initramfs-tools/hooks/..."
+        cp $hook_file /rootfs/etc/initramfs-tools/hooks/ || fail
+        echo "OK"
+    fi
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir || fail
+
+echo "Regenerating initramfs... "
+chroot /rootfs /usr/sbin/update-initramfs -u || fail
+echo "Regeneration of initramfs succeeded."
 
 # save current time if fake-hwclock
 echo "Saving current time for fake-hwclock..."
