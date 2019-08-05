@@ -644,6 +644,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # base
     base_packages="cpufrequtils,kmod"
+
     for hv in ${hardware_versions}
     do
         case $hv in
@@ -674,11 +675,23 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     elif [ "$init_system" = "runit" ] ; then
         base_packages="${base_packages},runit-init"
     fi
+
     if [ "$hwrng_support" = "1" ]; then
-      base_packages="$base_packages,rng-tools"
+      base_packages="${base_packages},rng-tools"
     fi
+
+    filesystem_packages="dosfstools"
+    if [ "$rootfstype" = "ext4" ]; then
+        filesystem_packages="${filesystem_packages},e2fsprogs"
+    elif [ "$rootfstype" = "f2fs" ]; then
+        filesystem_packages="${filesystem_packages},f2fs-tools"
+    elif [ "$rootfstype" = "btrfs" ]; then
+        filesystem_packages="${filesystem_packages},btrfs-progs"
+    fi
+    base_packages="${base_packages},${filesystem_packages}"
+
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools,resolvconf"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,resolvconf"
     if [ -n "$have_ip6" ] && [ "$ip6_nameservers" = "auto" ]; then
         minimal_packages="${minimal_packages},rdnssd"
     fi
@@ -1018,13 +1031,7 @@ echo -n "  Configuring /etc/fstab... "
 touch /rootfs/etc/fstab || fail
 {
     echo "$bootpartition /boot vfat defaults 0 2"
-    if [ "$rootfstype" = "f2fs" ]; then
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
-    elif [ "$rootfstype" = "btrfs" ]; then
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
-    else
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
-    fi
+    echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
     # also specify /tmp on tmpfs in /etc/fstab so it works across init systems
     echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0"
 } >> /rootfs/etc/fstab || fail
