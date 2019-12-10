@@ -648,21 +648,23 @@ cp installer-rpi.cpio.gz bootfs/
     echo "[pi1]"
     echo "kernel=kernel-rpi1_install.img"
     echo "initramfs installer-rpi.cpio.gz"
-    # rpi3 uses the same kernel as rpi2
     echo "[pi2]"
     echo "kernel=kernel-rpi2_install.img"
     echo "initramfs installer-rpi.cpio.gz"
+    # rpi3 uses the same kernel as rpi2
     echo "[pi3]"
-    echo "kernel=kernel-rpi2_install.img"
-    echo "initramfs installer-rpi.cpio.gz"
-    echo "[pi4]"
     echo "kernel=kernel-rpi2_install.img"
     echo "initramfs installer-rpi.cpio.gz"
     # on the rpi3 the uart port is used by bluetooth by default
     # but during the installation we want the serial console
-    # the next statement does that, but consequently also disables bluetooth
-    # FIXME: This line leads to a kernel panic with the current firmware/kernel
-    ##echo "enable_uart=1"
+    # the next statement does that, but has an effect on bluetooth
+    # not sure how/what as I don't fully understand
+    # https://github.com/raspberrypi/documentation/blob/master/configuration/uart.md
+    echo "dtoverlay=pi3-miniuart-bt"
+    # rpi4 uses the same kernel as rpi2
+    echo "[pi4]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
     # reset filter
     echo "[all]"
 } >> bootfs/config.txt
