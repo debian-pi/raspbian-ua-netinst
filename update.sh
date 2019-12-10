@@ -27,6 +27,7 @@ packages+=("linux-image-${KERNEL_VERSION_RPI2}")
 packages+=("firmware-brcm80211")
 packages+=("btrfs-progs")
 packages+=("busybox")
+packages+=("ca-certificates-udeb")
 packages+=("cdebootstrap-static")
 packages+=("curl")
 packages+=("dosfstools")
@@ -304,7 +305,7 @@ download_package_lists() {
 
     echo -n > "${source}_Packages"
 
-    for package_section in firmware main non-free; do
+    for package_section in firmware main non-free main/debian-installer; do
         download_package_list "${source}" "${base_url}"
     done
 }

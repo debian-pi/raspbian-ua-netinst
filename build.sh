@@ -142,7 +142,7 @@ function create_cpio {
     mkdir -p rootfs/bin/
     mkdir -p rootfs/lib/arm-linux-gnueabihf/
     mkdir -p rootfs/lib/lsb/init-functions.d/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/}
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/,ssl/certs}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
     mkdir -p rootfs/etc/network/{if-down.d,if-post-down.d,if-pre-up.d,if-up.d,interfaces.d}
     mkdir -p rootfs/lib/ifupdown/
@@ -151,7 +151,7 @@ function create_cpio {
     mkdir -p rootfs/usr/bin/
     mkdir -p rootfs/usr/lib/mime/packages/
     mkdir -p rootfs/usr/lib/engines-1.1/
-    mkdir -p rootfs/usr/lib/{tar,tc}
+    mkdir -p rootfs/usr/lib/{ssl,tar,tc}
     mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
@@ -180,6 +180,12 @@ function create_cpio {
     # busybox components
     cp tmp/bin/busybox rootfs/bin
     ln -s bin/busybox rootfs/init
+
+    # ca-certificates-udeb components
+    cp tmp/etc/ssl/certs/* rootfs/etc/ssl/certs/
+    cd rootfs/usr/lib/ssl
+    ln -s ../../../etc/ssl/certs certs 
+    cd ../../../..
 
     # cdebootstrap-static components
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
@@ -609,7 +615,7 @@ rm -rf tmp
 mkdir tmp
 
 # extract debs
-for deb in packages/*.deb; do
+for deb in packages/*.*deb; do
     echo "Extracting " "$(basename "$deb")..."
     (cd tmp && ar x ../"$deb" && tar -xf data.tar.*; rm data.tar.*)
 done
