@@ -36,11 +36,11 @@ function check_dependencies {
     local mod
     local dep
     # iterate over the passed modules
-    for mod in ${mods[@]}; do
+    for mod in "${mods[@]}"; do
         # find the modules dependencies, convert into array
         deps=($(grep "^${mod}" "${depmod_file}" | cut -d':' -f2))
         # iterate over the found dependencies
-        for dep in ${deps[@]}; do
+        for dep in "${deps[@]}"; do
             # check if the dependency is in $modules, if not, add to temp array
             contains_element "${dep}" "${modules[@]}" || new_found+=("${dep}")
         done
@@ -62,7 +62,8 @@ function touch_tempfile {
 #   the function checks for different commands and uses the appropriate one
 #   it will fallback to creating a file in /tmp
 function create_tempfile {
-    local tmp_ptrn="/tmp/$(basename "${0}").${$}"
+    local tmp_ptrn
+    tmp_ptrn="/tmp/$(basename "${0}").${$}"
     if type mktemp &> /dev/null; then
         mktemp 2> /dev/null || \
             mktemp -t raspbian-ua-netinst 2> /dev/null || \
@@ -103,7 +104,7 @@ function add_kernel_modules {
 
     # calculate module dependencies
     depmod_file=$(create_tempfile)
-    /sbin/depmod -nab tmp ${KERNEL_VERSION} > ${depmod_file}
+    /sbin/depmod -nab tmp ${KERNEL_VERSION} > "${depmod_file}"
 
     modules=("${INSTALL_MODULES[@]}")
 
@@ -117,14 +118,14 @@ function add_kernel_modules {
     done
 
     # do some cleanup
-    rm -f ${depmod_file}
+    rm -f "${depmod_file}"
 
     # copy the needed kernel modules to the rootfs (create directories as needed)
     srcdir="tmp/lib/modules/${KERNEL_VERSION}"
     dstdir="rootfs/lib/modules/${KERNEL_VERSION}"
-    for module in ${modules[@]}; do
-        mkdir -p "${dstdir}/$(dirname ${module})"
-        cp -a "${srcdir}/${module}" "${dstdir}/$(dirname ${module})"
+    for module in "${modules[@]}"; do
+        mkdir -p "${dstdir}/$(dirname "${module}")"
+        cp -a "${srcdir}/${module}" "${dstdir}/$(dirname "${module}")"
     done
 
     /sbin/depmod -a -b rootfs ${KERNEL_VERSION}
@@ -141,7 +142,7 @@ function create_cpio {
     mkdir -p rootfs/bin/
     mkdir -p rootfs/lib/arm-linux-gnueabihf/
     mkdir -p rootfs/lib/lsb/init-functions.d/
-    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/}
+    mkdir -p rootfs/etc/{alternatives,cron.daily,default,init,init.d,iproute2,ld.so.conf.d,logrotate.d,network/if-up.d/,ssl/certs}
     mkdir -p rootfs/etc/dpkg/dpkg.cfg.d/
     mkdir -p rootfs/etc/network/{if-down.d,if-post-down.d,if-pre-up.d,if-up.d,interfaces.d}
     mkdir -p rootfs/lib/ifupdown/
@@ -149,8 +150,8 @@ function create_cpio {
     mkdir -p rootfs/sbin/
     mkdir -p rootfs/usr/bin/
     mkdir -p rootfs/usr/lib/mime/packages/
-    mkdir -p rootfs/usr/lib/openssl-1.0.0/engines/
-    mkdir -p rootfs/usr/lib/{tar,tc}
+    mkdir -p rootfs/usr/lib/engines-1.1/
+    mkdir -p rootfs/usr/lib/{ssl,tar,tc}
     mkdir -p rootfs/usr/sbin/
     mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
@@ -166,24 +167,32 @@ function create_cpio {
     cp -r scripts/* rootfs/
 
     # update version and date
-    sed -i "s/__VERSION__/git~`git rev-parse --short @{0}`/" rootfs/etc/init.d/rcS
-    sed -i "s/__DATE__/`date`/" rootfs/etc/init.d/rcS
+    sed -i "s/__VERSION__/git~$(git rev-parse --short "@{0}")/" rootfs/etc/init.d/rcS
+    sed -i "s/__DATE__/$(date)/" rootfs/etc/init.d/rcS
 
     # add firmware for wireless chipset (RPi 3 and Zero W)
     mkdir -p rootfs/lib/firmware/brcm
     cp tmp/lib/firmware/brcm/brcmfmac43430-sdio.{bin,txt} rootfs/lib/firmware/brcm
 
-    # btrfs-tools components
-    cp tmp/sbin/mkfs.btrfs rootfs/sbin/
-    cp tmp/usr/lib/*/libbtrfs.so.0  rootfs/lib/
+    # btrfs-progs components
+    cp tmp/bin/mkfs.btrfs rootfs/bin/
 
     # busybox components
     cp tmp/bin/busybox rootfs/bin
     ln -s bin/busybox rootfs/init
 
+    # ca-certificates-udeb components
+    cp tmp/etc/ssl/certs/* rootfs/etc/ssl/certs/
+    cd rootfs/usr/lib/ssl
+    ln -s ../../../etc/ssl/certs certs 
+    cd ../../../..
+
     # cdebootstrap-static components
     cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
     cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+
+    # curl components
+    cp tmp/usr/bin/curl rootfs/usr/bin/
 
     # dosfstools components
     cp tmp/sbin/fatlabel rootfs/sbin/
@@ -217,7 +226,7 @@ function create_cpio {
     cp tmp/usr/share/dpkg/abitable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/cputable rootfs/usr/share/dpkg/
     cp tmp/usr/share/dpkg/ostable rootfs/usr/share/dpkg/
-    cp tmp/usr/share/dpkg/triplettable rootfs/usr/share/dpkg/
+    cp tmp/usr/share/dpkg/tupletable rootfs/usr/share/dpkg/
     cd rootfs/usr/sbin
     ln -s ../bin/dpkg-divert dpkg-divert
     ln -s ../bin/dpkg-statoverride dpkg-statoverride
@@ -225,7 +234,7 @@ function create_cpio {
     cd ../../..
     touch rootfs/var/lib/dpkg/status
 
-    # e2fslibs components
+    # libext2fs2 components
     cp tmp/lib/*/libe2p.so.2.* rootfs/lib/libe2p.so.2
     cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
 
@@ -261,21 +270,19 @@ function create_cpio {
 
     # f2fs-tools components
     cp tmp/sbin/mkfs.f2fs rootfs/sbin/
-    cp tmp/lib/*/libf2fs.so.0  rootfs/lib/
+
+    # fdisk components
+    cp tmp/sbin/fdisk rootfs/sbin/
 
     # gpgv components
     cp tmp/usr/bin/gpgv rootfs/usr/bin/
 
     # ifupdown components
     cp tmp/etc/default/networking rootfs/etc/default/
-    cp tmp/etc/init/network-interface-container.conf rootfs/etc/init/
-    cp tmp/etc/init/network-interface-security.conf rootfs/etc/init/
-    cp tmp/etc/init/network-interface.conf rootfs/etc/init/
-    cp tmp/etc/init/networking.conf rootfs/etc/init/
     cp tmp/etc/init.d/networking rootfs/etc/init.d/
-    cp tmp/etc/network/if-down.d/upstart rootfs/etc/network/if-down.d/
-    cp tmp/etc/network/if-up.d/upstart rootfs/etc/network/if-up.d/
     cp tmp/lib/ifupdown/settle-dad.sh rootfs/lib/ifupdown/
+    cp tmp/lib/ifupdown/wait-for-ll6.sh rootfs/lib/ifupdown/
+    cp tmp/lib/ifupdown/wait-online.sh rootfs/lib/ifupdown/
     cp tmp/sbin/ifup rootfs/sbin/
     cd rootfs/sbin
     ln -s ifup ifdown
@@ -334,7 +341,6 @@ function create_cpio {
     cp tmp/etc/default/ntpdate rootfs/etc/default/
     # don't use /etc/ntp.conf since we don't have it
     sed -i s/NTPDATE_USE_NTP_CONF=yes/NTPDATE_USE_NTP_CONF=no/ rootfs/etc/default/ntpdate
-    cp tmp/etc/network/if-up.d/ntpdate rootfs/etc/network/if-up.d/
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
 
@@ -360,7 +366,6 @@ function create_cpio {
     # util-linux components
     cp tmp/sbin/blkid rootfs/sbin/
     cp tmp/sbin/blockdev rootfs/sbin/
-    cp tmp/sbin/fdisk rootfs/sbin/
     cp tmp/sbin/fsck rootfs/sbin/
     cp tmp/sbin/mkswap rootfs/sbin/
     cp tmp/sbin/swaplabel rootfs/sbin/
@@ -370,13 +375,13 @@ function create_cpio {
     cp -r tmp/etc/wpa_supplicant rootfs/etc/wpa_supplicant
 
     # libacl1 components
-    cp tmp/lib/*/libacl.so.1.* rootfs/lib/libacl.so.1
+    cp tmp/usr/lib/*/libacl.so.1.* rootfs/usr/lib/libacl.so.1
 
     # libatm1 components
     cp tmp/lib/*/libatm.so.1.* rootfs/lib/libatm.so.1
 
     # libattr1 components
-    cp tmp/lib/*/libattr.so.1.* rootfs/lib/libattr.so.1
+    cp tmp/usr/lib/*/libattr.so.1.* rootfs/usr/lib/libattr.so.1
 
     # libaudit-common components
     cp tmp/etc/libaudit.conf rootfs/etc/
@@ -397,7 +402,6 @@ function create_cpio {
     cp tmp/etc/gai.conf rootfs/etc/
     cp tmp/etc/ld.so.conf rootfs/etc/
     cp tmp/sbin/ldconfig rootfs/sbin/
-    cp tmp/sbin/ldconfig.real rootfs/sbin/
     cp tmp/usr/bin/catchsegv rootfs/usr/bin/
     cp tmp/usr/bin/getconf rootfs/usr/bin/
     cp tmp/usr/bin/getent rootfs/usr/bin/
@@ -421,7 +425,6 @@ function create_cpio {
     cp tmp/lib/*/libanl-*.so rootfs/lib/libanl.so.1
     cp tmp/lib/*/libBrokenLocale-*.so rootfs/lib/libBrokenLocale.so.1
     cp tmp/lib/*/libc-*.so rootfs/lib/libc.so.6
-    cp tmp/lib/*/libcidn-*.so rootfs/lib/libcidn.so.1
     cp tmp/lib/*/libcrypt-*.so rootfs/lib/libcrypt.so.1
     cp tmp/lib/*/libdl-*.so rootfs/lib/libdl.so.2
     cp tmp/lib/*/libm-*.so  rootfs/lib/libm.so.6
@@ -432,6 +435,7 @@ function create_cpio {
     cp tmp/lib/*/libnss_files-*.so rootfs/lib/libnss_files.so.2
     cp tmp/lib/*/libnss_hesiod-*.so rootfs/lib/libnss_hesiod.so.2
     cp tmp/lib/*/libnss_nis-*.so rootfs/lib/libnss_nis.so.2
+    cp tmp/lib/*/libnss_nisplus-*.so rootfs/lib/libnss_nisplus.so.2
     cp tmp/lib/*/libpcprofile.so rootfs/lib/
     cp tmp/lib/*/libpthread-*.so rootfs/lib/libpthread.so.0
     cp tmp/lib/*/libresolv-*.so rootfs/lib/libresolv.so.2
@@ -443,8 +447,11 @@ function create_cpio {
     # libcap2 components
     cp tmp/lib/*/libcap.so.2.* rootfs/lib/libcap.so.2
 
-    # libcomerr2 components
+    # libcom-err2 components
     cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
+
+    # libcurl4 components
+    cp tmp/usr/lib/*/libcurl.so.4.* rootfs/usr/lib/libcurl.so.4
 
     # libdb5.3 components
     cp tmp/usr/lib/*/libdb-5.3.so rootfs/usr/lib/libdb5.3.so
@@ -453,9 +460,59 @@ function create_cpio {
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
 
+    # libelf1 components
+    cp tmp/usr/lib/*/libelf-0.*.so rootfs/usr/lib/libelf.so.1
+
+    # libf2fs5 components
+    cp tmp/lib/*/libf2fs.so.5  rootfs/lib/
+
+    # libfdisk1 components
+    cp tmp/lib/*/libfdisk.so.1.* rootfs/lib/libfdisk.so.1
+
+    # libffi6 components
+    cp tmp/usr/lib/*/libffi.so.6.* rootfs/usr/lib/libffi.so.6
+
     # libgcc1 components
     cp tmp/lib/*/libgcc_s.so.1 rootfs/lib/
     cp tmp/lib/*/librt.so.1 rootfs/lib/
+
+    # libgcrypt20 components
+    cp tmp/lib/*/libgcrypt.so.20.* rootfs/lib/libgcrypt.so.20
+
+    # libgmp10 components
+    cp tmp/usr/lib/*/libgmp.so.10.* rootfs/usr/lib/libgmp.so.10
+
+    # libgnutls30 components
+    cp tmp/usr/lib/*/libgnutls.so.30.* rootfs/usr/lib/libgnutls.so.30
+
+    # libgpg-error0 components
+    cp tmp/lib/*/libgpg-error.so.0.* rootfs/lib/libgpg-error.so.0
+
+    # libgssapi-krb5-2 components
+    cp tmp/usr/lib/*/libgssapi_krb5.so.2.* rootfs/usr/lib/libgssapi_krb5.so.2
+
+    # libhogweed4 components
+    cp tmp/usr/lib/*/libhogweed.so.4.* rootfs/usr/lib/libhogweed.so.4
+
+    # libidn2-0 components
+    cp tmp/usr/lib/*/libidn2.so.0.* rootfs/usr/lib/libidn2.so.0
+
+    # libk5crypto3 components
+    cp tmp/usr/lib/*/libk5crypto.so.3.* rootfs/usr/lib/libk5crypto.so.3
+
+    # libkeyutils1 components
+    cp tmp/lib/*/libkeyutils.so.1.* rootfs/lib/libkeyutils.so.1
+
+    # libkrb5-3 components
+    cp tmp/usr/lib/*/libkrb5.so.3.* rootfs/usr/lib/libkrb5.so.3
+
+    # libkrb5support0 components
+    cp tmp/usr/lib/*/libkrb5support.so.0.* rootfs/usr/lib/libkrb5support.so.0
+
+    # libldap-2.4-2 components
+    cp tmp/usr/lib/*/liblber-2.4.so.2.* rootfs/usr/lib/liblber-2.4.so.2
+    cp tmp/usr/lib/*/libldap-2.4.so.2 rootfs/usr/lib/
+    cp tmp/usr/lib/*/libldap_r-2.4.so.2.* rootfs/usr/lib/libldap_r-2.4.so.2
 
     # liblzma5 components
     cp tmp/lib/*/liblzma.so.5.* rootfs/lib/liblzma.so.5
@@ -463,20 +520,26 @@ function create_cpio {
     # liblzo2-2 components
     cp tmp/lib/*/liblzo2.so.2 rootfs/lib/
 
+    # libmnl0 components
+    cp tmp/lib/*/libmnl.so.0.* rootfs/lib/libmnl.so.0
+
     # libmount1 components
     cp tmp/lib/*/libmount.so.1.* rootfs/lib/libmount.so.1
 
-    # libncurses5 components
-    cp tmp/lib/*/libncurses.so.5.* rootfs/lib/libncurses.so.5
-    cp tmp/usr/lib/*/libform.so.5.* rootfs/usr/lib/libform.so.5
-    cp tmp/usr/lib/*/libmenu.so.5.* rootfs/usr/lib/libmenu.so.5
-    cp tmp/usr/lib/*/libpanel.so.5.* rootfs/usr/lib/libpanel.so.5
+    # libnettle6 components
+    cp tmp/usr/lib/*/libnettle.so.6.* rootfs/usr/lib/libnettle.so.6
+
+    # libnghttp2-14 components
+    cp tmp/usr/lib/*/libnghttp2.so.14.* rootfs/usr/lib/libnghttp2.so.14
 
     # libnl-3-200 components
     cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
 
     # libnl-genl-3-200 components
     cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
+
+    # libp11-kit0 components
+    cp tmp/usr/lib/*/libp11-kit.so.0.* rootfs/usr/lib/libp11-kit.so.0
 
     # libpam0g components
     cp tmp/lib/*/libpam.so.0.* rootfs/lib/libpam.so.0
@@ -490,6 +553,15 @@ function create_cpio {
     # libpcsclite components
     cp tmp/usr/lib/*/libpcsclite.so.1 rootfs/lib/libpcsclite.so.1
 
+    # libpsl5 components
+    cp tmp/usr/lib/*/libpsl.so.5.* rootfs/usr/lib/libpsl.so.5
+
+    # librtmp1 components
+    cp tmp/usr/lib/*/librtmp.so.1 rootfs/usr/lib/
+
+    # libsasl2-2 components
+    cp tmp/usr/lib/*/libsasl2.so.2.* rootfs/usr/lib/libsasl2.so.2
+
     # libselinux1 components
     cp tmp/lib/*/libselinux.so.1 rootfs/lib/
 
@@ -499,25 +571,28 @@ function create_cpio {
     # libsmartcols1 components
     cp tmp/lib/*/libsmartcols.so.1.* rootfs/lib/libsmartcols.so.1
 
-    # libssl1.0.0 components
-    cp tmp/usr/lib/*/libcrypto.so.1.0.0 rootfs/usr/lib/
-    cp tmp/usr/lib/*/libssl.so.1.0.0 rootfs/usr/lib/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/lib4758cca.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libaep.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libatalla.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcapi.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libchil.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libcswift.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgmp.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libgost.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libnuron.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libpadlock.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libsureware.so rootfs/usr/lib/openssl-1.0.0/engines/
-    cp tmp/usr/lib/*/openssl-1.0.0/engines/libubsec.so rootfs/usr/lib/openssl-1.0.0/engines/
+    # libssh2-1 components
+    cp tmp/usr/lib/*/libssh2.so.1.* rootfs/usr/lib/libssh2.so.1
 
-    # libtinfo5 components
-    cp tmp/lib/*/libtinfo.so.5.* rootfs/lib/libtinfo.so.5
-    cp tmp/usr/lib/*/libtic.so.5.* rootfs/usr/lib/libtinfo.so.5
+    # libssl1.1.0 components
+    cp tmp/usr/lib/*/libcrypto.so.1.1 rootfs/usr/lib/
+    cp tmp/usr/lib/*/libssl.so.1.1 rootfs/usr/lib/
+    cp tmp/usr/lib/*/engines-1.1/afalg.so rootfs/usr/lib/engines-1.1/
+    cp tmp/usr/lib/*/engines-1.1/capi.so rootfs/usr/lib/engines-1.1/
+    cp tmp/usr/lib/*/engines-1.1/padlock.so rootfs/usr/lib/engines-1.1/
+
+    # libtasn1-6 components
+    cp tmp/usr/lib/*/libtasn1.so.6.* rootfs/usr/lib/libtasn1.so.6
+
+    # libtinfo6 components
+    cp tmp/lib/*/libtinfo.so.6.* rootfs/lib/libtinfo.so.6
+    cp tmp/usr/lib/*/libtic.so.6.* rootfs/usr/lib/libtic.so.6
+
+    # libudev1 components
+    cp tmp/lib/*/libudev.so.1.* rootfs/lib/libudev.so.1
+
+    # libunistring2 components
+    cp tmp/usr/lib/*/libunistring.so.2.* rootfs/usr/lib/libunistring.so.2
 
     # libuuid1 components
     cp tmp/lib/*/libuuid.so.1.* rootfs/lib/libuuid.so.1
@@ -540,9 +615,9 @@ rm -rf tmp
 mkdir tmp
 
 # extract debs
-for deb in packages/*.deb; do
-    echo Extracting $(basename $deb)...
-    (cd tmp && ar x ../$deb && tar -xf data.tar.*; rm data.tar.*)
+for deb in packages/*.*deb; do
+    echo "Extracting " "$(basename "$deb")..."
+    (cd tmp && ar x ../"$deb" && tar -xf data.tar.*; rm data.tar.*)
 done
 
 # initialize bootfs
@@ -573,18 +648,23 @@ cp installer-rpi.cpio.gz bootfs/
     echo "[pi1]"
     echo "kernel=kernel-rpi1_install.img"
     echo "initramfs installer-rpi.cpio.gz"
-    # rpi3 uses the same kernel as rpi2
     echo "[pi2]"
     echo "kernel=kernel-rpi2_install.img"
     echo "initramfs installer-rpi.cpio.gz"
+    # rpi3 uses the same kernel as rpi2
     echo "[pi3]"
     echo "kernel=kernel-rpi2_install.img"
     echo "initramfs installer-rpi.cpio.gz"
     # on the rpi3 the uart port is used by bluetooth by default
     # but during the installation we want the serial console
-    # the next statement does that, but consequently also disables bluetooth
-    # FIXME: This line leads to a kernel panic with the current firmware/kernel
-    ##echo "enable_uart=1"
+    # the next statement does that, but has an effect on bluetooth
+    # not sure how/what as I don't fully understand
+    # https://github.com/raspberrypi/documentation/blob/master/configuration/uart.md
+    echo "dtoverlay=pi3-miniuart-bt"
+    # rpi4 uses the same kernel as rpi2
+    echo "[pi4]"
+    echo "kernel=kernel-rpi2_install.img"
+    echo "initramfs installer-rpi.cpio.gz"
     # reset filter
     echo "[all]"
 } >> bootfs/config.txt
@@ -607,7 +687,7 @@ if [ -d config ] ; then
     cp -r config/* bootfs/config
 fi
 
-ZIPFILE=raspbian-ua-netinst-`date +%Y%m%d`-git`git rev-parse --short @{0}`.zip
-rm -f $ZIPFILE
+ZIPFILE=raspbian-ua-netinst-$(date +%Y%m%d)-git$(git rev-parse --short "@{0}").zip
+rm -f "$ZIPFILE"
 
-(cd bootfs && zip -r -9 ../$ZIPFILE *)
+(cd bootfs && zip -r -9 ../"$ZIPFILE" -- *)

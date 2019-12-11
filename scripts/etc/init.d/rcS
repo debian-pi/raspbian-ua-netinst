@@ -7,6 +7,7 @@ preset=server
 packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
 release=jessie
+init_system=systemd
 hostname=pi
 boot_volume_label=
 domainname=
@@ -117,6 +118,40 @@ install_files()
   echo
 }
 
+setup_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Setting up chroot in $CHROOT_DIR... "
+        mount --bind /proc "$CHROOT_DIR/proc"
+        mount --bind /sys "$CHROOT_DIR/sys"
+        mount --bind /dev "$CHROOT_DIR/dev"
+        mount --bind /dev/pts "$CHROOT_DIR/dev/pts"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not setting up chroot."
+    fi
+}
+
+teardown_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Tearing down chroot in $CHROOT_DIR... "
+        umount "$CHROOT_DIR/dev/pts"
+        umount "$CHROOT_DIR/dev"
+        umount "$CHROOT_DIR/sys"
+        umount "$CHROOT_DIR/proc"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not tearing down chroot."
+    fi
+}
+
+/bin/busybox mkdir -p /opt/busybox/bin/
+/bin/busybox --install /opt/busybox/bin/
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
+
 mkdir -p /proc
 mkdir -p /sys
 mkdir -p /boot
@@ -127,12 +162,9 @@ mkdir -p /etc/raspbian-ua-netinst
 mkdir -p /rootfs/boot
 mkdir -p /bootfs
 mkdir -p /tmp/
-mkdir -p /opt/busybox/bin/
 
-/bin/busybox --install /opt/busybox/bin/
 ln -s /opt/busybox/bin/sh /bin/sh
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
 # put PATH in /etc/profile so it's also available when we get a busybox shell
 echo "export PATH=${PATH}" > /etc/profile
 
@@ -194,12 +226,10 @@ rm ${LOGFILE}.pipe
 
 # we should do this with bitshift operations, I think on the serial
 # http://elinux.org/RPi_HardwareHistory#Board_Revision_History
+# https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
 cpu_revision=$(grep Revision /proc/cpuinfo | cut -d " " -f 2 | sed 's/^1000//')
 case $cpu_revision in
-#    0011|0014)
-#        rpi_hardware_version="cm"  # not supported
-#       ;;
-    900092|900093|920093|9000c1)
+    900092|900093|9000c1|920092|920093)
         rpi_hardware_version="0"
         ;;
     0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015|900021|900032)
@@ -208,12 +238,12 @@ case $cpu_revision in
     a01040|a01041|a21041|a22042)
         rpi_hardware_version="2"
         ;;
-    a02082|a22082|a32082)
+    9020e0|a02082|a020d3|a22082|a22083|a32082|a52082)
         rpi_hardware_version="3"
         ;;
-#    a020a0)
-#        rpi_hardware_version="cm3"  # not supported
-#        ;;
+    a03111|b03111|c03111)
+        rpi_hardware_version="4"
+        ;;
     *)
         rpi_hardware_version="unknown"
         ;;
@@ -564,7 +594,7 @@ echo ""
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    wget -q -O /online-config.txt $online_config &>/dev/null || fail
+    curl -L --silent -o /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
     echo "================================================="
@@ -581,15 +611,16 @@ if [ "$hardware_versions" = "detect" ]; then
         1) hardware_versions="1" ;;
         2) hardware_versions="2" ;;
         3) hardware_versions="3" ;;
+        4) hardware_versions="4" ;;
         *)
            echo ""
            echo "================================================="
            echo "     No Raspberry Pi hardware detected!!"
            echo " Value of cpu_revision variable: '${cpu_revision}'"
-           echo "        Building for Pi 0, 1, 2 and 3."
+           echo "        Building for Pi 0, 1, 2, 3 and 4."
            echo "================================================="
            echo ""
-           hardware_versions="0 1 2 3"
+           hardware_versions="0 1 2 3 4"
            ;;
     esac
 fi
@@ -597,20 +628,17 @@ fi
 # prepare rootfs mount options
 case "$rootfstype" in
   "btrfs")
-    kernel_module=true
     rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
     rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
   "ext4")
-    kernel_module=true
     rootfs_mkfs_options=${rootfs_mkfs_options:-''}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
     rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
     ;;
   "f2fs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
     rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
@@ -644,18 +672,14 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     # from small to large: base, minimal, server
     # not very logical that minimal > base, but that's how it was historically defined
 
-    init_system=""
-    if [ "$release" = "jessie" ] ; then
-        init_system="systemd"
-    fi
-
     # base
     base_packages="cpufrequtils,kmod"
+
     for hv in ${hardware_versions}
     do
         case $hv in
             0|1) kernel_meta_package=linux-image-rpi-rpfv ;;
-            2|3) kernel_meta_package=linux-image-rpi2-rpfv ;;
+            2|3|4) kernel_meta_package=linux-image-rpi2-rpfv ;;
             *)
                 echo ""
                 echo "================================================="
@@ -674,13 +698,30 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     done
 
     if [ "$init_system" = "systemd" ] ; then
+        base_packages="${base_packages},systemd-sysv"
         base_packages="${base_packages},libpam-systemd"
+    elif [ "$init_system" = "sysvinit" ] ; then
+        base_packages="${base_packages},sysvinit-core"
+    elif [ "$init_system" = "runit" ] ; then
+        base_packages="${base_packages},runit-init"
     fi
+
     if [ "$hwrng_support" = "1" ]; then
-      base_packages="$base_packages,rng-tools"
+      base_packages="${base_packages},rng-tools"
     fi
+
+    filesystem_packages="dosfstools"
+    if [ "$rootfstype" = "ext4" ]; then
+        filesystem_packages="${filesystem_packages},e2fsprogs"
+    elif [ "$rootfstype" = "f2fs" ]; then
+        filesystem_packages="${filesystem_packages},f2fs-tools"
+    elif [ "$rootfstype" = "btrfs" ]; then
+        filesystem_packages="${filesystem_packages},btrfs-progs"
+    fi
+    base_packages="${base_packages},${filesystem_packages}"
+
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,dosfstools,resolvconf"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,resolvconf"
     if [ -n "$have_ip6" ] && [ "$ip6_nameservers" = "auto" ]; then
         minimal_packages="${minimal_packages},rdnssd"
     fi
@@ -723,8 +764,13 @@ fi
 if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
-    modprobe sd_mod &> /dev/null || fail
-    modprobe usb-storage &> /dev/null || fail
+    # only do modprobe if the module is NOT built into the kernel
+    if [ "$(grep -c "sd_mod" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe sd_mod &> /dev/null || fail
+    fi
+    if [ "$(grep -c "usb-storage" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe usb-storage &> /dev/null || fail
+    fi
     echo "OK"
 fi
 
@@ -742,6 +788,7 @@ echo "  preset = $preset"
 echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
+echo "  init_system = $init_system"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
@@ -926,12 +973,11 @@ sync
 umount /boot || fail
 echo "OK"
 
-if [ "$kernel_module" = true ] ; then
-  if [ "$rootfstype" != "ext4" ] ; then
+# only do modprobe if the module is NOT built into the kernel
+if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
     echo -n "Loading $rootfstype module... "
     modprobe $rootfstype &> /dev/null || fail
     echo "OK"
-  fi
 fi
 
 echo -n "Initializing / as $rootfstype... "
@@ -944,17 +990,12 @@ mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
-if [ "$kernel_module" = true ] ; then
-  if [ "$rootfstype" != "ext4" ] ; then
-    mkdir -p /rootfs/etc/initramfs-tools
-    echo $rootfstype >> /rootfs/etc/initramfs-tools/modules
-  fi
-fi
-
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
 echo "Configuring installed system:"
+
+setup_chroot /rootfs
 
 # configure root login
 if [ ! "$disable_root" = "1" ]; then
@@ -1022,13 +1063,7 @@ echo -n "  Configuring /etc/fstab... "
 touch /rootfs/etc/fstab || fail
 {
     echo "$bootpartition /boot vfat defaults 0 2"
-    if [ "$rootfstype" = "f2fs" ]; then
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
-    elif [ "$rootfstype" = "btrfs" ]; then
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0"
-    else
-        echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
-    fi
+    echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
     # also specify /tmp on tmpfs in /etc/fstab so it works across init systems
     echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0"
 } >> /rootfs/etc/fstab || fail
@@ -1292,14 +1327,12 @@ chroot /rootfs /usr/bin/apt-get update &>/dev/null
 echo "OK"
 
 # firmware package can't be installed during cdebootstrap phase, so do so now
-if [ "$kernel_module" = true ] ; then
-  echo -n "Installing bootloader package (=firmware)... "
-  chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
-  if [ $? -eq 0 ]; then
+echo -n "Installing bootloader package (=firmware)... "
+chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
+if [ $? -eq 0 ]; then
     echo "OK"
-  else
+else
     echo "FAILED !"
-  fi
 fi
 
 # install firmware for wireless chipset (RPi 3 and Zero W)
@@ -1416,6 +1449,45 @@ fi
 echo -n "Removing cdebootstrap-helper-rc.d... "
 chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
 echo "OK"
+
+echo -n "Configuring initramfs... "
+
+# if the root fs type isn't build into the kernel, make sure the module is present in the initramfs
+if [ "$(grep -c $rootfstype /rootfs/lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+{
+    echo "$rootfstype"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+# if the root fs is on a USB drive, make sure the needed modules are present in initramfs as well
+if [ "$usbroot" = "1" ]; then
+{
+    echo "sd_mod"
+    echo "usb-storage"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+echo "OK"
+
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/initramfs-tools/hooks/ || fail
+
+for hook_file in ./*
+do
+    if [ -f $hook_file ]; then
+        echo -n "Copying '$hook_file' to /etc/initramfs-tools/hooks/..."
+        cp $hook_file /rootfs/etc/initramfs-tools/hooks/ || fail
+        echo "OK"
+    fi
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir || fail
+
+echo "Regenerating initramfs... "
+chroot /rootfs /usr/sbin/update-initramfs -u || fail
+echo "Regeneration of initramfs succeeded."
+
+teardown_chroot /rootfs
 
 # save current time if fake-hwclock
 echo "Saving current time for fake-hwclock..."
