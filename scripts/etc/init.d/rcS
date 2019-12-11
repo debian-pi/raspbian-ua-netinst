@@ -594,7 +594,7 @@ echo ""
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    wget -q -O /online-config.txt $online_config &>/dev/null || fail
+    curl -L --silent -o /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
     echo "================================================="
