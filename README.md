@@ -108,25 +108,27 @@ The configuration files are read in as  shell scripts, so you can abuse that fac
 
 The format of the _installer-config.txt_ file and the current defaults:
 
-    preset=server
+    preset=server             # possible values are 'base', 'minimal' and 'server'
     packages=                 # comma separated list of extra packages
     mirror=http://mirrordirector.raspbian.org/raspbian/
-    release=jessie
+    release=buster
+    init_system=systemd       # possible values are 'systemd', 'sysvinit' and 'runit'
     hostname=pi
     boot_volume_label=        # Sets the volume name of the boot partition. The volume name can be up to 11 characters
                               # long. The label is used by most OSes (Windows, Mac OSX and Linux) to identify the
                               # SD-card on the desktop and can be useful when using multiple SD-cards.
     domainname=
     rootpw=raspbian
-    root_ssh_pubkey=          # public SSH key for root; on Debian "jessie" the SSH password login will be disabled for
-                              # root if set; the public SSH key must be on a single line, enclosed in quotes
+    root_ssh_pubkey=          # public SSH key for root; on Debian "jessie" and later the SSH password login will be disabled 
+                              # for root if set; the public SSH key must be on a single line, enclosed in quotes
     disable_root=             # set to 1 to disable root login (and password) altogether
     username=                 # username of the user to create
     userpw=                   # password to use for created user
     user_ssh_pubkey=          # public SSH key for created user; the public SSH key must be on a single line, enclosed
                               # in quotes
     user_is_admin=            # set to 1 to install sudo and make the user a sudo user
-    cdebootstrap_cmdline=
+    cdebootstrap_cmdline=     # normally this line will be generated based on the (other) options you've set, but you can
+                              # specify your own. If it breaks, you get to keep all pieces.
     bootsize=+128M            # /boot partition size in megabytes, provide it in the form '+<number>M' (without quotes)
     bootoffset=8192           # position in sectors where the boot partition should start. Valid values are > 2048.
                               # a bootoffset of 8192 is equal to 4MB and that should make for proper alignment
@@ -142,14 +144,14 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # RPi board, your network device might be named differently. This will result in the
                               # board having no network connectivity.
     ifname=eth0
-    ip4_addr=dhcp # options are 'disable', 'dhcp', or an IPv4 address
+    ip4_addr=dhcp             # options are 'disable', 'dhcp', or an IPv4 address
     ip4_prefixlength=0
     ip4_gateway=0.0.0.0
     ip4_nameservers=
-    ip6_addr=disable # options are 'disable', 'auto', or an IPv6 address
+    ip6_addr=disable          # options are 'disable', 'auto', or an IPv6 address
     ip6_prefixlength=0
-    ip6_gateway=auto # options are 'auto', or an IPv6 address (which will only be applied if ip6_addr is a static address)
-    ip6_nameservers=auto # options are 'auto', 'disable', or an IPv6 address
+    ip6_gateway=auto          # options are 'auto', or an IPv6 address (which will only be applied if ip6_addr is a static address)
+    ip6_nameservers=auto      # options are 'auto', 'disable', or an IPv6 address
     drivers_to_load=
     online_config=            # URL to extra config that will be executed after installer-config.txt
     usbroot=                  # set to 1 to install to first USB disk
