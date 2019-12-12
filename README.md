@@ -313,7 +313,7 @@ When you need a kernel module that isn't loaded by default, you will still have 
 > Optional: Create a swap file with `dd if=/dev/zero of=/swap bs=1M count=512 && mkswap /swap && chmod 600 /swap` (example is 512MB) and enable it on boot by appending `/swap none swap sw 0 0` to `/etc/fstab`.  
 
 ## Reinstalling or replacing an existing system
-If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Depending on the hardware you want to reinstall on (Raspberry Pi **1** or **2**), make sure you still have _kernel_rpi1_install.img_ / _kernel_rpi2_install.img_ and _installer-rpi1.cpio.gz_ / _installer-rpi2.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those files in and the installer _config.txt_ from the original image.
+If you want to reinstall with the same settings you did your first install you can just move the original _config.txt_ back and reboot. Depending on the hardware you want to reinstall on (Raspberry Pi **1** or **2**/**3**), make sure you still have _kernel-rpi1_install.img_ / _kernel-rpi2_install.img_ and _installer-rpi.cpio.gz_ in your _/boot_ partition. If you are replacing your existing system which was not installed using this method, make sure you copy those files in and the installer _config.txt_ from the original image.
 
     mv /boot/config-reinstall.txt /boot/config.txt
     reboot
