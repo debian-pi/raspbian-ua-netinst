@@ -6,24 +6,48 @@ LOGFILE=/tmp/raspbian-ua-netinst.log
 preset=server
 packages=
 mirror=http://mirrordirector.raspbian.org/raspbian/
-release=jessie
+release=buster
+init_system=systemd
 hostname=pi
 boot_volume_label=
 domainname=
 rootpw=raspbian
+root_ssh_pubkey=
+disable_root=
+username=
+userpw=
+user_ssh_pubkey=
+user_is_admin=
 cdebootstrap_cmdline=
 bootsize=+128M
+bootoffset=8192
 rootsize=
 timeserver=time.nist.gov
-ip_addr=dhcp
-ip_netmask=0.0.0.0
-ip_broadcast=0.0.0.0
-ip_gateway=0.0.0.0
-ip_nameservers=
+timezone=Etc/UTC
+locales=
+system_default_locale=
+disable_predictable_nin=1
+ifname=eth0
+ip4_addr=dhcp
+ip4_prefixlength=0
+ip4_gateway=0.0.0.0
+ip4_nameservers=
+ip6_addr=disable
+ip6_prefixlength=0
+ip6_gateway=auto
+ip6_nameservers=auto
+drivers_to_load=
 online_config=
 usbroot=
 cmdline="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 elevator=deadline"
 rootfstype=ext4
+final_action=reboot
+hardware_versions=detect
+hwrng_support=1
+enable_watchdog=0
+enable_uart=0
+gpu_mem=
+try_again=0
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -43,15 +67,20 @@ fail()
         mount $bootpartition /boot
         fail_boot_mounted=true
     fi
-    cp $LOGFILE /boot/raspbian-ua-netinst-`date +%Y%m%dT%H%M%S`.log
+    cp -- $LOGFILE /boot/raspbian-ua-netinst-"$(date +%Y%m%dT%H%M%S)".log
     sync
-    
+
     # if we mounted /boot in the fail command, unmount it.
     if [ "$fail_boot_mounted" = true ] ; then
         umount /boot
     fi
-
-    read -t 10 || reboot && exit
+    
+    if [ "$try_again" = 1 ] ; then
+        read -t 10 || reboot && exit
+    else
+        read -t 10 || poweroff && exit
+    fi
+    
     sh
 }
 
@@ -67,9 +96,61 @@ sanitize_inputfile()
     fi
 }
 
-# set screen blank period to an hour
-# hopefully the install should be done by then
-echo -en '\033[9;60]'
+install_files()
+{
+  file_to_read="$1"
+  echo "Adding files & folders listed in /bootfs/config/$file_to_read"
+  sanitize_inputfile "/bootfs/config/$file_to_read"
+  grep -v "^[[:space:]]*#\|^[[:space:]]*$" "/bootfs/config/${file_to_read}" | while read -r line; do
+    owner=$(echo "$line" | awk '{ print $1 }')
+    perms=$(echo "$line" | awk '{ print $2 }')
+    file=$(echo  "$line" | awk '{ print $3 }')
+    echo "    $file"
+    if [ ! -d "/bootfs/config/files$file" ]; then
+      mkdir -p "/rootfs$(dirname "$file")"
+      cp "/bootfs/config/files$file" "/rootfs$file"
+    else
+      mkdir -p "/rootfs/$file"
+    fi
+    chmod "$perms" "/rootfs$file"
+    chroot /rootfs chown "$owner" "$file"
+  done
+  echo
+}
+
+setup_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Setting up chroot in $CHROOT_DIR... "
+        mount --bind /proc "$CHROOT_DIR/proc"
+        mount --bind /sys "$CHROOT_DIR/sys"
+        mount --bind /dev "$CHROOT_DIR/dev"
+        mount --bind /dev/pts "$CHROOT_DIR/dev/pts"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not setting up chroot."
+    fi
+}
+
+teardown_chroot()
+{
+    if [ -d "$1" ]; then
+        CHROOT_DIR=$1
+        echo -n "Tearing down chroot in $CHROOT_DIR... "
+        umount "$CHROOT_DIR/dev/pts"
+        umount "$CHROOT_DIR/dev"
+        umount "$CHROOT_DIR/sys"
+        umount "$CHROOT_DIR/proc"
+        echo "OK"
+    else
+        echo "'$1' doesn't exist or isn't a directory, so not tearing down chroot."
+    fi
+}
+
+/bin/busybox mkdir -p /opt/busybox/bin/
+/bin/busybox --install /opt/busybox/bin/
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
 
 mkdir -p /proc
 mkdir -p /sys
@@ -77,21 +158,64 @@ mkdir -p /boot
 mkdir -p /usr/bin
 mkdir -p /usr/sbin
 mkdir -p /var/run
+mkdir -p /etc/raspbian-ua-netinst
 mkdir -p /rootfs/boot
 mkdir -p /bootfs
 mkdir -p /tmp/
 
-/bin/busybox --install
+ln -s /opt/busybox/bin/sh /bin/sh
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# put PATH in /etc/profile so it's also available when we get a busybox shell
+echo "export PATH=${PATH}" > /etc/profile
 
-mount -t proc none /proc
-mount -t sysfs none /sys
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
 
-echo /sbin/mdev > /proc/sys/kernel/hotplug
+mount -t tmpfs -o size=64k,mode=0755 tmpfs /dev
+mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+
+echo /opt/busybox/bin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 klogd -c 1
+
+# remove unused drivers from ram disk
+for folder in /lib/modules/*; do
+    if [ "$(basename "${folder}")" != "$(uname -r)" ]; then
+        rm -r "${folder}"
+    fi
+done
+
+# set screen blank period to an hour unless consoleblank=0 on cmdline
+# hopefully the install should be done by then
+if grep -qv  "consoleblank=0" /proc/cmdline; then
+    echo -en '\033[9;60]'
+fi
+
+# Check if there's an alternative rcS file and excute it
+# instead of this file. Only do this if this isn't the
+# alternative script already
+if [ -z ${am_subscript} ]; then
+    mkdir -p /boot
+    mount $bootpartition /boot
+    if [ -e /boot/config/installer/rcS ]; then
+        cp /boot/config/installer/rcS /rcS
+        umount /boot
+        echo "============================================="
+        echo "=== Start executing alternative rcS ========="
+        echo "---------------------------------------------"
+        export am_subscript=true
+        source /rcS
+        echo "---------------------------------------------"
+        echo "=== Execution of alternative rcS finished ==="
+        echo "============================================="
+        ${final_action} || reboot || exit
+    else
+        # Clean up, so the rest of the script continues as expected
+        umount /boot
+    fi
+fi
 
 # redirect stdout and stderr also to logfile
 # http://stackoverflow.com/questions/3173131/redirect-copy-of-stdout-to-log-file-from-within-bash-script-itself/6635197#6635197
@@ -100,26 +224,30 @@ tee < ${LOGFILE}.pipe $LOGFILE &
 exec &> ${LOGFILE}.pipe
 rm ${LOGFILE}.pipe
 
-RPI1_HARDWARE="BCM2708"
-RPI2_HARDWARE="BCM2709"
-rpi_hardware=$(grep Hardware /proc/cpuinfo | cut -d " " -f 2)
-rpi_hardware_version="UNKNOWN !!"
-kernel_meta_package=""
-
-if [ "$rpi_hardware" = "$RPI1_HARDWARE" ] ; then
-    rpi_hardware_version="1"
-    kernel_meta_package="linux-image-rpi-rpfv"
-elif [ "$rpi_hardware" = "$RPI2_HARDWARE" ] ; then
-    rpi_hardware_version="2"
-    kernel_meta_package="linux-image-rpi2-rpfv"
-else
-    echo ""
-    echo "================================================="
-    echo "     No Raspberry Pi hardware detected!!"
-    echo " Value of rpi_hardware variable: '${rpi_hardware}'"
-    echo "================================================="
-    echo ""
-fi
+# we should do this with bitshift operations, I think on the serial
+# http://elinux.org/RPi_HardwareHistory#Board_Revision_History
+# https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+cpu_revision=$(grep Revision /proc/cpuinfo | cut -d " " -f 2 | sed 's/^1000//')
+case $cpu_revision in
+    900092|900093|9000c1|920092|920093)
+        rpi_hardware_version="0"
+        ;;
+    0002|0003|0004|0005|0006|0007|0008|0009|000d|000e|000f|0010|0012|0013|0015|900021|900032)
+        rpi_hardware_version="1"
+        ;;
+    a01040|a01041|a21041|a22042)
+        rpi_hardware_version="2"
+        ;;
+    9020e0|a02082|a020d3|a22082|a22083|a32082|a52082)
+        rpi_hardware_version="3"
+        ;;
+    a03111|b03111|c03111)
+        rpi_hardware_version="4"
+        ;;
+    *)
+        rpi_hardware_version="unknown"
+        ;;
+esac
 
 echo ""
 echo "================================================="
@@ -132,11 +260,20 @@ echo "================================================="
 echo "https://github.com/debian-pi/raspbian-ua-netinst/"
 echo "================================================="
 
+echo -n "Starting HWRNG "
+modprobe bcm2835-rng
+/usr/sbin/rngd -r /dev/hwrng
+if [ $? -eq 0 ]; then
+    echo "succeeded!"
+else
+    echo "FAILED! (continuing to use the software RNG)"
+fi
+
 echo -n "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
 
-cp -r /boot/* /bootfs/ || fail
+cp -r -- /boot/* /bootfs/ || fail
 
 umount /boot || fail
 echo "OK"
@@ -150,25 +287,85 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
 fi
 
+if [ -e /bootfs/config/wpa_supplicant.conf ]; then
+    sanitize_inputfile /bootfs/config/wpa_supplicant.conf
+fi
+
+# Provide backwards compatibility for v1.0 configurations which used
+# "ip_" prefix instead of "ip4_"
+
+if [ ! -z "$ip_addr" ]; then
+   ip4_addr="$ip_addr"
+fi
+
+if [ ! -z "$ip_gateway" ]; then
+   ip4_gateway="$ip_gateway"
+fi
+
+if [ ! -z "$ip_nameservers" ]; then
+   ip4_nameservers="$ip_nameservers"
+fi
+
+# Provide backwards compatibility for v1.0 configurations which used
+# "ip_netmask" instead of "ip4_prefixlength"
+
+if [ ! -z "$ip_netmask" ]; then
+   ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
+fi
+
 echo
 echo "Network configuration:"
-echo "  ip_addr = $ip_addr"
+echo "  ip4_addr = $ip4_addr"
 
-if [ "$ip_addr" != "dhcp" ]; then
-    echo "  ip_netmask = $ip_netmask"
-    echo "  ip_broadcast = $ip_broadcast"
-    echo "  ip_gateway = $ip_gateway"
-    echo "  ip_nameservers = $ip_nameservers"
+if [ "$ip4_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip4_addr" != "dhcp" ]; then
+    echo "  ip4_prefixlength = $ip4_prefixlength"
+    echo "  ip4_gateway = $ip4_gateway"
+    echo "  ip4_nameservers = $ip4_nameservers"
+fi
+
+echo "  ip6_addr = $ip6_addr"
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo "  ip6_nameservers = $ip6_nameservers"
+else
+    echo "  ip6_prefixlength = $ip6_prefixlength"
+    echo "  ip6_gateway = $ip6_gateway"
+    echo "  ip6_nameservers = $ip6_nameservers"
 fi
 
 echo "  online_config = $online_config"
 echo
 
-echo -n "Waiting for eth0... "
+# depmod needs to update modules.dep before using modprobe
+depmod -a
 
-for i in `seq 1 10`; do
+# coldplug modules
+echo "Loading drivers."
+find /sys/ -name modalias -print0 | xargs -0 sort -u -z | xargs -0 modprobe -abq
+echo "Finished loading drivers."
 
-    ifconfig eth0 &>/dev/null
+if [ "$drivers_to_load" != "" ] ; then
+   echo "Loading additional drivers."
+   for driver in $drivers_to_load
+   do
+      echo -n " Loading driver '$driver' ... "
+      modprobe $driver || fail
+      echo "OK"
+   done
+   echo "Finished loading additional drivers"
+fi
+
+echo "Waiting for $ifname... "
+
+for i in $(seq 1 10); do
+
+    ifconfig $ifname &>/dev/null
     if [ $? -eq 0 ]; then
         break
     fi
@@ -183,25 +380,161 @@ for i in `seq 1 10`; do
     echo -n "$i.. "
 done
 
-if [ "$ip_addr" = "dhcp" ]; then
-    echo -n "Configuring eth0 with DHCP... "
+if [ "$ifname" != "eth0" ]; then
+    # Replace eth0 as udhcpc dns interface
+    sed -i "s/PEERDNS_IF=.*/PEERDNS_IF=$ifname/g" /etc/udhcpc/default.script
+    # if eth0 is not the chosen eth interface it is a wireless interface and wpa_supplicant must connect to wlan
+    echo "Starting wpa_supplicant... "
+    wpa_supplicant -B -Dnl80211 -c/bootfs/config/wpa_supplicant.conf -i$ifname
+    if [ $? -ne 0 ]; then
+        echo "nl80211 driver didn't work. Trying generic driver (wext)..."
+        wpa_supplicant -B -Dwext -c/bootfs/config/wpa_supplicant.conf -i$ifname || fail
+        echo "OK"
+    fi
+fi
 
-    udhcpc -i eth0 &>/dev/null
+echo "OK"
+
+# do some IPv6 configuration which must be done before the
+# network interface is brought up
+if [ "$ip6_addr" != "disable" ]; then
+    modprobe ipv6
+    if [ "$ip6_addr" != "auto" ]; then
+        if [ "$ip6_gateway" != "auto" ]; then
+            # disable the acceptance of incoming Router Advertisement (RA)
+            # messages, otherwise the kernel might automatically add routes
+            echo 0 > /proc/sys/net/ipv6/conf/$ifname/accept_ra
+        else
+            # disable automatic generation of IPv6 addresses, which the kernel
+            # will do when it receives a suitable RA
+            echo 0 > /proc/sys/net/ipv6/conf/$ifname/autoconf
+	fi
+    fi
+fi
+
+ip link set lo up
+ip link set $ifname up
+
+touch /etc/resolv.conf
+if [ "$ip4_addr" = "disable" ]; then
+    # if IPv4 is disabled, configure the DNS resolver in glibc
+    # to prefer IPv6 addresses (by performing AAAA lookups
+    # before A lookups)
+    echo "options inet6" >> /etc/resolv.conf
+elif [ "$ip4_addr" = "dhcp" ]; then
+    echo -n "Configuring $ifname for IPv4 using DHCP... "
+
+    udhcpc -i $ifname &>/dev/null
     if [ $? -eq 0 ]; then
-        ifconfig eth0 | fgrep addr: | awk '{print $2}' | cut -d: -f2
+        have_ip4=$(ip -4 addr ls $ifname | grep 'scope global' | awk '{print $2}')
+	echo $have_ip4
     else
         echo "FAILED"
-        fail
     fi
 else
-    echo -n "Configuring eth0 with static ip $ip_addr... "
-    ifconfig eth0 up inet $ip_addr netmask $ip_netmask broadcast $ip_broadcast || fail
-    route add default gw $ip_gateway || fail
-    echo -n > /etc/resolv.conf
-    for i in $ip_nameservers; do
+    echo -n "Configuring $ifname for IPv4 using static $ip4_addr... "
+    ip addr add $ip4_addr/$ip4_prefixlength dev $ifname || fail
+    ip route add default via $ip4_gateway || fail
+    for i in $ip4_nameservers; do
         echo "nameserver $i" >> /etc/resolv.conf
     done
+    have_ip4=$ip4_addr
     echo "OK"
+fi
+
+if [ "$ip6_addr" != "disable" ]; then
+    echo -n "Waiting for IPv6 link-local address on $ifname... "
+
+    for i in $(seq 1 10); do
+        if ip -6 addr show dev $ifname scope link | grep -q 'scope link'; then
+            break
+        fi
+
+        if [ $i -eq 10 ]; then
+            echo "FAILED"
+            fail
+        fi
+
+        sleep 1
+
+        echo -n "$i.. "
+    done
+
+    # ensure that the IPv6 stack is ready; race conditions are fun!
+    sleep 2
+    echo "OK"
+    rdisc6 $ifname > /tmp/ip6_ra
+    # the 'awk' usage below is to trim whitespace around the value
+    ip6_ra_m=$(grep 'Stateful address' /tmp/ip6_ra | cut -d: -f2- | awk '{$1=$1};1')
+    if [ "$ip6_ra_m" = "Yes" ]; then
+        echo "IPv6 on this network is provided by DHCPv6, but this installer does not support DHCPv6."
+        echo "IPv6 will be disabled."
+        ip6_addr=disable
+    fi
+    # the 'awk' usage below is to trim whitespace around the value
+    ip6_ra_o=$(grep 'Stateful other' /tmp/ip6_ra | cut -d: -f2- | awk '{$1=$1};1')
+    if [ "$ip6_ra_o" = "Yes" ]; then
+        echo "IPv6 DNS and other information on this network is provided by DHCPv6, but this installer does not support DHCPv6."
+        echo "IPv6 will be disabled."
+        ip6_addr=disable
+    fi
+fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo -n "Configuring $ifname for IPv6 using SLAAC... "
+
+    for i in $(seq 1 10); do
+        ip -6 addr ls $ifname | grep -q 'scope global'
+        if [ $? -eq 0 ]; then
+            have_ip6=$(ip -6 addr ls $ifname | grep 'scope global' | awk '{print $2}')
+            echo $have_ip6
+            break
+        fi
+
+        if [ $i -eq 10 ]; then
+            echo "FAILED"
+        fi
+
+        sleep 1
+
+        echo -n "$i.. "
+    done
+else
+    echo -n "Configuring $ifname for IPv6 using static $ip6_addr... "
+    ip addr add $ip6_addr/$ip6_prefixlength dev $ifname || fail
+    if [ "$ip6_gateway" != "auto" ]; then
+        ip route add default via $ip6_gateway || fail
+    fi
+    have_ip6=$ip6_addr
+    echo "OK"
+fi
+
+if [ -n "$have_ip6" ]; then
+    if [ "$ip6_nameservers" = "auto" ]; then
+        echo -n "Obtaining IPv6 recursive DNS server address(es) via RDNSS... "
+        have_ip6_nameservers=$(grep 'Recursive DNS' /tmp/ip6_ra | cut -d: -f2-)
+        if [ -z "$have_ip6_nameservers" ]; then
+            echo "FAILED"
+        else
+            echo "$have_ip6_nameservers"
+        fi
+    elif [ "$ip6_nameservers" != "disable" ]; then
+        have_ip6_nameservers=$ip6_nameservers
+    fi
+    if [ -n "$have_ip6_nameservers" ]; then
+        for i in $have_ip6_nameservers; do
+            echo "nameserver $i" >> /etc/resolv.conf
+        done
+    fi
+    echo "OK"
+fi
+
+if [ -z "$have_ip4" ] && [ -z "$have_ip6" ]; then
+    echo "No IPv4 or IPv6 addresses were configured or obtained. Installation cannot continue."
+    fail
 fi
 
 # This will record the time to get to this point
@@ -252,16 +585,16 @@ fi
 
 # Record the time now that the time is set to a correct value
 STARTTIME=$(date +%s)
-# And substract the PRE_NETWORK_DURATION from STARTTIME to get the 
+# And substract the PRE_NETWORK_DURATION from STARTTIME to get the
 # REAL starting time.
-REAL_STARTTIME=$(($STARTTIME - $PRE_NETWORK_DURATION))
+REAL_STARTTIME=$((STARTTIME - PRE_NETWORK_DURATION))
 echo ""
 echo "Installation started at $(date --date="@$REAL_STARTTIME" --utc)."
 echo ""
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    wget -q -O /online-config.txt $online_config &>/dev/null || fail
+    curl -L --silent -o /online-config.txt $online_config &>/dev/null || fail
     echo "OK"
 
     echo "================================================="
@@ -272,23 +605,40 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
 fi
 
+if [ "$hardware_versions" = "detect" ]; then
+    case $rpi_hardware_version in
+        0) hardware_versions="0" ;;
+        1) hardware_versions="1" ;;
+        2) hardware_versions="2" ;;
+        3) hardware_versions="3" ;;
+        4) hardware_versions="4" ;;
+        *)
+           echo ""
+           echo "================================================="
+           echo "     No Raspberry Pi hardware detected!!"
+           echo " Value of cpu_revision variable: '${cpu_revision}'"
+           echo "        Building for Pi 0, 1, 2, 3 and 4."
+           echo "================================================="
+           echo ""
+           hardware_versions="0 1 2 3 4"
+           ;;
+    esac
+fi
+
 # prepare rootfs mount options
 case "$rootfstype" in
   "btrfs")
-    kernel_module=true
     rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
     rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
   "ext4")
-    kernel_module=true
     rootfs_mkfs_options=${rootfs_mkfs_options:-''}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime,data=writeback,nobarrier,noinit_itable'}
     rootfs_mount_options=${rootfs_mount_options:-'errors=remount-ro,noatime'}
     ;;
   "f2fs")
-    kernel_module=true
-    rootfs_mkfs_options=${rootfs_mkfs_options:-''}
+    rootfs_mkfs_options=${rootfs_mkfs_options:-'-f'}
     rootfs_install_mount_options=${rootfs_install_mount_options:-'noatime'}
     rootfs_mount_options=${rootfs_mount_options:-'noatime'}
     ;;
@@ -298,25 +648,83 @@ case "$rootfstype" in
     ;;
 esac
 
+# check if we need to install wpasupplicant package
+if [ "$ifname" != "eth0" ]; then
+    if [ -z "$packages" ]; then
+        packages="wpasupplicant"
+    else
+        packages="$packages,wpasupplicant"
+    fi
+fi
+
+# check if we need the sudo package and add it if so
+if [ "$user_is_admin" = "1" ]; then
+    if [ -z "$packages" ]; then
+        packages="sudo"
+    else
+        packages="$packages,sudo"
+    fi
+fi
+
 # configure different kinds of presets
 if [ "$cdebootstrap_cmdline" = "" ]; then
 
     # from small to large: base, minimal, server
     # not very logical that minimal > base, but that's how it was historically defined
 
-    init_system=""
-    if [ "$release" = "jessie" ] ; then
-        init_system="systemd"
+    # base
+    base_packages="cpufrequtils,kmod"
+
+    for hv in ${hardware_versions}
+    do
+        case $hv in
+            0|1) kernel_meta_package=linux-image-rpi-rpfv ;;
+            2|3|4) kernel_meta_package=linux-image-rpi2-rpfv ;;
+            *)
+                echo ""
+                echo "================================================="
+                echo "  I don't understand a hardware version of ${hv} "
+                echo "    Skipping the kernel work for that hardware.  "
+                echo "================================================="
+                echo ""
+
+                kernel_meta_package=none ;;
+        esac
+
+        eval kernel_meta_package_${hv}=${kernel_meta_package}
+        if [ ${kernel_meta_package} != "none" ] ; then
+            base_packages="${kernel_meta_package},${base_packages}"
+        fi
+    done
+
+    if [ "$init_system" = "systemd" ] ; then
+        base_packages="${base_packages},systemd-sysv"
+        base_packages="${base_packages},libpam-systemd"
+    elif [ "$init_system" = "sysvinit" ] ; then
+        base_packages="${base_packages},sysvinit-core"
+    elif [ "$init_system" = "runit" ] ; then
+        base_packages="${base_packages},runit-init"
     fi
 
-    # base
-    base_packages="${kernel_meta_package},cpufrequtils,kmod"
-    if [ "$init_system" = "systemd" ] ; then
-        base_packages="${base_packages},libpam-systemd"
+    if [ "$hwrng_support" = "1" ]; then
+      base_packages="${base_packages},rng-tools"
     fi
+
+    filesystem_packages="dosfstools"
+    if [ "$rootfstype" = "ext4" ]; then
+        filesystem_packages="${filesystem_packages},e2fsprogs"
+    elif [ "$rootfstype" = "f2fs" ]; then
+        filesystem_packages="${filesystem_packages},f2fs-tools"
+    elif [ "$rootfstype" = "btrfs" ]; then
+        filesystem_packages="${filesystem_packages},btrfs-progs"
+    fi
+    base_packages="${base_packages},${filesystem_packages}"
 
     # minimal
-    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server"
+    minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,resolvconf"
+    if [ -n "$have_ip6" ] && [ "$ip6_nameservers" = "auto" ]; then
+        minimal_packages="${minimal_packages},rdnssd"
+    fi
 
     # server
     server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
@@ -339,8 +747,8 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
     esac
 
     dhcp_client_package="isc-dhcp-client"
-    # add dhcp client if using dhcp
-    if [ "$ip_addr" = "dhcp" ]; then
+    # add IPv4 DHCP client if needed
+    if [ "$ip4_addr" = "dhcp" ]; then
         cdebootstrap_cmdline="${cdebootstrap_cmdline},${dhcp_client_package}"
     fi
 
@@ -353,11 +761,16 @@ else
     preset=none
 fi
 
-if [ "$usbroot" != "" ]; then
+if [ "$usbroot" = "1" ]; then
     rootdev=/dev/sda
     echo -n "Loading USB modules... "
-    modprobe sd_mod &> /dev/null || fail
-    modprobe usb-storage &> /dev/null || fail
+    # only do modprobe if the module is NOT built into the kernel
+    if [ "$(grep -c "sd_mod" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe sd_mod &> /dev/null || fail
+    fi
+    if [ "$(grep -c "usb-storage" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+        modprobe usb-storage &> /dev/null || fail
+    fi
     echo "OK"
 fi
 
@@ -375,14 +788,25 @@ echo "  preset = $preset"
 echo "  packages = $packages"
 echo "  mirror = $mirror"
 echo "  release = $release"
+echo "  init_system = $init_system"
 echo "  hostname = $hostname"
 echo "  domainname = $domainname"
 echo "  rootpw = $rootpw"
+echo "  root_ssh_pubkey = $root_ssh_pubkey"
+echo "  disable_root = $disable_root"
+echo "  username = $username"
+echo "  userpw = $userpw"
+echo "  user_ssh_pubkey = $user_ssh_pubkey"
+echo "  user_is_admin = $user_is_admin"
 echo "  cdebootstrap_cmdline = $cdebootstrap_cmdline"
-echo "  bootsize = $bootsize"
-echo "  rootsize = $rootsize"
 echo "  boot_volume_label = $boot_volume_label"
+echo "  bootsize = $bootsize"
+echo "  bootoffset = $bootoffset"
+echo "  rootsize = $rootsize"
 echo "  timeserver = $timeserver"
+echo "  timezone = $timezone"
+echo "  locales = $locales"
+echo "  system_default_locale = $system_default_locale"
 echo "  cmdline = $cmdline"
 echo "  usbroot = $usbroot"
 echo "  rootdev = $rootdev"
@@ -391,12 +815,115 @@ echo "  rootfstype = $rootfstype"
 echo "  rootfs_mkfs_options = $rootfs_mkfs_options"
 echo "  rootfs_install_mount_options = $rootfs_install_mount_options"
 echo "  rootfs_mount_options = $rootfs_mount_options"
+echo "  final_action = $final_action"
+echo "  hardware_versions = $hardware_versions"
+echo "  gpu_mem = $gpu_mem"
 echo
 
-echo -n "Waiting for $rootdev... "
-for i in `seq 1 10`; do
+echo -n "Waiting 5 seconds"
+for i in $(seq 1 5); do
+    echo -n "."
+    sleep 1
+done
+echo
 
-    if [ "`fdisk -l $rootdev 2>&1 | fgrep Disk`" != "" ]; then
+# fdisk's boot offset is 2048, so only handle $bootoffset is it's larger then that
+if [ -n "$bootoffset" ] && [ "$bootoffset" -gt 2048 ] ; then
+    emptyspaceend=$((bootoffset - 1))
+else
+    emptyspaceend=
+fi
+
+# Create a file for partitioning sd card only
+FDISK_SCHEME_SD_ONLY=/etc/raspbian-ua-netinst/fdisk-sd-only.config
+touch $FDISK_SCHEME_SD_ONLY
+{
+    if [ -n "$emptyspaceend" ] ; then
+        # we have a custom bootoffset, so first create a temporary
+        # partition occupying the space before it.
+        # We'll remove it before committing the changes again.
+        echo "n"
+        echo "p"
+        echo "4"
+        echo ""
+        echo "$emptyspaceend"
+    fi
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$bootsize"
+    echo "t"
+    if [ -n "$emptyspaceend" ] ; then
+        # because we now have more then 1 partition
+        # we need to select the one to operate on
+        echo "1"
+    fi
+    echo "b"
+    echo "n"
+    echo "p"
+    echo "2"
+    echo ""
+    echo "$rootsize"
+    if [ -n "$emptyspaceend" ] ; then
+        # now remove the temporary partition again
+        echo "d"
+        echo "4"
+    fi
+    echo "w"
+} >> ${FDISK_SCHEME_SD_ONLY}
+
+# Create a file for partitioning when only /boot/ is on sd card
+FDISK_SCHEME_SD_BOOT=/etc/raspbian-ua-netinst/fdisk-sd-boot.config
+touch $FDISK_SCHEME_SD_BOOT
+{
+    if [ -n "$emptyspaceend" ] ; then
+        # we have a custom bootoffset, so first create a temporary
+        # partition occupying the space before it.
+        # We'll remove it before committing the changes again.
+        echo "n"
+        echo "p"
+        echo "4"
+        echo ""
+        echo "$emptyspaceend"
+    fi
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$bootsize"
+    echo "t"
+    if [ -n "$emptyspaceend" ] ; then
+        # because we now have more then 1 partition
+        # we need to select the one to operate on
+        echo "1"
+    fi
+    echo "b"
+    if [ -n "$emptyspaceend" ] ; then
+        # now remove the temporary partition again
+        echo "d"
+        echo "4"
+    fi
+    echo "w"
+} >> ${FDISK_SCHEME_SD_BOOT}
+
+# Create a file for partitioning when / is on usb
+FDISK_SCHEME_USB_ROOT=/etc/raspbian-ua-netinst/fdisk-usb-root.config
+touch $FDISK_SCHEME_USB_ROOT
+{
+    echo "n"
+    echo "p"
+    echo "1"
+    echo ""
+    echo "$rootsize"
+    echo "w"
+} >> ${FDISK_SCHEME_USB_ROOT}
+
+
+echo -n "Waiting for $rootdev... "
+for i in $(seq 1 10); do
+
+    if [ "$(fdisk -l $rootdev 2>&1 | fgrep Disk)" != "" ]; then
         echo "OK"
         break
     fi
@@ -414,49 +941,18 @@ done
 if [ "$rootdev" = "$bootdev" ]; then
     echo -n "Applying new partition table... "
     dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null <<EOF
-n
-p
-1
-
-$bootsize
-t
-b
-n
-p
-2
-
-$rootsize
-w
-EOF
+    fdisk $bootdev &>/dev/null < ${FDISK_SCHEME_SD_ONLY}
     echo "OK"
 else
     echo -n "Applying new partition table for $bootdev... "
     dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null <<EOF
-n
-p
-1
-
-$bootsize
-t
-b
-w
-EOF
+    fdisk $bootdev &>/dev/null < ${FDISK_SCHEME_SD_BOOT}
     echo "OK"
 
     echo -n "Applying new partition table for $rootdev... "
     dd if=/dev/zero of=$rootdev bs=512 count=1 &>/dev/null
-    fdisk $rootdev &>/dev/null <<EOF
-n
-p
-1
-
-$rootsize
-w
-EOF
+    fdisk $rootdev &>/dev/null < ${FDISK_SCHEME_USB_ROOT}
     echo "OK"
-
 fi
 
 # refresh the /dev device nodes
@@ -472,17 +968,16 @@ echo "OK"
 
 echo -n "Copying /boot files in... "
 mount $bootpartition /boot || fail
-cp -r /bootfs/* /boot || fail
+cp -r -- /bootfs/* /boot || fail
 sync
 umount /boot || fail
 echo "OK"
 
-if [ "$kernel_module" = true ] ; then
-  if [ "$rootfstype" != "ext4" ] ; then
+# only do modprobe if the module is NOT built into the kernel
+if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
     echo -n "Loading $rootfstype module... "
     modprobe $rootfstype &> /dev/null || fail
     echo "OK"
-  fi
 fi
 
 echo -n "Initializing / as $rootfstype... "
@@ -495,125 +990,355 @@ mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 echo "OK"
 
-if [ "$kernel_module" = true ] ; then
-  if [ "$rootfstype" != "ext4" ] ; then
-    mkdir -p /rootfs/etc/initramfs-tools
-    echo $rootfstype >> /rootfs/etc/initramfs-tools/modules
-  fi
-fi
-
 echo "Starting install process..."
 cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
-# allow root login
 echo "Configuring installed system:"
-echo -n "  Setting root password... "
-echo -n root:$rootpw | chroot /rootfs /usr/sbin/chpasswd || fail
-echo "OK"
+
+setup_chroot /rootfs
+
+# configure root login
+if [ ! "$disable_root" = "1" ]; then
+    # add SSH key for root (if provided)
+    if [ ! -z "$root_ssh_pubkey" ]; then
+        echo -n "  Setting root SSH key... "
+        mkdir -p -m 700 /rootfs/root/.ssh && \
+            echo "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
+        echo "OK"
+        echo -n "  Setting permissions on root SSH authorized_keys... "
+        chmod 600 /rootfs/root/.ssh/authorized_keys || fail
+        echo "OK"
+    fi
+    if [ ! -z "$rootpw" ]; then
+        # openssh-server in jessie doesn't allow root to login with a password
+        if [ "$release" = "jessie" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
+            echo -n "  Allowing root to login with password on jessie... "
+            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            echo "OK"
+        fi
+        echo -n "  Setting root password... "
+        echo -n "root:$rootpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
+    fi
+fi
+
+# add user to system
+if [ ! -z "$username" ]; then
+    echo -n "  Creating $username user... "
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password || fail
+    echo "OK"
+    # add SSH key for user (if provided)
+    if [ ! -z "$user_ssh_pubkey" ]; then
+        echo -n "  Setting $username SSH key... "
+        ssh_dir="/rootfs/home/$username/.ssh"
+        mkdir -p -m 700 "$ssh_dir" && \
+            echo "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
+        echo "OK"
+        echo -n "  Setting owner as $username on SSH directory... "
+        chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" || fail
+        echo "OK"
+        echo -n "  Setting permissions on $username SSH authorized_keys... "
+        chmod 600 "$ssh_dir/authorized_keys" || fail
+        echo "OK"
+    fi
+    if [ ! -z "$userpw" ]; then
+        echo -n "  Setting $username password... "
+        echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo "OK"
+    fi
+    if [ "$user_is_admin" = "1" ]; then
+        echo -n "  Adding $username to sudo group... "
+        chroot /rootfs /usr/sbin/usermod -aG sudo "$username" || fail
+        echo "OK"
+        if [ -z "$userpw" ]; then
+            echo -n "  Setting $username to sudo without a password... "
+            echo -n "$username ALL = (ALL) NOPASSWD: ALL" > "/rootfs/etc/sudoers.d/$username" || fail
+            echo "OK"
+        fi
+    fi
+fi
 
 # default mounts
 echo -n "  Configuring /etc/fstab... "
-echo "$bootpartition /boot vfat defaults 0 2" > /rootfs/etc/fstab || fail
-if [ "$rootfstype" = "f2fs" ]; then
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
-elif [ "$rootfstype" = "btrfs" ]; then
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 0" >> /rootfs/etc/fstab || fail
-else
-	echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1" >> /rootfs/etc/fstab || fail
-fi
-# also specify /tmp on tmpfs in /etc/fstab so it works across init systems
-echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0" >> /rootfs/etc/fstab || fail
+touch /rootfs/etc/fstab || fail
+{
+    echo "$bootpartition /boot vfat defaults 0 2"
+    echo "$rootpartition / $rootfstype $rootfs_mount_options 0 1"
+    # also specify /tmp on tmpfs in /etc/fstab so it works across init systems
+    echo "tmpfs /tmp tmpfs defaults,nodev,nosuid 0 0"
+} >> /rootfs/etc/fstab || fail
 echo "OK"
 
 # default hostname
 echo -n "  Configuring hostname... "
 echo $hostname > /rootfs/etc/hostname || fail
-if [ ! -f /rootfs/etc/hosts ]; then
-    echo "127.0.0.1	localhost" > /rootfs/etc/hosts || fail
-else
-    if ! grep -q "localhost" /rootfs/etc/hosts; then
-        echo "127.0.0.1	localhost" >> /rootfs/etc/hosts
+# Tell the kernel what the hostname is supposed to be
+hostname $hostname
+echo "OK"
+
+echo -n "  Configuring hosts... "
+rm /rootfs/etc/hosts
+# Add localhost to hosts
+echo -n "adding localhost... "
+echo "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
+if [ -n "$have_ip6" ]; then
+    echo "::1 localhost" >> /rootfs/etc/hosts || fail
+fi
+
+# Create appropriate hostname entries for IPv4
+if [ -n "$have_ip4" ]; then
+    if [ "$ip4_addr" = "dhcp" ]; then
+        hostfile_addr=127.0.1.1
+    else
+        hostfile_addr=$ip4_addr
+    fi
+    if [ "$domainname" = "" ]; then
+        echo -n "adding ${hostname} for IPv4... "
+        echo "${hostfile_addr} ${hostname}" >> /rootfs/etc/hosts || fail
+    else
+        echo -n "adding ${hostname}.${domainname} for IPv4... "
+        echo "${hostfile_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
     fi
 fi
-if [ "$domainname" = "" ]; then
-     echo "127.0.1.1	$hostname" >> /rootfs/etc/hosts || fail
-else
-     echo "127.0.1.1	$hostname.$domainname	$hostname" >> /rootfs/etc/hosts || fail
+echo "OK"
+
+# Create appropriate hostname entries for IPv6
+if [ -n "$have_ip6" ] && [ "$ip6_addr" != "auto" ]; then
+    if [ "$domainname" = "" ]; then
+        echo -n "adding ${hostname} for IPv6... "
+        echo "${ip6_addr} ${hostname}" >> /rootfs/etc/hosts || fail
+    else
+        echo -n "adding ${hostname}.${domainname} for IPv6... "
+        echo "${ip6_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
+    fi
 fi
 echo "OK"
 
 # networking
-# wheezy seems to add the lo interface, so first check for it
 echo -n "  Configuring network settings... "
+
+if [ "$ip4_addr" = "disable" ]; then
+    # if IPv4 is disabled, configure the DNS resolver in glibc
+    # to prefer IPv6 addresses (by performing AAAA lookups
+    # before A lookups); since resolvconf is installed, this is
+    # done by adding the proper line to the resolvconf 'head'
+    echo "options inet6" >> /etc/resolvconf/resolv.conf.d/head
+fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    echo net.ipv6.conf.all.disable_ipv6=1 > /rootfs/etc/sysctl.d/disable_ipv6.conf
+fi
+
+touch /rootfs/etc/network/interfaces || fail
+# lo interface may already be there, so first check for it
 if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
-    echo "auto lo" > /rootfs/etc/network/interfaces || fail
-    echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces || fail
-    echo "" >>  /rootfs/etc/network/interfaces || fail
+    echo "auto lo" >> /rootfs/etc/network/interfaces
+    echo "iface lo inet loopback" >> /rootfs/etc/network/interfaces
 fi
 
-# eth0 config
-echo "auto eth0" >> /rootfs/etc/network/interfaces || fail
-if [ "$ip_addr" = "dhcp" ]; then
-    echo "iface eth0 inet dhcp" >> /rootfs/etc/network/interfaces || fail
+# configured interface
+echo "" >> /rootfs/etc/network/interfaces
+echo "auto $ifname" >> /rootfs/etc/network/interfaces
+echo "allow-hotplug $ifname" >> /rootfs/etc/network/interfaces
+
+if [ "$ip4_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip4_addr" = "dhcp" ]; then
+    echo "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
 else
-    echo "iface eth0 inet static" >> /rootfs/etc/network/interfaces || fail
-    echo "    address $ip_addr" >> /rootfs/etc/network/interfaces || fail
-    echo "    netmask $ip_netmask" >> /rootfs/etc/network/interfaces || fail
-    echo "    broadcast $ip_broadcast" >> /rootfs/etc/network/interfaces || fail
-    echo "    gateway $ip_gateway" >> /rootfs/etc/network/interfaces || fail
-
-    cp /etc/resolv.conf /rootfs/etc/ || fail
+    echo "iface $ifname inet static" >> /rootfs/etc/network/interfaces
+    echo "    address $ip4_addr/$ip4_prefixlength" >> /rootfs/etc/network/interfaces
+    echo "    gateway $ip4_gateway" >> /rootfs/etc/network/interfaces
+    echo "    dns-nameservers $ip4_nameservers" >> /rootfs/etc/network/interfaces
 fi
+
+if [ "$ip6_addr" = "disable" ]; then
+    # nothing to do, just pass
+    :
+elif [ "$ip6_addr" = "auto" ]; then
+    echo "iface $ifname inet6 auto" >> /rootfs/etc/network/interfaces
+else
+    echo "iface $ifname inet6 static" >> /rootfs/etc/network/interfaces
+    echo "    address $ip6_addr/$ip6_prefixlength" >> /rootfs/etc/network/interfaces
+    if [ "$ip6_gateway" != "auto" ]; then
+        echo "    gateway $ip6_gateway" >> /rootfs/etc/network/interfaces
+        echo "    accept_ra 0" >> /rootfs/etc/network/interfaces
+    fi
+    if [ "$ip6_nameservers" != "auto" ] && [ "$ip6_nameservers" != "disable" ]; then
+        echo "    dns-nameservers $ip6_nameservers" >> /rootfs/etc/network/interfaces
+    fi
+fi
+
+# wlan config
+if [ "$ifname" != "eth0" ]; then
+    if [ -e /bootfs/config/wpa_supplicant.conf ]; then
+        # copy the installer version of `wpa_supplicant.conf`
+        cp /bootfs/config/wpa_supplicant.conf /rootfs/etc/wpa_supplicant/
+        echo "    wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf"	>> /rootfs/etc/network/interfaces
+    fi
+fi
+
+if [ "${disable_predictable_nin}" = "1" ]; then
+    # as described here: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames
+    # adding net.ifnames=0 to /boot/cmdline and disabling the persistent-net-generator.rules
+    cmdline="${cmdline} net.ifnames=0"
+    ln -s /dev/null /rootfs/etc/udev/rules.d/75-persistent-net-generator.rules
+fi
+
+# copy resolver configuration into rootfs, to be used for remainder of installation
+# will be overwritten by resolvconf when the system is rebooted
+cp /etc/resolv.conf /rootfs/run/resolvconf
+
+# copy blacklist for rtl8192cu into rootfs; use original Realtek drivers instead
+cp /etc/modprobe.d/blacklist-native-rtl8192.conf /rootfs/etc/modprobe.d/
+
 echo "OK"
 
 # enable serial console on installed system
 echo -n "  Enabling serial console... "
-echo "#Spawn a getty on Raspberry Pi serial line" >> /rootfs/etc/inittab
-echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100" >> /rootfs/etc/inittab
+touch /rootfs/etc/inittab
+{
+    echo "#Spawn a getty on Raspberry Pi serial line"
+    echo "T0:23:respawn:/sbin/getty -L ttyAMA0 115200 vt100"
+} >> /rootfs/etc/inittab
 echo "OK"
 
-# openssh-server in jessie doesn't allow root to login using password anymore
-# this hack does allow it (until a proper solution is implemented)
-if [ "$release" = "jessie" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
-    echo -n "  Allowing root to login with password... "
-    sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+# set timezone and reconfigure tzdata package
+echo -n "  Configuring tzdata, setting timezone to $timezone... "
+echo "$timezone" > /rootfs/etc/timezone
+chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
+if [ $? -eq 0 ]; then
     echo "OK"
+else
+    echo "FAILED !"
 fi
+
+# generate locale data
+if [ "$locales" != "" ]; then
+    echo -n "  Enabling locales... "
+    for locale in $locales; do
+        echo -n "$locale... "
+        if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c $locale /rootfs/etc/locale.gen)" -gt 0 ]; then
+            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
+        else
+            echo -n "NOT found... "
+        fi
+    done
+    echo "OK"
+    if [ -x /rootfs/usr/sbin/locale-gen ] ; then
+        chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
+        if [ $? -ne 0 ]; then
+            echo "  ERROR while generating locales !"
+        fi
+    else
+        echo "Not generating locales as the 'locales' package isn't installed !"
+    fi
+fi
+
+# set system default locale
+if [ "$system_default_locale" != "" ] ; then
+    if [ -x /rootfs/usr/sbin/update-locale ] ; then
+        echo -n "  Setting system default locale... "
+        chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "FAILED !"
+        fi
+    else
+        echo "NOT setting system default locale as the 'locale' package isn't installed !"
+    fi
+fi
+
 echo ""
 
 # there is no hw clock on rpi
 echo "HWCLOCKACCESS=no" >> /rootfs/etc/default/hwclock || fail
 
 
-# remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
-echo -n "Removing cdebootstrap-helper-rc.d... " 
-chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
+# copy apt's sources.list to the target system
+echo "Configuring apt:"
+echo -n "  Copying raspbian repo to sources.list... "
+cp /rootfs/boot/config/apt/sources.list /rootfs/etc/apt/sources.list || fail
 echo "OK"
+echo -n "  Replacing __RELEASE__ with $release... "
+sed -i "s/__RELEASE__/$release/" /rootfs/etc/apt/sources.list
+# if __RELEASE__ is still present, something went wrong
+if grep -l '__RELEASE__' /rootfs/etc/apt/sources.list >/dev/null ; then
+    echo "FAILED"
+else
+    echo "OK"
+fi
 
-# add firmware to default apt sources
-echo -n "Configuring apt... "
-echo "deb http://mirrordirector.raspbian.org/raspbian $release main firmware" > /rootfs/etc/apt/sources.list
-echo "deb http://archive.raspberrypi.org/debian $release main" >> /rootfs/etc/apt/sources.list
+echo "  Adding raspberrypi.org gpg key to apt-key."
 cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
-echo "OK"
 
-# add preferences file to install libraspberrypi-bin and friends (for vcgencmd) from the raspbian archives
-# otherwise the one from raspberrypi.org archives get installed which conflicts with 
-# raspberrypi-bootloader-nokernel and we'd get the rpf kernel and not raspbian's
-echo -n "Creating preferences file for libraspberrypi-bin... "
-echo "Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc" > /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin: release o=Raspbian,n=$release" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "Pin-Priority: 800" >> /rootfs/etc/apt/preferences.d/01vcgencmd.pref
-echo "OK"
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/apt/ || fail
+
+# iterate through all the *.list files and add them to /etc/apt/sources.list.d
+for listfile in ./*.list
+do
+    if [ "$listfile" != "./sources.list" ] && [ -e "$listfile" ] ; then
+        echo -n "  Copying $listfile to /etc/apt/sources.list.d/... "
+        sed "s/__RELEASE__/$release/g" "$listfile" > "/rootfs/etc/apt/sources.list.d/$listfile" || fail
+        echo "OK"
+    fi
+done
+
+# iterate through all the *.pref files and add them to /etc/apt/preferences.d
+for preffile in ./*.pref
+do
+    if [ -e "$preffile" ]; then
+        echo -n "  Copying $preffile to /etc/apt/preferences.d/... "
+        sed "s/__RELEASE__/$release/g" "$preffile" > "/rootfs/etc/apt/preferences.d/$preffile" || fail
+        echo "OK"
+    fi
+done
+
+# iterate through all the *.key files and add them to apt-key
+for keyfile in ./*.key
+do
+    if [ -e "$keyfile" ]; then
+        echo -n "  Adding key $keyfile to apt."
+        cat "$keyfile" | chroot /rootfs /usr/bin/apt-key add - || fail
+        echo "OK"
+    fi
+done
+
+# iterate through all the *.gpg files and add them to /etc/apt/trusted.gpg.d
+for keyring in ./*.gpg
+do
+    if [ -e "$keyring" ]; then
+        echo -n "  Copying $keyring to /etc/apt/trusted.gpg.d/... "
+        cp "$keyring" "/rootfs/etc/apt/trusted.gpg.d/$keyring" || fail
+        echo "OK"
+    fi
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir || fail
+
 
 echo -n "Updating package lists... "
 chroot /rootfs /usr/bin/apt-get update &>/dev/null
 echo "OK"
 
-# firmware package can't be installed during cdebootstrap fase, so do so now
-if [ "$kernel_module" = true ] ; then
-  echo -n "Installing bootloader package (=firmware)... "
-  chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
+# firmware package can't be installed during cdebootstrap phase, so do so now
+echo -n "Installing bootloader package (=firmware)... "
+chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
+if [ $? -eq 0 ]; then
+    echo "OK"
+else
+    echo "FAILED !"
+fi
+
+# install firmware for wireless chipset (RPi 3 and Zero W)
+if [ "$ifname" != "eth0" ]; then
+  echo -n "Installing firmware for Broadcom wireless network cards... "
+  chroot /rootfs /usr/bin/apt-get -y install firmware-brcm80211 &>/dev/null
   if [ $? -eq 0 ]; then
     echo "OK"
   else
@@ -622,7 +1347,7 @@ if [ "$kernel_module" = true ] ; then
 fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
-echo -n "Installing libraspberrypi-bin package (=vcgencmd)... "
+echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
 chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
 if [ $? -eq 0 ]; then
     echo "OK"
@@ -630,44 +1355,70 @@ else
     echo "FAILED !"
 fi
 
-# add reasonable default modules, works only after kernel is properly installed
-echo "snd-bcm2835" >> /rootfs/etc/modules
+# (conditionaly) enable hardware watchdog and set up systemd to use it
+if [ "${enable_watchdog}" = "1" ]; then
+    echo "bcm2708_wdog" >> /rootfs/etc/modules
+    sed -i 's/^.*RuntimeWatchdogSec=.*$/RuntimeWatchdogSec=14s/' /rootfs/etc/systemd/system.conf
+fi
 
 echo "Configuring bootloader to start the installed system..."
 mv /rootfs/boot/config.txt /rootfs/boot/config-reinstall.txt
-
-# find kernel/initramfs version
-KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
-echo "Kernel version: '${KERNEL_VERSION}'"
 
 # no kernel-upgrade-script for the time being
 # just add the kernel/initramfs lines to /boot/config.txt for now
 if [ ! -f /rootfs/boot/config.txt ] ; then
     touch /rootfs/boot/config.txt
 fi
-echo "[pi${rpi_hardware_version}]" >> /rootfs/boot/config.txt
-echo "kernel=vmlinuz-$KERNEL_VERSION" >> /rootfs/boot/config.txt
-echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> /rootfs/boot/config.txt
-if [ "${rpi_hardware_version}" = "1" ] ; then
-    echo "# to enable DeviceTree, comment out the next line " >> /rootfs/boot/config.txt
-    echo "device_tree=" >> /rootfs/boot/config.txt
-fi
 
-# set the default kernel file based on the hardware
-default_kernel_file="kernel.img"
-if [ "${rpi_hardware_version}" = "2" ] ; then
-    default_kernel_file="kernel7.img"
-fi
+for hv in ${hardware_versions}
+do
+    # find kernel/initramfs version
+    eval kernel_meta_package=\${kernel_meta_package_${hv}}
+    if [ ${kernel_meta_package} != "none" ]
+    then
+        KERNEL_VERSION=$(sed -n -e "/^Package: ${kernel_meta_package}$/,/Package: /{s/^Depends: .*linux-image-\(.*-rpi2\{0,1\}\).*$/\1/p}" /rootfs/var/lib/dpkg/status)
+        echo "Adding boot config for kernel version: '${KERNEL_VERSION}'"
 
-# make sure there is a /boot/kernel.img or /boot/kernel7.img present
-if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
-    echo -n "Copying kernel to /boot/${default_kernel_file}... "
-    cp /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "FAILED !"
+        {
+            echo "[pi${hv}]"
+            echo "kernel=vmlinuz-$KERNEL_VERSION"
+            echo "initramfs initrd.img-${KERNEL_VERSION} followkernel"
+            if [ "${hv}" = "1" ] ; then
+                echo "# to disable DeviceTree, uncomment the next line "
+                echo "#device_tree="
+            fi
+            if [ "${hv}" = "3" ] ; then
+                # Only enable UART if the user explicitly sets that option.
+                # Enabled UART may break the bootprocess / bluetooth support.
+                if [ "${enable_uart}" = "1" ]; then
+                  echo "# enable the serial console for the installed system"
+                  echo "enable_uart=1"
+                fi
+            fi
+        } >> /rootfs/boot/config.txt
+
+        # set the default kernel file based on the hardware
+        case ${hv} in
+            2|3) default_kernel_file="kernel7.img" ;;
+            *) default_kernel_file="kernel.img" ;;
+        esac
+
+        # make sure there is a /boot/kernel.img or /boot/kernel7.img present
+        if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
+            echo -n "Copying kernel to /boot/${default_kernel_file}... "
+            cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
+            if [ $? -eq 0 ]; then
+                echo "OK"
+            else
+                echo "FAILED !"
+            fi
+        fi
     fi
+done
+
+# set gpu_mem if specified in the configuration file
+if [ -n "${gpu_mem}" ] ; then
+    echo "gpu_mem=${gpu_mem}" >> /rootfs/boot/config.txt
 fi
 
 # default cmdline.txt
@@ -685,30 +1436,96 @@ if [ -e /bootfs/post-install.txt ]; then
     echo "================================================="
 fi
 
+# modify installed network settings
+if [ -f /rootfs/etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    if [ $(grep "iface" /rootfs/etc/network/interfaces | grep -v "lo\|eth0" | wc -l) -ne 0 ]; then
+        if [ $(grep "wpa[-_]" /rootfs/etc/network/interfaces | wc -l) -eq 0 ]; then
+            echo "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces
+        fi
+    fi
+fi
+
+# remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
+echo -n "Removing cdebootstrap-helper-rc.d... "
+chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
+echo "OK"
+
+echo -n "Configuring initramfs... "
+
+# if the root fs type isn't build into the kernel, make sure the module is present in the initramfs
+if [ "$(grep -c $rootfstype /rootfs/lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
+{
+    echo "$rootfstype"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+# if the root fs is on a USB drive, make sure the needed modules are present in initramfs as well
+if [ "$usbroot" = "1" ]; then
+{
+    echo "sd_mod"
+    echo "usb-storage"
+} >> /rootfs/etc/initramfs-tools/modules
+fi
+echo "OK"
+
+# save the current location so that we can go back to it later on
+old_dir=$(pwd)
+cd /rootfs/boot/config/initramfs-tools/hooks/ || fail
+
+for hook_file in ./*
+do
+    if [ -f $hook_file ]; then
+        echo -n "Copying '$hook_file' to /etc/initramfs-tools/hooks/..."
+        cp $hook_file /rootfs/etc/initramfs-tools/hooks/ || fail
+        echo "OK"
+    fi
+done
+
+# return to the old location for the rest of the processing
+cd $old_dir || fail
+
+echo "Regenerating initramfs... "
+chroot /rootfs /usr/sbin/update-initramfs -u || fail
+echo "Regeneration of initramfs succeeded."
+
+teardown_chroot /rootfs
+
 # save current time if fake-hwclock
 echo "Saving current time for fake-hwclock..."
 sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
 
 ENDTIME=$(date +%s)
-DURATION=$(($ENDTIME - $REAL_STARTTIME))
+DURATION=$((ENDTIME - REAL_STARTTIME))
 echo -n "Installation finished at $(date --date="@$ENDTIME" --utc)"
-echo " and took $(($DURATION/60)) min $(($DURATION%60)) sec ($DURATION seconds)"
+echo " and took $((DURATION/60)) min $((DURATION%60)) sec ($DURATION seconds)"
+
+# copy logfile to standard log directory
+sleep 1
+cp -- $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
+chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
 
 echo -n "Unmounting filesystems... "
-# copy logfile to standard log directory
-cp $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
-chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
 
 umount /rootfs/boot
 umount /rootfs
 echo "OK"
 
-echo -n "Finished! Rebooting to installed system in 5 seconds..."
-for i in `seq 5 -1 1`; do
+case ${final_action} in
+    poweroff)
+        echo -n "Finished! Powering off in 5 seconds..."
+        ;;
+    halt)
+        echo -n "Finished! Halting in 5 seconds..."
+        ;;
+    *)
+        echo -n "Finished! Rebooting to installed system in 5 seconds..."
+        final_action=reboot
+esac
+
+for i in $(seq 5 -1 1); do
     sleep 1
 
     echo -n "$i.. "
 done
-echo " rebooting now"
-reboot
+echo " now"
+${final_action}

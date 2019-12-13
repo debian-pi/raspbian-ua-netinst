@@ -1,0 +1,4 @@
+Package: libraspberrypi-bin libraspberrypi0 libraspberrypi-dev libraspberrypi-doc
+Pin: release o=Raspbian,c=firmware
+Pin-Priority: 800
+
