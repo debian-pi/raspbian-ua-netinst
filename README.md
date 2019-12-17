@@ -16,7 +16,7 @@
 
 ## Intro
 
-The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B, 1B+, 2B and 3B.
+The minimal Raspbian unattended netinstaller for Raspberry Pi Model 1B to 3B+.
 
 This project provides [Raspbian][1] power users the possibility to install a minimal base system unattended using latest Raspbian packages regardless when the installer was built.
 
@@ -31,8 +31,8 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - DHCP and static ip configuration (DHCP is the default)
  - always installs the latest version of Raspbian
  - configurable default settings
- - extra configuration over HTTP possible - gives unlimited flexibility
- - installation takes about **15 minutes** with fast Internet from power on to sshd running
+ - extra configuration over HTTP(S) possible - gives unlimited flexibility
+ - installation takes about **15 minutes** with fast internet/SDcard/USB device from power on to sshd running
  - can fit on 512MB SD card, but 1GB is more reasonable
  - default install includes fake-hwclock to save time on shutdown
  - default install includes NTP to keep time
@@ -41,13 +41,13 @@ Other presets include _minimal_ which has even less packages (no logging, no tex
  - option to install root to USB drive
 
 ## Requirements
- - a Raspberry Pi Model 1B, Model 1B+ or Model 2B
+ - a Raspberry Pi Model 1B to 3B+
  - SD card of at least 640MB or at least 128MB for USB root install (without customization)
  - working Ethernet with Internet connectivity
 
 ## Writing the installer to the SD card
 ### Obtaining installer files on Windows and Mac
-Installer archive is around **19MB** and contains all firmware files and the installer.
+Installer archive contains all firmware files and the installer.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .zip file.
 
@@ -56,7 +56,7 @@ Format your SD card as **FAT32** (MS-DOS on _Mac OS X_) and extract the installe
 Try formatting the SD card with this tool: https://www.sdcard.org/downloads/formatter_4/
 
 ### Alternative method for Mac, writing image to SD card
-Prebuilt image is around **19MB** bzip2 compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
+Prebuilt image is **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Mac users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.bz2 file.
 
@@ -72,7 +72,7 @@ To flash your SD card on Mac:
 _Note the **r** in the of=/dev/rdiskX part on the dd line which should speed up writing the image considerably._
 
 ### SD card image for Linux
-Prebuilt image is around **17MB** xz compressed and **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
+Prebuilt image is **64MB** uncompressed. It contains the same files as the .zip but is more convenient for Linux users.
 
 Go to [our latest release page](https://github.com/debian-pi/raspbian-ua-netinst/releases/latest) and download the .img.xz file.
 
@@ -105,7 +105,7 @@ So don't copy and paste the defaults from below!
 The _installer-config.txt_ is read in at the beginning of the installation process, shortly followed by the file pointed to with `online_config`, if specified.
 There is also another configuration file you can provide, _post-install.txt_, and you place that in the same directory as _installer-config.txt_.
 The _post-install.txt_ is executed at the very end of the installation process and you can use it to tweak and finalize your automatic installation.  
-The configuration files are read in as  shell scripts, so you can abuse that fact if you so want to.
+The configuration files are read in as shell scripts, so you can abuse that fact if you so want to.
 
 The format of the _installer-config.txt_ file and the current defaults:
 
@@ -177,10 +177,16 @@ The format of the _installer-config.txt_ file and the current defaults:
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
 
-Available presets: _server_, _minimal_ and _base_.
-Presets set the `cdebootstrap_cmdline` variable. For example, the current _server_ default is:
+Available presets: _server_, _minimal_ and _base_. Presets set the `cdebootstrap_cmdline` variable.  
+Here's how those presets generally work (<XXX\>='virtual package',[XXX]=optional):
 
-> _--flavour=minimal --include=kmod,fake-hwclock,ifupdown,net-tools,isc-dhcp-client,ntp,openssh-server,vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,dialog,locales,less,man-db_
+> base_packages="cpufrequtils,kmod,<kernel-package\>,<init-system\>,[rng-tools,]dosfstools,<root-fs-packages\>"
+
+> minimal_packages="fake-hwclock,ifupdown,net-tools,ntp,openssh-server,resolvconf[,rdnssd]"
+
+> server_packages="vim-tiny,iputils-ping,wget,ca-certificates,rsyslog,cron,dialog,locales,less,man-db"
+
+> server/default preset = "--flavour=minimal --include=${base_packages},${minimal_packages},${server_packages}"
 
 (If you build your own installer, which most won't need to, and the configuration files exist in the same directory as this `README.md`, it will be include in the installer image automatically.)
 
@@ -298,7 +304,7 @@ modes:
 ## Logging
 The output of the installation process is now also logged to file.  
 When the installation completes successfully, the logfile is moved to /var/log/raspbian-ua-netinst.log on the installed system.  
-When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-\<datetimestamp\>.log
+When an error occurs during install, the logfile is moved to the sd card, which gets normally mounted on /boot/ and will be named raspbian-ua-netinst-<datetimestamp\>.log
 
 ## First boot
 The system is almost completely unconfigured on first boot. Here are some tasks you most definitely want to do on first boot.
@@ -306,8 +312,6 @@ The system is almost completely unconfigured on first boot. Here are some tasks 
 The default **root** password is **raspbian**.
 
 > Set new root password: `passwd`  (can also be set during installation using **rootpw** in [installer-config.txt](#installer-customization))  
-> Configure your default locale: `dpkg-reconfigure locales`  
-> Configure your timezone: `dpkg-reconfigure tzdata`  
 
 The latest kernel and firmware packages are now automatically installed during the unattended installation process.
 When you need a kernel module that isn't loaded by default, you will still have to configure that manually.
@@ -333,7 +337,7 @@ If you want to show your appreciation, you can send bitcoin to the following add
 Feel free to ask for a custom address/invoice (f.e. for privacy reasons). Thanks!
 
 ## Disclaimer
-We take no responsibility for ANY data loss. You will be reflashing your SD card anyway so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
+We take no responsibility for ANY data loss. You will be flashing your SD card so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
 
 See LICENSE for license information.
 
