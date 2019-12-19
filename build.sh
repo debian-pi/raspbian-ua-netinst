@@ -514,6 +514,9 @@ function create_cpio {
     cp tmp/usr/lib/*/libldap-2.4.so.2 rootfs/usr/lib/
     cp tmp/usr/lib/*/libldap_r-2.4.so.2.* rootfs/usr/lib/libldap_r-2.4.so.2
 
+    # liblz4-1 components
+    cp tmp/usr/lib/*/liblz4.so.1.* rootfs/lib/liblz4.so.1
+
     # liblzma5 components
     cp tmp/lib/*/liblzma.so.5.* rootfs/lib/liblzma.so.5
 
@@ -533,10 +536,13 @@ function create_cpio {
     cp tmp/usr/lib/*/libnghttp2.so.14.* rootfs/usr/lib/libnghttp2.so.14
 
     # libnl-3-200 components
-    cp tmp/lib/*/libnl-3.so.200 rootfs/lib/libnl-3.so.200
+    cp tmp/lib/*/libnl-3.so.200.* rootfs/lib/libnl-3.so.200
 
     # libnl-genl-3-200 components
-    cp tmp/lib/*/libnl-genl-3.so.200 rootfs/lib/libnl-genl-3.so.200
+    cp tmp/lib/*/libnl-genl-3.so.200.* rootfs/lib/libnl-genl-3.so.200
+
+    # libnl-genl-3-200 components
+    cp tmp/usr/lib/*/libnl-route-3.so.200.* rootfs/lib/libnl-route-3.so.200
 
     # libp11-kit0 components
     cp tmp/usr/lib/*/libp11-kit.so.0.* rootfs/usr/lib/libp11-kit.so.0
@@ -580,6 +586,9 @@ function create_cpio {
     cp tmp/usr/lib/*/engines-1.1/afalg.so rootfs/usr/lib/engines-1.1/
     cp tmp/usr/lib/*/engines-1.1/capi.so rootfs/usr/lib/engines-1.1/
     cp tmp/usr/lib/*/engines-1.1/padlock.so rootfs/usr/lib/engines-1.1/
+
+    # libsystemd0 components
+    cp tmp/lib/*/libsystemd.so.0.* rootfs/lib/libsystemd.so.0
 
     # libtasn1-6 components
     cp tmp/usr/lib/*/libtasn1.so.6.* rootfs/usr/lib/libtasn1.so.6
