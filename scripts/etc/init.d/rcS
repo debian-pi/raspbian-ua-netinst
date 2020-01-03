@@ -1471,6 +1471,8 @@ do
                 echo "#device_tree="
             fi
             if [ "${hv}" = "3" ] ; then
+                echo "# enable the serial console by enabling this DT overlay"
+                echo "#dtoverlay=pi3-miniuart-bt"
                 # Only enable UART if the user explicitly sets that option.
                 # Enabled UART may break the bootprocess / bluetooth support.
                 if [ "${enable_uart}" = "1" ]; then
