@@ -148,6 +148,31 @@ teardown_chroot()
     fi
 }
 
+is_change_in_release()
+{
+    changedate=$1
+    release=$(echo "$2" | tr '[:upper:]' '[:lower:]')
+
+    releasedate=$(awk -F "," -v releasename="$release" '{ if ($3 == releasename) print $5}' /usr/share/distro-info/debian.csv)
+    case $releasedate in
+        *[![:blank:]]*)
+            #valid release date
+            ;;
+        *)
+            #invalid release date, so set it explicitly to null
+            releasedate="null"
+            ;;
+    esac
+
+    #return 1 if there is no release date known (Sid/Testing or (now) Bullseye) OR when releasedate >= changedate
+    if [ "$releasedate" = "null" ] || [ "$(echo "$releasedate" | tr -d -)" -ge "$(echo "$changedate" | tr -d -)" ] ; then
+        return 1
+    else
+        return 0
+    fi
+
+}
+
 /bin/busybox mkdir -p /opt/busybox/bin/
 /bin/busybox --install /opt/busybox/bin/
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
@@ -1010,9 +1035,10 @@ if [ ! "$disable_root" = "1" ]; then
         echo "OK"
     fi
     if [ ! -z "$rootpw" ]; then
-        # openssh-server in jessie doesn't allow root to login with a password
-        if [ "$release" = "jessie" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
-            echo -n "  Allowing root to login with password on jessie... "
+        # openssh-server since 2014-03-28 (jessie+) doesn't allow root to login with a password
+        root_pw_ssh_hack_needed=$(is_change_in_release "2014-03-28" "$release")
+        if [ "$root_pw_ssh_hack_needed" = "1" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
+            echo -n "  Allowing root to login with password on $release... "
             sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
             echo "OK"
         fi
