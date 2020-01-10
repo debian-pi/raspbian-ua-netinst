@@ -1040,7 +1040,8 @@ if [ ! "$disable_root" = "1" ]; then
         root_pw_ssh_hack_needed=$(is_change_in_release "2014-03-28" "$release")
         if [ "$root_pw_ssh_hack_needed" = "1" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
             echo -n "  Allowing root to login with password on $release... "
-            sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            sed -i -E 's/PermitRootLogin (without|prohibit)-password/PermitRootLogin yes/' /rootfs/etc/ssh/sshd_config || fail
+            sed -i 's/^#PermitRootLogin/PermitRootLogin/' /rootfs/etc/ssh/sshd_config || fail
             echo "OK"
         fi
         echo -n "  Setting root password... "
