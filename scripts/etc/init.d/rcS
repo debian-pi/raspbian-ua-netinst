@@ -174,6 +174,49 @@ is_change_in_release()
 
 }
 
+show_deprecation_notice()
+{
+    if [ -z "$1" ]; then
+        exit 1
+    fi
+
+    echo "******************************************************"
+    echo "                 DEPRECATION NOTICE                   "
+    echo "******************************************************"
+
+    config_id=$1
+    case "$config_id" in
+        "ip_addr")
+            echo "You are using the setting 'ip_addr', but that is deprecated. Please use 'ip4_addr' instead."
+            config_change="remove"
+        ;;
+        "ip_gateway")
+            echo "You are using the setting 'ip_gateway', but that is deprecated. Please use 'ip4_gateway' instead."
+            config_change="remove"
+        ;;
+        "ip_nameservers")
+            echo "You are using the setting 'ip_nameservers', but that is deprecated. Please use 'ip4_nameservers' instead."
+            config_change="remove"
+        ;;
+        "ip_netmask")
+            echo "You are using the setting 'ip_netmask', but that is deprecated. Please use 'ip4_prefixlength' instead."
+            config_change="remove"
+        ;;
+        "preset")
+            echo "You are using an unknown 'preset', but that is deprecated. Please use 'base', 'minimal' or 'server' instead."
+            config_change="remove"
+    esac
+
+    case "$config_change" in
+        "remove")
+            echo "In the next major release, this setting will no longer work and the compatibility code will be removed."
+            echo "Consequently, the installer will probably not do what you want or may fail entirely."
+        ;;
+    esac
+
+    echo "******************************************************"
+}
+
 /bin/busybox mkdir -p /opt/busybox/bin/
 /bin/busybox --install /opt/busybox/bin/
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/busybox/bin
@@ -321,22 +364,26 @@ fi
 # "ip_" prefix instead of "ip4_"
 
 if [ ! -z "$ip_addr" ]; then
-   ip4_addr="$ip_addr"
+    ip4_addr="$ip_addr"
+    show_deprecation_notice "ip_addr"
 fi
 
 if [ ! -z "$ip_gateway" ]; then
-   ip4_gateway="$ip_gateway"
+    ip4_gateway="$ip_gateway"
+    show_deprecation_notice "ip_gateway"
 fi
 
 if [ ! -z "$ip_nameservers" ]; then
-   ip4_nameservers="$ip_nameservers"
+    ip4_nameservers="$ip_nameservers"
+    show_deprecation_notice "ip_nameservers"
 fi
 
 # Provide backwards compatibility for v1.0 configurations which used
 # "ip_netmask" instead of "ip4_prefixlength"
 
 if [ ! -z "$ip_netmask" ]; then
-   ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
+    ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
+    show_deprecation_notice "ip_netmask"
 fi
 
 echo
@@ -766,7 +813,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
             # this should be 'server', but using '*' for backward-compatibility
             cdebootstrap_cmdline="--flavour=minimal --include=${base_packages},${minimal_packages},${server_packages}"
             if [ "$preset" != "server" ]; then
-                echo "Unknown preset specified: $preset"
+                show_deprecation_notice "preset"
                 echo "Using 'server' as fallback"
             fi
             ;;
