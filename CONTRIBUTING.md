@@ -24,13 +24,12 @@ Then provide the steps you took in order to accomplish a certain task. The follo
 Furthermore, it helps if you provide the configuration files you used, such as `installer-config.txt`. Make sure to remove/replace sensitive information, if present. The installer also creates a log file, which is either located in `/boot/` or when the installation finished, in `/var/log/`. If you can provide those, that helps too.
 
 ## Submitting Pull Requests
-We currently have 2 development branches, v1.1.x, which is used for the v1.1.X releases and v1.2.x for new feature developments.  
-The v1.0.x branch was used for the v1.0.X releases but is no longer used.  
-The master branch is synced with the latest stable release, but can include documentation updates.  
-Since we follow [semantic versioning](http://semver.org/), that means that pull requests that require a new (configuration) parameter need to be submitted to the v1.2.x branch. Pull requests that don't need a new parameter, such as a bug fix, should be submitted to the v1.1.x branch.
+I'm changing the way branches are used to the way most GitHub repos work.  
+From now on, normal development happens on the 'master' branch. When a new release series is created, it is branched off of the master branch. Bug fixes should normally target the master branch. If useful, backports for release branches can then also be made.  
+The v1.0.x branch was used for the v1.0.X releases, but should now be considered obsolete.
 
-When you want to create a pull request, the best way to do that is by creating a [topic branch](https://github.com/dchelimsky/rspec/wiki/topic-branches), branched off of either v1.1.x or v1.2.x according to the criteria outlined above, preferably with a name describing what the branch is about. When you're writing the code for your pull request, we prefer smaller (atomic) commits over 1 commit with a lot of 'unrelated' changes.
-Each commit should have a clear message saying what has changed. If you want to provide more context to your commit, that's an excellent candidate for the second line of your commit message.
+When you want to create a pull request, the best way to do that is by creating a [topic branch](https://github.com/dchelimsky/rspec/wiki/topic-branches), branched off the target you wish to change, preferably with a name describing what the branch is about. When you're writing the code for your pull request, we prefer smaller (atomic) commits over 1 commit with a lot of 'unrelated' changes.
+Each commit should have a clear message saying what has changed. If you want to provide more context to your commit, ie the why, that's an excellent candidate for the second line of your commit message.
 An example is the following commit: [Add filesystem packages so fsck can be run from initramfs.](https://github.com/debian-pi/raspbian-ua-netinst/commit/a7e80f0dba793cd38945b596a9fd4b3b843d7bbb)
 
 A pull request is generally reviewed according to the following rules:
@@ -39,7 +38,7 @@ A pull request is generally reviewed according to the following rules:
 - Your change shouldn't have a negative effect on the rest of the code
 - It should not (needlessly) complicate the code
 - The code should be in line with the rest of the existing code, for example a boolean true is represented as a '1' (at least in the v1.x branches), like the `usbroot` configuration parameter.
-- It shouldn't fundamentally change the way the installer works. At least not during the v1.x series. We don't know in what ways the installer is used currently, but we don't want to break those uses.  
+- It should not fundamentally change the way the installer works. At least not during the v1.x series. We don't know in what ways the installer is used currently, but we don't want to break those uses.
 Such changes *could* be considered for a v2.x series, but there are no plans for that right now.
 
 Note that most, if not all, of us do this in our free time, so sometimes you get a quick response and in other times it may take longer. You should also be willing to update your code if one of the collaborators think it's needed.  
