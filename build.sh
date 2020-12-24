@@ -153,7 +153,7 @@ function create_cpio {
     mkdir -p rootfs/usr/lib/engines-1.1/
     mkdir -p rootfs/usr/lib/{ssl,tar,tc}
     mkdir -p rootfs/usr/sbin/
-    mkdir -p rootfs/usr/share/{dpkg,keyrings,libc-bin}
+    mkdir -p rootfs/usr/share/{distro-info,dpkg,keyrings,libc-bin}
     mkdir -p rootfs/var/lib/dpkg/{alternatives,info,parts,updates}
     mkdir -p rootfs/var/lib/ntpdate
     mkdir -p rootfs/var/log/
@@ -193,6 +193,9 @@ function create_cpio {
 
     # curl components
     cp tmp/usr/bin/curl rootfs/usr/bin/
+
+    # distro-info-data components
+    cp tmp/usr/share/distro-info/debian.csv rootfs/usr/share/distro-info/
 
     # dosfstools components
     cp tmp/sbin/fatlabel rootfs/sbin/

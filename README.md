@@ -11,7 +11,6 @@
 - [First boot](#first-boot)
 - [Reinstalling or replacing an existing system](#reinstalling-or-replacing-an-existing-system)
 - [Reporting bugs and improving the installer](#reporting-bugs-and-improving-the-installer)
-- [Donate](#donate)
 - [Disclaimer](#disclaimer)
 
 ## Intro
@@ -330,11 +329,6 @@ If you want to reinstall with the same settings you did your first install you c
 ## Reporting bugs and improving the installer
 When you encounter issues, have wishes or have code or documentation improvements, we'd like to hear from you!
 We've actually written a document on how to best do this and you can find it [here](CONTRIBUTING.md).
-
-## Donate
-If you want to show your appreciation, you can send bitcoin to the following address/invoice:
-<pre>bc1qx77n32n4e8ceham9q4sma7j62jxe8vryn2eqqs    (@diederikdehaas (Diederik de Haas))</pre>
-Feel free to ask for a custom address/invoice (f.e. for privacy reasons). Thanks!
 
 ## Disclaimer
 We take no responsibility for ANY data loss. You will be flashing your SD card so it should be very clear to you what you are doing and will lose all your data on the card. Same goes for reinstallation.
