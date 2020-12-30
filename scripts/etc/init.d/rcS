@@ -275,7 +275,7 @@ if [ -z ${am_subscript} ]; then
         echo "=== Start executing alternative rcS ========="
         echo "---------------------------------------------"
         export am_subscript=true
-        source /rcS
+        . /rcS
         echo "---------------------------------------------"
         echo "=== Execution of alternative rcS finished ==="
         echo "============================================="
@@ -351,7 +351,7 @@ if [ -e /bootfs/installer-config.txt ]; then
     echo "================================================="
     echo "=== Start executing installer-config.txt. ==="
     sanitize_inputfile /bootfs/installer-config.txt
-    source /bootfs/installer-config.txt
+    . /bootfs/installer-config.txt
     echo "=== Finished executing installer-config.txt. ==="
     echo "================================================="
 fi
@@ -673,7 +673,7 @@ if [ "$online_config" != "" ]; then
     echo "================================================="
     echo "=== Start executing online-config.txt. ==="
     sanitize_inputfile /online-config.txt
-    source /online-config.txt
+    . /online-config.txt
     echo "=== Finished executing online-config.txt. ==="
     echo "================================================="
 fi
@@ -1516,7 +1516,7 @@ if [ -e /bootfs/post-install.txt ]; then
     echo "================================================="
     echo "=== Start executing post-install.txt. ==="
     sanitize_inputfile /bootfs/post-install.txt
-    source /bootfs/post-install.txt
+    . /bootfs/post-install.txt
     echo "=== Finished executing post-install.txt. ==="
     echo "================================================="
 fi
