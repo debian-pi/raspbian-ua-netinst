@@ -1,4 +1,4 @@
-#!/bin/busybox sh
+#!/bin/sh
 
 # "read without -r" is only used in the fail function and there we don't care
 # what, but only if something is typed indicating there's a keyboard attached
