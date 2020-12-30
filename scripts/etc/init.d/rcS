@@ -438,7 +438,7 @@ echo "Waiting for $ifname... "
 
 for i in $(seq 1 10); do
 
-    ifconfig $ifname &>/dev/null
+    ifconfig $ifname 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
         break
     fi
@@ -497,7 +497,7 @@ if [ "$ip4_addr" = "disable" ]; then
 elif [ "$ip4_addr" = "dhcp" ]; then
     echo -n "Configuring $ifname for IPv4 using DHCP... "
 
-    udhcpc -i $ifname &>/dev/null
+    udhcpc -i $ifname 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
         have_ip4=$(ip -4 addr ls $ifname | grep 'scope global' | awk '{print $2}')
 	echo $have_ip4
@@ -616,7 +616,7 @@ PRE_NETWORK_DURATION=$(date +%s)
 date_set=false
 if [ "$date_set" = "false" ] ; then
     # set time with ntpdate
-    ntpdate-debian -b &>/dev/null
+    ntpdate-debian -b 1>/dev/null 2>&1
     if [ $? -eq 0 ] ; then
         echo -n "Time set using ntpdate to... "
         date
@@ -639,7 +639,7 @@ if [ "$date_set" = "false" ] ; then
         timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
         for ts in $timeservers
         do
-            rdate $ts &>/dev/null
+            rdate $ts 1>/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 echo -n "Time set using timeserver '$ts' to... "
                 date
@@ -667,7 +667,7 @@ echo ""
 
 if [ "$online_config" != "" ]; then
     echo -n "Downloading online config from $online_config... "
-    curl -L --silent -o /online-config.txt $online_config &>/dev/null || fail
+    curl -L --silent -o /online-config.txt $online_config 1>/dev/null 2>&1 || fail
     echo "OK"
 
     echo "================================================="
@@ -839,10 +839,10 @@ if [ "$usbroot" = "1" ]; then
     echo -n "Loading USB modules... "
     # only do modprobe if the module is NOT built into the kernel
     if [ "$(grep -c "sd_mod" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
-        modprobe sd_mod &> /dev/null || fail
+        modprobe sd_mod 1>/dev/null 2>&1 || fail
     fi
     if [ "$(grep -c "usb-storage" /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
-        modprobe usb-storage &> /dev/null || fail
+        modprobe usb-storage 1>/dev/null 2>&1 || fail
     fi
     echo "OK"
 fi
@@ -1013,18 +1013,18 @@ done
 
 if [ "$rootdev" = "$bootdev" ]; then
     echo -n "Applying new partition table... "
-    dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null < ${FDISK_SCHEME_SD_ONLY}
+    dd if=/dev/zero of=$bootdev bs=512 count=1 1>/dev/null 2>&1
+    fdisk $bootdev 1>/dev/null 2>&1 < ${FDISK_SCHEME_SD_ONLY}
     echo "OK"
 else
     echo -n "Applying new partition table for $bootdev... "
-    dd if=/dev/zero of=$bootdev bs=512 count=1 &>/dev/null
-    fdisk $bootdev &>/dev/null < ${FDISK_SCHEME_SD_BOOT}
+    dd if=/dev/zero of=$bootdev bs=512 count=1 1>/dev/null 2>&1
+    fdisk $bootdev 1>/dev/null 2>&1 < ${FDISK_SCHEME_SD_BOOT}
     echo "OK"
 
     echo -n "Applying new partition table for $rootdev... "
-    dd if=/dev/zero of=$rootdev bs=512 count=1 &>/dev/null
-    fdisk $rootdev &>/dev/null < ${FDISK_SCHEME_USB_ROOT}
+    dd if=/dev/zero of=$rootdev bs=512 count=1 1>/dev/null 2>&1
+    fdisk $rootdev 1>/dev/null 2>&1 < ${FDISK_SCHEME_USB_ROOT}
     echo "OK"
 fi
 
@@ -1033,9 +1033,9 @@ mdev -s
 
 echo -n "Initializing /boot as vfat... "
 if [ "$boot_volume_label" = "" ]; then
-  mkfs.vfat $bootpartition &>/dev/null || fail
+  mkfs.vfat $bootpartition 1>/dev/null 2>&1 || fail
 else
-  mkfs.vfat -n $boot_volume_label $bootpartition &>/dev/null || fail
+  mkfs.vfat -n $boot_volume_label $bootpartition 1>/dev/null 2>&1 || fail
 fi
 echo "OK"
 
@@ -1049,12 +1049,12 @@ echo "OK"
 # only do modprobe if the module is NOT built into the kernel
 if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
     echo -n "Loading $rootfstype module... "
-    modprobe $rootfstype &> /dev/null || fail
+    modprobe $rootfstype 1>/dev/null 2>&1 || fail
     echo "OK"
 fi
 
 echo -n "Initializing / as $rootfstype... "
-mkfs.$rootfstype $rootfs_mkfs_options $rootpartition &>/dev/null || fail
+mkfs.$rootfstype $rootfs_mkfs_options $rootpartition 1>/dev/null 2>&1 || fail
 echo "OK"
 
 echo -n "Mounting new filesystems... "
@@ -1323,7 +1323,7 @@ fi
 if [ "$system_default_locale" != "" ] ; then
     if [ -x /rootfs/usr/sbin/update-locale ] ; then
         echo -n "  Setting system default locale... "
-        chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" &> /dev/null
+        chroot /rootfs /usr/sbin/update-locale LANG="$system_default_locale" 1>/dev/null 2>&1
         if [ $? -eq 0 ]; then
             echo "OK"
         else
@@ -1355,7 +1355,7 @@ else
 fi
 
 echo "  Adding raspberrypi.org gpg key to apt-key."
-cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - &>/dev/null
+cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - 1>/dev/null 2>&1
 
 # save the current location so that we can go back to it later on
 old_dir=$(pwd)
@@ -1406,12 +1406,12 @@ cd $old_dir || fail
 
 
 echo -n "Updating package lists... "
-chroot /rootfs /usr/bin/apt-get update &>/dev/null
+chroot /rootfs /usr/bin/apt-get update 1>/dev/null 2>&1
 echo "OK"
 
 # firmware package can't be installed during cdebootstrap phase, so do so now
 echo -n "Installing bootloader package (=firmware)... "
-chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel &>/dev/null
+chroot /rootfs /usr/bin/apt-get -y install raspberrypi-bootloader-nokernel 1>/dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "OK"
 else
@@ -1421,7 +1421,7 @@ fi
 # install firmware for wireless chipset (RPi 3 and Zero W)
 if [ "$ifname" != "eth0" ]; then
   echo -n "Installing firmware for Broadcom wireless network cards... "
-  chroot /rootfs /usr/bin/apt-get -y install firmware-brcm80211 &>/dev/null
+  chroot /rootfs /usr/bin/apt-get -y install firmware-brcm80211 1>/dev/null 2>&1
   if [ $? -eq 0 ]; then
     echo "OK"
   else
@@ -1431,7 +1431,7 @@ fi
 
 # install libraspberrypi-bin to provide vcgencmd functionality
 echo -n "Installing libraspberrypi-bin package (=vcgencmd,raspistill,raspivid,etc)... "
-chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin &>/dev/null
+chroot /rootfs /usr/bin/apt-get -y install libraspberrypi-bin 1>/dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "OK"
 else
@@ -1532,7 +1532,7 @@ fi
 
 # remove cdebootstrap-helper-rc.d which prevents rc.d scripts from running
 echo -n "Removing cdebootstrap-helper-rc.d... "
-chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d &>/dev/null || fail
+chroot /rootfs /usr/bin/dpkg -r cdebootstrap-helper-rc.d 1>/dev/null 2>&1 || fail
 echo "OK"
 
 echo -n "Configuring initramfs... "
