@@ -1092,7 +1092,7 @@ if [ ! "$disable_root" = "1" ]; then
             echo "OK"
         fi
         echo -n "  Setting root password... "
-        echo -n "root:$rootpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo -n "root:$rootpw" | chroot /rootfs /usr/sbin/chpasswd 1>/dev/null 2>&1 || fail
         echo "OK"
     fi
 fi
@@ -1100,7 +1100,7 @@ fi
 # add user to system
 if [ ! -z "$username" ]; then
     echo -n "  Creating $username user... "
-    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password || fail
+    chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password 1>/dev/null 2>&1 || fail
     echo "OK"
     # add SSH key for user (if provided)
     if [ ! -z "$user_ssh_pubkey" ]; then
@@ -1110,7 +1110,7 @@ if [ ! -z "$username" ]; then
             echo "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
         echo "OK"
         echo -n "  Setting owner as $username on SSH directory... "
-        chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" || fail
+        chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" 1>/dev/null 2>&1 || fail
         echo "OK"
         echo -n "  Setting permissions on $username SSH authorized_keys... "
         chmod 600 "$ssh_dir/authorized_keys" || fail
@@ -1118,12 +1118,12 @@ if [ ! -z "$username" ]; then
     fi
     if [ ! -z "$userpw" ]; then
         echo -n "  Setting $username password... "
-        echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd || fail
+        echo -n "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd 1>/dev/null 2>&1 || fail
         echo "OK"
     fi
     if [ "$user_is_admin" = "1" ]; then
         echo -n "  Adding $username to sudo group... "
-        chroot /rootfs /usr/sbin/usermod -aG sudo "$username" || fail
+        chroot /rootfs /usr/sbin/usermod -aG sudo "$username" 1>/dev/null 2>&1 || fail
         echo "OK"
         if [ -z "$userpw" ]; then
             echo -n "  Setting $username to sudo without a password... "
