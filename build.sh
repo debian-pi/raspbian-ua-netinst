@@ -205,6 +205,9 @@ function create_cpio {
 
     # dash components
     cp tmp/bin/dash rootfs/bin/
+    cd rootfs/bin
+    ln -s dash sh
+    cd ../..
 
     # distro-info-data components
     cp tmp/usr/share/distro-info/debian.csv rootfs/usr/share/distro-info/

@@ -265,8 +265,6 @@ mkdir -p /rootfs/boot
 mkdir -p /bootfs
 mkdir -p /tmp/
 
-ln -s /opt/busybox/bin/sh /bin/sh
-
 # put PATH in /etc/profile so it's also available when we get a busybox shell
 printf "%s\n" "export PATH=${PATH}" > /etc/profile
 
