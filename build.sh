@@ -203,6 +203,9 @@ function create_cpio {
     # curl components
     cp tmp/usr/bin/curl rootfs/usr/bin/
 
+    # dash components
+    cp tmp/bin/dash rootfs/bin/
+
     # distro-info-data components
     cp tmp/usr/share/distro-info/debian.csv rootfs/usr/share/distro-info/
 
