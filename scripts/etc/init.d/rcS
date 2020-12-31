@@ -539,7 +539,7 @@ if [ "$ip4_addr" = "disable" ]; then
 elif [ "$ip4_addr" = "dhcp" ]; then
     log_msg_start "Configuring $ifname for IPv4 using DHCP... "
 
-    udhcpc -i $ifname 1>/dev/null 2>&1
+    udhcpc -t 5 -T 20 -R -i $ifname 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
         have_ip4=$(ip -4 addr ls $ifname | grep 'scope global' | awk '{print $2}')
 	    log_msg_end "$have_ip4"
