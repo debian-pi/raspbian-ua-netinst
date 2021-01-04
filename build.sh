@@ -167,8 +167,17 @@ function create_cpio {
     cp -r scripts/* rootfs/
 
     # update version and date
-    sed -i "s/__VERSION__/git~$(git rev-parse --short "@{0}")/" rootfs/etc/init.d/rcS
-    sed -i "s/__DATE__/$(date)/" rootfs/etc/init.d/rcS
+    # idea for '--exact-match' taken from https://stackoverflow.com/a/1474161
+    if [ "$(git describe --exact-match '@{0}' 2>/dev/null)" ] ; then
+        sed -i "s/__VERSION__/Release: $(git describe --exact-match '@{0}')/" rootfs/etc/init.d/rcS
+    else
+        # Since git 2.25 (Q1 2020), the value of pretty can also be replaced with 'reference', thus "--pretty=reference"
+        # See https://stackoverflow.com/a/59380120 for details
+        # and https://stackoverflow.com/a/2705678 for escaping sed statement (it failed on '/' in commit msg)
+        ESCAPED_REVISION=$(printf '%s\n' "Revision: git~$(git show -s --pretty='format:%C(auto)%h (%s, %ad)' --date=short '@{0}')" | sed -e 's/[\/&]/\\&/g')
+        sed -i "s/__VERSION__/$ESCAPED_REVISION/" rootfs/etc/init.d/rcS
+    fi
+    sed -i "s/__DATE__/$(date --rfc-3339=s)/" rootfs/etc/init.d/rcS
 
     # add firmware for wireless chipset (RPi 3 and Zero W)
     mkdir -p rootfs/lib/firmware/brcm
