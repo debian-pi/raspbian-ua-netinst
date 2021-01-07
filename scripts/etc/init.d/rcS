@@ -1284,13 +1284,17 @@ touch /rootfs/etc/inittab
 echo "OK"
 
 # set timezone and reconfigure tzdata package
-echo -n "  Configuring tzdata, setting timezone to $timezone... "
-echo "$timezone" > /rootfs/etc/timezone
-chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata &> /dev/null
-if [ $? -eq 0 ]; then
-    echo "OK"
+if [ -f "/rootfs/usr/share/zoneinfo/$timezone" ] ; then
+    echo -n "  Configuring tzdata, setting timezone to $timezone... "
+    chroot /rootfs ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
+    chroot /rootfs /usr/sbin/dpkg-reconfigure -f noninteractive tzdata 1>/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAILED !"
+    fi
 else
-    echo "FAILED !"
+    echo "Invalid timezone '$timezone', so not (re-)configuring tzdata!"
 fi
 
 # generate locale data
