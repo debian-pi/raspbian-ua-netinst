@@ -389,17 +389,17 @@ fi
 # Provide backwards compatibility for v1.0 configurations which used
 # "ip_" prefix instead of "ip4_"
 
-if [ ! -z "$ip_addr" ]; then
+if [ -n "$ip_addr" ]; then
     ip4_addr="$ip_addr"
     show_deprecation_notice "ip_addr"
 fi
 
-if [ ! -z "$ip_gateway" ]; then
+if [ -n "$ip_gateway" ]; then
     ip4_gateway="$ip_gateway"
     show_deprecation_notice "ip_gateway"
 fi
 
-if [ ! -z "$ip_nameservers" ]; then
+if [ -n "$ip_nameservers" ]; then
     ip4_nameservers="$ip_nameservers"
     show_deprecation_notice "ip_nameservers"
 fi
@@ -407,7 +407,7 @@ fi
 # Provide backwards compatibility for v1.0 configurations which used
 # "ip_netmask" instead of "ip4_prefixlength"
 
-if [ ! -z "$ip_netmask" ]; then
+if [ -n "$ip_netmask" ]; then
     ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
     show_deprecation_notice "ip_netmask"
 fi
@@ -1098,7 +1098,7 @@ setup_chroot /rootfs
 # configure root login
 if [ ! "$disable_root" = "1" ]; then
     # add SSH key for root (if provided)
-    if [ ! -z "$root_ssh_pubkey" ]; then
+    if [ -n "$root_ssh_pubkey" ]; then
         log_msg_start "  Setting root SSH key... "
         mkdir -p -m 700 /rootfs/root/.ssh && \
             printf '%s\n' "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
@@ -1107,7 +1107,7 @@ if [ ! "$disable_root" = "1" ]; then
         chmod 600 /rootfs/root/.ssh/authorized_keys || fail
         log_msg_end "OK"
     fi
-    if [ ! -z "$rootpw" ]; then
+    if [ -n "$rootpw" ]; then
         # openssh-server since 2014-03-28 (jessie+) doesn't allow root to login with a password
         root_pw_ssh_hack_needed=$(is_change_in_release "2014-03-28" "$release")
         if [ "$root_pw_ssh_hack_needed" = "1" ] && [ -f /rootfs/etc/ssh/sshd_config ] ; then
@@ -1123,12 +1123,12 @@ if [ ! "$disable_root" = "1" ]; then
 fi
 
 # add user to system
-if [ ! -z "$username" ]; then
+if [ -n "$username" ]; then
     log_msg_start "  Creating $username user... "
     chroot /rootfs /usr/sbin/adduser "$username" --gecos "" --disabled-password 1>/dev/null 2>&1 || fail
     log_msg_end "OK"
     # add SSH key for user (if provided)
-    if [ ! -z "$user_ssh_pubkey" ]; then
+    if [ -n "$user_ssh_pubkey" ]; then
         log_msg_start "  Setting $username SSH key... "
         ssh_dir="/rootfs/home/$username/.ssh"
         mkdir -p -m 700 "$ssh_dir" && \
@@ -1141,7 +1141,7 @@ if [ ! -z "$username" ]; then
         chmod 600 "$ssh_dir/authorized_keys" || fail
         log_msg_end "OK"
     fi
-    if [ ! -z "$userpw" ]; then
+    if [ -n "$userpw" ]; then
         log_msg_start "  Setting $username password... "
         printf '%s' "$username:$userpw" | chroot /rootfs /usr/sbin/chpasswd 1>/dev/null 2>&1 || fail
         log_msg_end "OK"
