@@ -389,16 +389,19 @@ fi
 # Provide backwards compatibility for v1.0 configurations which used
 # "ip_" prefix instead of "ip4_"
 
+# shellcheck disable=SC2154  # deprecated var name
 if [ -n "$ip_addr" ]; then
     ip4_addr="$ip_addr"
     show_deprecation_notice "ip_addr"
 fi
 
+# shellcheck disable=SC2154  # deprecated var name
 if [ -n "$ip_gateway" ]; then
     ip4_gateway="$ip_gateway"
     show_deprecation_notice "ip_gateway"
 fi
 
+# shellcheck disable=SC2154  # deprecated var name
 if [ -n "$ip_nameservers" ]; then
     ip4_nameservers="$ip_nameservers"
     show_deprecation_notice "ip_nameservers"
@@ -407,6 +410,7 @@ fi
 # Provide backwards compatibility for v1.0 configurations which used
 # "ip_netmask" instead of "ip4_prefixlength"
 
+# shellcheck disable=SC2154  # deprecated var name
 if [ -n "$ip_netmask" ]; then
     ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
     show_deprecation_notice "ip_netmask"
