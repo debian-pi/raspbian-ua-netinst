@@ -290,7 +290,7 @@ fi
 # http://stackoverflow.com/questions/3173131/redirect-copy-of-stdout-to-log-file-from-within-bash-script-itself/6635197#6635197
 mkfifo ${LOGFILE}.pipe
 tee < ${LOGFILE}.pipe $LOGFILE &
-exec &> ${LOGFILE}.pipe
+exec > ${LOGFILE}.pipe 2>&1
 rm ${LOGFILE}.pipe
 
 # we should do this with bitshift operations, I think on the serial
