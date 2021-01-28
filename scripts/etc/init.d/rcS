@@ -1039,7 +1039,7 @@ touch $FDISK_SCHEME_USB_ROOT
 log_msg_start "Waiting for $rootdev... "
 for i in $(seq 1 10); do
 
-    if [ "$(fdisk -l $rootdev 2>&1 | fgrep Disk)" != "" ]; then
+    if [ "$(fdisk -l $rootdev 2>&1 | grep -F Disk)" != "" ]; then
         log_msg_end "OK"
         break
     fi
