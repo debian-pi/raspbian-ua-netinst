@@ -1118,8 +1118,9 @@ if [ ! "$disable_root" = "1" ]; then
     # add SSH key for root (if provided)
     if [ -n "$root_ssh_pubkey" ]; then
         log_msg_start "  Setting root SSH key... "
-        mkdir -p -m 700 /rootfs/root/.ssh && \
-            printf '%s\n' "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
+        mkdir -p /rootfs/root/.ssh || fail
+        chmod 0700 /rootfs/root/.ssh || fail
+        printf '%s\n' "$root_ssh_pubkey" > /rootfs/root/.ssh/authorized_keys || fail
         log_msg_end "OK"
         log_msg_start "  Setting permissions on root SSH authorized_keys... "
         chmod 600 /rootfs/root/.ssh/authorized_keys || fail
@@ -1149,8 +1150,9 @@ if [ -n "$username" ]; then
     if [ -n "$user_ssh_pubkey" ]; then
         log_msg_start "  Setting $username SSH key... "
         ssh_dir="/rootfs/home/$username/.ssh"
-        mkdir -p -m 700 "$ssh_dir" && \
-            printf '%s\n' "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
+        mkdir -p "$ssh_dir" || fail
+        chmod 0700 "$ssh_dir" || fail
+        printf '%s\n' "$user_ssh_pubkey" > "$ssh_dir/authorized_keys" || fail
         log_msg_end "OK"
         log_msg_start "  Setting owner as $username on SSH directory... "
         chroot /rootfs /bin/chown -R "$username:$username" "/home/$username/.ssh" 1>/dev/null 2>&1 || fail
