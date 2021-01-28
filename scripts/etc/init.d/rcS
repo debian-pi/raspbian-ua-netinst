@@ -112,7 +112,7 @@ sanitize_inputfile()
     else
         inputfile=$1
         # convert line endings to unix
-        dos2unix $inputfile
+        dos2unix "$inputfile"
     fi
 }
 
@@ -291,7 +291,7 @@ fi
 # Check if there's an alternative rcS file and excute it
 # instead of this file. Only do this if this isn't the
 # alternative script already
-if [ -z ${am_subscript} ]; then
+if [ -z "${am_subscript}" ]; then
     mkdir -p /boot
     mount $bootpartition /boot
     if [ -e /boot/config/installer/rcS ]; then
@@ -412,7 +412,7 @@ fi
 
 # shellcheck disable=SC2154  # deprecated var name
 if [ -n "$ip_netmask" ]; then
-    ip4_prefixlength=$(ipcalc -p 255.255.255.255 $ip_netmask | cut -d= -f2)
+    ip4_prefixlength=$(ipcalc -p 255.255.255.255 "$ip_netmask" | cut -d= -f2)
     show_deprecation_notice "ip_netmask"
 fi
 
@@ -458,7 +458,7 @@ if [ "$drivers_to_load" != "" ] ; then
    for driver in $drivers_to_load
    do
       log_msg_start " Loading driver '$driver' ... "
-      modprobe $driver || fail
+      modprobe "$driver" || fail
       log_msg_end "OK"
    done
    log_msg "Finished loading additional drivers"
@@ -474,7 +474,7 @@ for i in $(seq 1 10); do
         break
     fi
 
-    if [ $i -eq 10 ]; then
+    if [ "$i" -eq 10 ]; then
         log_msg_end "FAILED"
         fail
     fi
@@ -529,14 +529,14 @@ elif [ "$ip4_addr" = "dhcp" ]; then
     udhcpc -i $ifname 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
         have_ip4=$(ip -4 addr ls $ifname | grep 'scope global' | awk '{print $2}')
-	    log_msg_end $have_ip4
+	    log_msg_end "$have_ip4"
     else
         log_msg_end "FAILED"
     fi
 else
     log_msg_start "Configuring $ifname for IPv4 using static $ip4_addr... "
-    ip addr add $ip4_addr/$ip4_prefixlength dev $ifname || fail
-    ip route add default via $ip4_gateway || fail
+    ip addr add "$ip4_addr"/"$ip4_prefixlength" dev $ifname || fail
+    ip route add default via "$ip4_gateway" || fail
     for i in $ip4_nameservers; do
         printf "nameserver %s" "$i" >> /etc/resolv.conf
     done
@@ -552,7 +552,7 @@ if [ "$ip6_addr" != "disable" ]; then
             break
         fi
 
-        if [ $i -eq 10 ]; then
+        if [ "$i" -eq 10 ]; then
             log_msg_end "FAILED"
             fail
         fi
@@ -592,11 +592,11 @@ elif [ "$ip6_addr" = "auto" ]; then
         ip -6 addr ls $ifname | grep -q 'scope global'
         if [ $? -eq 0 ]; then
             have_ip6=$(ip -6 addr ls $ifname | grep 'scope global' | awk '{print $2}')
-            log_msg_end $have_ip6
+            log_msg_end "$have_ip6"
             break
         fi
 
-        if [ $i -eq 10 ]; then
+        if [ "$i" -eq 10 ]; then
             log_msg_end "FAILED"
         fi
 
@@ -606,9 +606,9 @@ elif [ "$ip6_addr" = "auto" ]; then
     done
 else
     log_msg_start "Configuring $ifname for IPv6 using static $ip6_addr... "
-    ip addr add $ip6_addr/$ip6_prefixlength dev $ifname || fail
+    ip addr add "$ip6_addr"/"$ip6_prefixlength" dev $ifname || fail
     if [ "$ip6_gateway" != "auto" ]; then
-        ip route add default via $ip6_gateway || fail
+        ip route add default via "$ip6_gateway" || fail
     fi
     have_ip6=$ip6_addr
     log_msg_end "OK"
@@ -668,7 +668,7 @@ if [ "$date_set" = "false" ] ; then
         timeservers="$timeservers nist1-ny2.ustiming.org wwv.nist.gov"
         for ts in $timeservers
         do
-            rdate $ts 1>/dev/null 2>&1
+            rdate "$ts" 1>/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 log_msg_start "Time set using timeserver '$ts' to... "
                 date
@@ -696,7 +696,7 @@ log_msg ""
 
 if [ "$online_config" != "" ]; then
     log_msg_start "Downloading online config from $online_config... "
-    curl -L --silent -o /online-config.txt $online_config 1>/dev/null 2>&1 || fail
+    curl -L --silent -o /online-config.txt "$online_config" 1>/dev/null 2>&1 || fail
     log_msg_end "OK"
 
     log_msg "================================================="
@@ -793,6 +793,7 @@ if [ "$cdebootstrap_cmdline" = "" ]; then
                 kernel_meta_package=none ;;
         esac
 
+        # shellcheck disable=SC2086  # overkill as 'hv' is only a number 0-4
         eval kernel_meta_package_${hv}=${kernel_meta_package}
         if [ ${kernel_meta_package} != "none" ] ; then
             base_packages="${kernel_meta_package},${base_packages}"
@@ -1030,7 +1031,7 @@ for i in $(seq 1 10); do
         break
     fi
 
-    if [ $i -eq 10 ]; then
+    if [ "$i" -eq 10 ]; then
         log_msg_end "FAILED"
         fail
     fi
@@ -1064,7 +1065,7 @@ log_msg_start "Initializing /boot as vfat... "
 if [ "$boot_volume_label" = "" ]; then
   mkfs.vfat $bootpartition 1>/dev/null 2>&1 || fail
 else
-  mkfs.vfat -n $boot_volume_label $bootpartition 1>/dev/null 2>&1 || fail
+  mkfs.vfat -n "$boot_volume_label" $bootpartition 1>/dev/null 2>&1 || fail
 fi
 log_msg_end "OK"
 
@@ -1083,17 +1084,17 @@ if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]
 fi
 
 log_msg_start "Initializing / as $rootfstype... "
-mkfs.$rootfstype $rootfs_mkfs_options $rootpartition 1>/dev/null 2>&1 || fail
+mkfs.$rootfstype "$rootfs_mkfs_options" $rootpartition 1>/dev/null 2>&1 || fail
 log_msg_end "OK"
 
 log_msg_start "Mounting new filesystems... "
-mount $rootpartition /rootfs -o $rootfs_install_mount_options || fail
+mount $rootpartition /rootfs -o "$rootfs_install_mount_options" || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 log_msg_end "OK"
 
 log_msg "Starting install process..."
-cdebootstrap-static --arch=armhf $cdebootstrap_cmdline $release /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
+cdebootstrap-static --arch=armhf "$cdebootstrap_cmdline" "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
 log_msg "Configuring installed system:"
 
@@ -1334,7 +1335,7 @@ if [ "$locales" != "" ]; then
     log_msg "  Enabling locales... "
     for locale in $locales; do
         log_msg_start "    $locale... "
-        if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c $locale /rootfs/etc/locale.gen)" -gt 0 ]; then
+        if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c "$locale" /rootfs/etc/locale.gen)" -gt 0 ]; then
             sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
             log_msg_end "OK"
         else
@@ -1435,7 +1436,7 @@ do
 done
 
 # return to the old location for the rest of the processing
-cd $old_dir || fail
+cd "$old_dir" || fail
 
 
 log_msg_start "Updating package lists... "
@@ -1489,6 +1490,7 @@ fi
 for hv in ${hardware_versions}
 do
     # find kernel/initramfs version
+    # shellcheck disable=SC2086  # overkill as 'hv' is only a number 0-4
     eval kernel_meta_package=\${kernel_meta_package_${hv}}
     if [ ${kernel_meta_package} != "none" ]
     then
@@ -1524,7 +1526,7 @@ do
         # make sure there is a /boot/kernel.img or /boot/kernel7.img present
         if [ ! -f /rootfs/boot/${default_kernel_file} ] ; then
             log_msg_start "Copying kernel to /boot/${default_kernel_file}... "
-            cp -- /rootfs/boot/vmlinuz-${KERNEL_VERSION} /rootfs/boot/${default_kernel_file}
+            cp -- /rootfs/boot/vmlinuz-"${KERNEL_VERSION}" /rootfs/boot/${default_kernel_file}
             if [ $? -eq 0 ]; then
                 log_msg_end "OK"
             else
@@ -1591,15 +1593,15 @@ cd /rootfs/boot/config/initramfs-tools/hooks/ || fail
 
 for hook_file in ./*
 do
-    if [ -f $hook_file ]; then
+    if [ -f "$hook_file" ]; then
         log_msg_start "Copying '$hook_file' to /etc/initramfs-tools/hooks/..."
-        cp $hook_file /rootfs/etc/initramfs-tools/hooks/ || fail
+        cp "$hook_file" /rootfs/etc/initramfs-tools/hooks/ || fail
         log_msg_end "OK"
     fi
 done
 
 # return to the old location for the rest of the processing
-cd $old_dir || fail
+cd "$old_dir" || fail
 
 log_msg "Regenerating initramfs... "
 chroot /rootfs /usr/sbin/update-initramfs -u || fail
