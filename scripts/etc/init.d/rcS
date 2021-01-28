@@ -301,6 +301,7 @@ if [ -z "${am_subscript}" ]; then
         log_msg "=== Start executing alternative rcS ========="
         log_msg "---------------------------------------------"
         export am_subscript=true
+        # shellcheck disable=SC1091   # external file
         . /rcS
         log_msg "---------------------------------------------"
         log_msg "=== Execution of alternative rcS finished ==="
@@ -377,6 +378,7 @@ if [ -e /bootfs/installer-config.txt ]; then
     log_msg "================================================="
     log_msg "=== Start executing installer-config.txt. ==="
     sanitize_inputfile /bootfs/installer-config.txt
+    # shellcheck disable=SC1091   # external file
     . /bootfs/installer-config.txt
     log_msg "=== Finished executing installer-config.txt. ==="
     log_msg "================================================="
@@ -702,6 +704,7 @@ if [ "$online_config" != "" ]; then
     log_msg "================================================="
     log_msg "=== Start executing online-config.txt. ==="
     sanitize_inputfile /online-config.txt
+    # shellcheck disable=SC1091   # external file
     . /online-config.txt
     log_msg "=== Finished executing online-config.txt. ==="
     log_msg "================================================="
@@ -1551,6 +1554,7 @@ if [ -e /bootfs/post-install.txt ]; then
     log_msg "================================================="
     log_msg "=== Start executing post-install.txt. ==="
     sanitize_inputfile /bootfs/post-install.txt
+    # shellcheck disable=SC1091   # external file
     . /bootfs/post-install.txt
     log_msg "=== Finished executing post-install.txt. ==="
     log_msg "================================================="
