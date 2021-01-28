@@ -5,6 +5,11 @@
 # ready for debugging
 # shellcheck disable=SC2162
 
+# "Check exit code directly with e.g. 'if mycmd;', not indirectly with $?"
+# IIRC we did that deliberately, so suppress the warning.
+# If I/we change that in the future, we can re-enable it then.
+# shellcheck disable=SC2181
+
 LOGFILE=/tmp/raspbian-ua-netinst.log
 
 # default options, can be overriden in installer-config.txt
