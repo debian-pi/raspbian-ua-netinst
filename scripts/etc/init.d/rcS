@@ -1257,43 +1257,47 @@ if [ "$preset" != "base" ]; then
     touch /rootfs/etc/network/interfaces || fail
     # lo interface may already be there, so first check for it
     if ! grep -q "auto lo" /rootfs/etc/network/interfaces; then
-        printf '%s\n' "auto lo" >> /rootfs/etc/network/interfaces
-        printf '%s\n' "iface lo inet loopback" >> /rootfs/etc/network/interfaces
+    {
+        printf '%s\n' "auto lo"
+        printf '%s\n' "iface lo inet loopback"
+    } >> /rootfs/etc/network/interfaces
     fi
 
-    # configured interface
-    printf '%s\n' "" >> /rootfs/etc/network/interfaces
-    printf '%s\n' "auto $ifname" >> /rootfs/etc/network/interfaces
-    printf '%s\n' "allow-hotplug $ifname" >> /rootfs/etc/network/interfaces
+    {
+        # configured interface
+        printf '%s\n' ""
+        printf '%s\n' "auto $ifname"
+        printf '%s\n' "allow-hotplug $ifname"
 
-    if [ "$ip4_addr" = "disable" ]; then
-        # nothing to do, just pass
-        :
-    elif [ "$ip4_addr" = "dhcp" ]; then
-        printf '%s\n' "iface $ifname inet dhcp" >> /rootfs/etc/network/interfaces
-    else
-        printf '%s\n' "iface $ifname inet static" >> /rootfs/etc/network/interfaces
-        printf '%s\n' "    address $ip4_addr/$ip4_prefixlength" >> /rootfs/etc/network/interfaces
-        printf '%s\n' "    gateway $ip4_gateway" >> /rootfs/etc/network/interfaces
-        printf '%s\n' "    dns-nameservers $ip4_nameservers" >> /rootfs/etc/network/interfaces
-    fi
-
-    if [ "$ip6_addr" = "disable" ]; then
-        # nothing to do, just pass
-        :
-    elif [ "$ip6_addr" = "auto" ]; then
-        printf '%s\n' "iface $ifname inet6 auto" >> /rootfs/etc/network/interfaces
-    else
-        printf '%s\n' "iface $ifname inet6 static" >> /rootfs/etc/network/interfaces
-        printf '%s\n' "    address $ip6_addr/$ip6_prefixlength" >> /rootfs/etc/network/interfaces
-        if [ "$ip6_gateway" != "auto" ]; then
-            printf '%s\n' "    gateway $ip6_gateway" >> /rootfs/etc/network/interfaces
-            printf '%s\n' "    accept_ra 0" >> /rootfs/etc/network/interfaces
+        if [ "$ip4_addr" = "disable" ]; then
+            # nothing to do, just pass
+            :
+        elif [ "$ip4_addr" = "dhcp" ]; then
+            printf '%s\n' "iface $ifname inet dhcp"
+        else
+            printf '%s\n' "iface $ifname inet static"
+            printf '%s\n' "    address $ip4_addr/$ip4_prefixlength"
+            printf '%s\n' "    gateway $ip4_gateway"
+            printf '%s\n' "    dns-nameservers $ip4_nameservers"
         fi
-        if [ "$ip6_nameservers" != "auto" ] && [ "$ip6_nameservers" != "disable" ]; then
-            printf '%s\n' "    dns-nameservers $ip6_nameservers" >> /rootfs/etc/network/interfaces
+
+        if [ "$ip6_addr" = "disable" ]; then
+            # nothing to do, just pass
+            :
+        elif [ "$ip6_addr" = "auto" ]; then
+            printf '%s\n' "iface $ifname inet6 auto"
+        else
+            printf '%s\n' "iface $ifname inet6 static"
+            printf '%s\n' "    address $ip6_addr/$ip6_prefixlength"
+            if [ "$ip6_gateway" != "auto" ]; then
+                printf '%s\n' "    gateway $ip6_gateway"
+                printf '%s\n' "    accept_ra 0"
+            fi
+            if [ "$ip6_nameservers" != "auto" ] && [ "$ip6_nameservers" != "disable" ]; then
+                printf '%s\n' "    dns-nameservers $ip6_nameservers"
+            fi
         fi
-    fi
+    } >> /rootfs/etc/network/interfaces
 
     # wlan config
     if [ "$ifname" != "eth0" ]; then
