@@ -1098,7 +1098,8 @@ if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]
 fi
 
 log_msg_start "Initializing / as $rootfstype... "
-mkfs.$rootfstype "$rootfs_mkfs_options" $rootpartition 1>/dev/null 2>&1 || fail
+# shellcheck disable=SC2086   # quoting it causes failure
+mkfs.$rootfstype $rootfs_mkfs_options $rootpartition 1>/dev/null 2>&1 || fail
 log_msg_end "OK"
 
 log_msg_start "Mounting new filesystems... "
@@ -1108,7 +1109,10 @@ mount $bootpartition /rootfs/boot || fail
 log_msg_end "OK"
 
 log_msg "Starting install process..."
-cdebootstrap-static --arch=armhf "$cdebootstrap_cmdline" "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
+# With 'cdebootstrap_cmdline we're actually using the word splitting what SC2086 warns us against
+# This should probably be fixed at some point, but not in this run/branch.
+# shellcheck disable=SC2086
+cdebootstrap-static --arch=armhf $cdebootstrap_cmdline "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
 log_msg "Configuring installed system:"
 
