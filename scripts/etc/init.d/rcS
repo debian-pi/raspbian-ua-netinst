@@ -267,6 +267,12 @@ mount -t devpts devpts /dev/pts
 log_msg /opt/busybox/bin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
+if [ -e /proc/mounts ] ; then
+    ln -s /proc/mounts /etc/mtab
+else
+    log_msg "/proc/mounts doesn't exist (here)"
+fi
+
 klogd -c 1
 
 # remove unused drivers from ram disk
