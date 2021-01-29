@@ -1510,7 +1510,10 @@ fi
 for hv in ${hardware_versions}
 do
     # find kernel/initramfs version
-    # shellcheck disable=SC2086  # overkill as 'hv' is only a number 0-4
+    # SC2086 is overkill as 'hv' is only a number 0-4
+    # SC1083 as it seems to work and changing it seems to dangerous for now
+    # TODO: rewrite section so it doesn't have to rely on obscure code.
+    # shellcheck disable=SC2086,SC1083
     eval kernel_meta_package=\${kernel_meta_package_${hv}}
     if [ ${kernel_meta_package} != "none" ]
     then
