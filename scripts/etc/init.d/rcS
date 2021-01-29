@@ -1409,7 +1409,7 @@ else
 fi
 
 log_msg "  Adding raspberrypi.org gpg key to apt-key."
-cat /usr/share/keyrings/raspberrypi.gpg.key | chroot /rootfs /usr/bin/apt-key add - 1>/dev/null 2>&1
+chroot /rootfs /usr/bin/apt-key add 1>/dev/null 2>&1 < /usr/share/keyrings/raspberrypi.gpg.key
 
 # save the current location so that we can go back to it later on
 old_dir=$(pwd)
@@ -1440,7 +1440,7 @@ for keyfile in ./*.key
 do
     if [ -e "$keyfile" ]; then
         log_msg_start "  Adding key $keyfile to apt."
-        cat "$keyfile" | chroot /rootfs /usr/bin/apt-key add - || fail
+        chroot /rootfs /usr/bin/apt-key add < "$keyfile" || fail
         log_msg_end "OK"
     fi
 done
