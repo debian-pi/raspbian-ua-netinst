@@ -460,17 +460,18 @@ if [ "$drivers_to_load" != "" ] ; then
    log_msg "Finished loading additional drivers"
 fi
 
-log_msg "Waiting for $ifname... "
+log_msg_start "Waiting for $ifname... "
 
 for i in $(seq 1 10); do
 
     ifconfig $ifname 1>/dev/null 2>&1
     if [ $? -eq 0 ]; then
+        log_msg_end "OK"
         break
     fi
 
     if [ $i -eq 10 ]; then
-        log_msg "FAILED"
+        log_msg_end "FAILED"
         fail
     fi
 
@@ -491,8 +492,6 @@ if [ "$ifname" != "eth0" ]; then
         log_msg "Connection with wext succeeded."
     fi
 fi
-
-log_msg "OK"
 
 # do some IPv6 configuration which must be done before the
 # network interface is brought up
@@ -1177,14 +1176,15 @@ printf '%s\n' $hostname > /rootfs/etc/hostname || fail
 hostname $hostname
 log_msg_end "OK"
 
-log_msg_start "  Configuring hosts... "
+log_msg "  Configuring hosts file... "
 rm /rootfs/etc/hosts
 # Add localhost to hosts
-log_msg_start "adding localhost... "
+log_msg_start "    adding localhost... "
 printf '%s\n' "127.0.0.1 localhost" >> /rootfs/etc/hosts || fail
 if [ -n "$have_ip6" ]; then
     printf '%s\n' "::1 localhost" >> /rootfs/etc/hosts || fail
 fi
+log_msg_end "done."
 
 # Create appropriate hostname entries for IPv4
 if [ -n "$have_ip4" ]; then
@@ -1194,26 +1194,28 @@ if [ -n "$have_ip4" ]; then
         hostfile_addr=$ip4_addr
     fi
     if [ "$domainname" = "" ]; then
-        log_msg_start "adding ${hostname} for IPv4... "
+        log_msg_start "    adding ${hostname} for IPv4... "
         printf '%s\n' "${hostfile_addr} ${hostname}" >> /rootfs/etc/hosts || fail
     else
-        log_msg_start "adding ${hostname}.${domainname} for IPv4... "
+        log_msg_start "    adding ${hostname}.${domainname} for IPv4... "
         printf '%s\n' "${hostfile_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
     fi
+    log_msg_end "done."
 fi
-log_msg_end "OK"
 
 # Create appropriate hostname entries for IPv6
 if [ -n "$have_ip6" ] && [ "$ip6_addr" != "auto" ]; then
     if [ "$domainname" = "" ]; then
-        log_msg_start "adding ${hostname} for IPv6... "
+        log_msg_start "    adding ${hostname} for IPv6... "
         printf '%s\n' "${ip6_addr} ${hostname}" >> /rootfs/etc/hosts || fail
     else
-        log_msg_start "adding ${hostname}.${domainname} for IPv6... "
+        log_msg_start "    adding ${hostname}.${domainname} for IPv6... "
         printf '%s\n' "${ip6_addr} ${hostname}.${domainname} ${hostname}" >> /rootfs/etc/hosts || fail
     fi
+    log_msg_end "done."
 fi
-log_msg_end "OK"
+
+log_msg "  Configuring hosts file completed."
 
 # networking
 if [ "$preset" != "base" ]; then
@@ -1325,9 +1327,9 @@ fi
 
 # generate locale data
 if [ "$locales" != "" ]; then
-    log_msg_start "  Enabling locales... "
+    log_msg "  Enabling locales... "
     for locale in $locales; do
-        log_msg_inline "    $locale... "
+        log_msg_start "    $locale... "
         if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c $locale /rootfs/etc/locale.gen)" -gt 0 ]; then
             sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
             log_msg_end "OK"
@@ -1335,7 +1337,7 @@ if [ "$locales" != "" ]; then
             log_msg_end "NOT found!"
         fi
     done
-    log_msg_end "  done."
+    log_msg "  Enabling locales completed."
     if [ -x /rootfs/usr/sbin/locale-gen ] ; then
         chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
         if [ $? -ne 0 ]; then
