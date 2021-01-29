@@ -1579,8 +1579,8 @@ fi
 
 # modify installed network settings
 if [ -f /rootfs/etc/wpa_supplicant/wpa_supplicant.conf ]; then
-    if [ $(grep "iface" /rootfs/etc/network/interfaces | grep -v "lo\|eth0" | wc -l) -ne 0 ]; then
-        if [ $(grep "wpa[-_]" /rootfs/etc/network/interfaces | wc -l) -eq 0 ]; then
+    if [ "$(grep "iface" /rootfs/etc/network/interfaces | grep -cEv "lo|eth0")" -ne 0 ]; then
+        if [ "$(grep -c "wpa[-_]" /rootfs/etc/network/interfaces)" -eq 0 ]; then
             printf '%s\n' "wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf" >> /rootfs/etc/network/interfaces
         fi
     fi
