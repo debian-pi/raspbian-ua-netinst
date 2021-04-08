@@ -246,10 +246,6 @@ function create_cpio {
     cd ../../..
     touch rootfs/var/lib/dpkg/status
 
-    # libext2fs2 components
-    cp tmp/lib/*/libe2p.so.2.* rootfs/lib/libe2p.so.2
-    cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
-
     # e2fsprogs components
     cp tmp/etc/mke2fs.conf rootfs/etc/
     cp tmp/sbin/badblocks rootfs/sbin/
@@ -337,12 +333,12 @@ function create_cpio {
     cd ../../../..
     cp tmp/usr/sbin/arpd rootfs/usr/sbin/
 
-    # ndisc6 components
-    cp tmp/bin/rdisc6 rootfs/bin
-
     # lsb-base components
     cp tmp/lib/lsb/init-functions rootfs/lib/lsb/
     cp tmp/lib/lsb/init-functions.d/20-left-info-blocks rootfs/lib/lsb/init-functions.d/
+
+    # ndisc6 components
+    cp tmp/bin/rdisc6 rootfs/bin
 
     # netbase components
     cp tmp/etc/protocols rootfs/etc/
@@ -475,6 +471,10 @@ function create_cpio {
     # libelf1 components
     cp tmp/usr/lib/*/libelf-0.*.so rootfs/usr/lib/libelf.so.1
 
+    # libext2fs2 components
+    cp tmp/lib/*/libe2p.so.2.* rootfs/lib/libe2p.so.2
+    cp tmp/lib/*/libext2fs.so.2.*  rootfs/lib/libext2fs.so.2
+
     # libf2fs5 components
     cp tmp/lib/*/libf2fs.so.5  rootfs/lib/
 
@@ -553,7 +553,7 @@ function create_cpio {
     # libnl-genl-3-200 components
     cp tmp/lib/*/libnl-genl-3.so.200.* rootfs/lib/libnl-genl-3.so.200
 
-    # libnl-genl-3-200 components
+    # libnl-route-3-200 components
     cp tmp/usr/lib/*/libnl-route-3.so.200.* rootfs/lib/libnl-route-3.so.200
 
     # libp11-kit0 components
