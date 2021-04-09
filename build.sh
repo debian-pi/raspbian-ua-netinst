@@ -478,6 +478,9 @@ function create_cpio {
     cp tmp/lib/*/libdbus-1.so.3 rootfs/lib/libdbus-1.so.3
     cp tmp/lib/*/libdl.so.2 rootfs/lib/libdl.so.2
 
+    # libdebian-installer4 components
+    cp tmp/usr/lib/*/libdebian-installer.so.4.* rootfs/usr/lib/libdebian-installer.so.4
+
     # libelf1 components
     cp tmp/usr/lib/*/libelf-0.*.so rootfs/usr/lib/libelf.so.1
 
