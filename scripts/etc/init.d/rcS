@@ -1358,24 +1358,29 @@ fi
 
 # generate locale data
 if [ "$locales" != "" ]; then
-    log_msg "  Enabling locales... "
-    for locale in $locales; do
-        log_msg_start "    $locale... "
-        if [ -f /rootfs/etc/locale.gen ] && [ "$(grep -c "$locale" /rootfs/etc/locale.gen)" -gt 0 ]; then
-            sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
-            log_msg_end "OK"
-        else
-            log_msg_end "NOT found!"
-        fi
-    done
-    log_msg "  Enabling locales completed."
+    if [ -f /rootfs/etc/locale.gen ] ; then
+        log_msg "  Enabling locales... "
+        for locale in $locales; do
+            log_msg_start "    $locale... "
+            if [ "$(grep -c "$locale" /rootfs/etc/locale.gen)" -gt 0 ]; then
+                sed -i "s/^# \($locale .*\)/\1/" /rootfs/etc/locale.gen
+                log_msg_end "OK"
+            else
+                log_msg_end "NOT found!"
+            fi
+        done
+        log_msg "  Enabling locales completed."
+    else
+        log_msg "  Not enabling locales as '/etc/locale.gen' does not exist"
+    fi
+
     if [ -x /rootfs/usr/sbin/locale-gen ] ; then
         chroot /rootfs /usr/sbin/locale-gen | sed 's/^/  /'
         if [ $? -ne 0 ]; then
             log_msg "  ERROR while generating locales !"
         fi
     else
-        log_msg "Not generating locales as the 'locales' package isn't installed !"
+        log_msg "  Not generating locales as the 'locales' package isn't installed !"
     fi
 fi
 
@@ -1390,7 +1395,7 @@ if [ "$system_default_locale" != "" ] ; then
             log_msg_end "FAILED !"
         fi
     else
-        log_msg "NOT setting system default locale as the 'locale' package isn't installed !"
+        log_msg "  NOT setting system default locale as the 'locale' package isn't installed !"
     fi
 fi
 
