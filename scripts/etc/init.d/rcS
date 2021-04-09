@@ -12,6 +12,8 @@
 
 LOGFILE=/tmp/raspbian-ua-netinst.log
 
+CDEBOOTSTRAP_BIN=cdebootstrap
+
 # default options, can be overriden in installer-config.txt
 preset=server
 packages=
@@ -1112,7 +1114,7 @@ log_msg "Starting install process..."
 # With 'cdebootstrap_cmdline we're actually using the word splitting what SC2086 warns us against
 # This should probably be fixed at some point, but not in this run/branch.
 # shellcheck disable=SC2086
-cdebootstrap-static --arch=armhf $cdebootstrap_cmdline "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
+$CDEBOOTSTRAP_BIN --arch=armhf $cdebootstrap_cmdline "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
 
 log_msg "Configuring installed system:"
 

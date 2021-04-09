@@ -196,9 +196,9 @@ function create_cpio {
     ln -s ../../../etc/ssl/certs certs 
     cd ../../../..
 
-    # cdebootstrap-static components
-    cp -r tmp/usr/share/cdebootstrap-static rootfs/usr/share/
-    cp tmp/usr/bin/cdebootstrap-static rootfs/usr/bin/
+    # cdebootstrap components
+    cp -r tmp/usr/share/cdebootstrap rootfs/usr/share/
+    cp tmp/usr/bin/cdebootstrap rootfs/usr/bin/
 
     # curl components
     cp tmp/usr/bin/curl rootfs/usr/bin/
