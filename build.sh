@@ -461,6 +461,13 @@ function create_cpio {
     # libcom-err2 components
     cp tmp/lib/*/libcom_err.so.2.* rootfs/lib/libcom_err.so.2
 
+    # libcurl3-gnutls components
+    cp tmp/usr/lib/*/libcurl-gnutls.so.4.* rootfs/usr/lib/libcurl-gnutls.so.4
+    # libcurl-gnutls.so.3 is a symlink to .4
+    cd rootfs/usr/lib
+    ln -s libcurl-gnutls.so.4 libcurl-gnutls.so.3
+    cd ../../..
+
     # libcurl4 components
     cp tmp/usr/lib/*/libcurl.so.4.* rootfs/usr/lib/libcurl.so.4
 
