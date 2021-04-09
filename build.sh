@@ -400,6 +400,9 @@ function create_cpio {
     # libblkid1 components
     cp tmp/lib/*/libblkid.so.1.* rootfs/lib/libblkid.so.1
 
+    # libbrotli1 components
+    cp tmp/usr/lib/*/libbrotlidec.so.1.* rootfs/usr/lib/libbrotlidec.so.1
+
     # libbz2-1.0 components
     cp tmp/lib/*/libbz2.so.1.0.* rootfs/lib/libbz2.so.1.0
 
