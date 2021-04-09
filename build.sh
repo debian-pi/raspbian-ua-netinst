@@ -481,6 +481,9 @@ function create_cpio {
     # libdebian-installer4 components
     cp tmp/usr/lib/*/libdebian-installer.so.4.* rootfs/usr/lib/libdebian-installer.so.4
 
+    # libdebian-installer-extra4 components
+    cp tmp/usr/lib/*/libdebian-installer-extra.so.4.* rootfs/usr/lib/libdebian-installer-extra.so.4
+
     # libelf1 components
     cp tmp/usr/lib/*/libelf-0.*.so rootfs/usr/lib/libelf.so.1
 
