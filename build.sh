@@ -657,6 +657,10 @@ for deb in packages/*.*deb; do
     (cd tmp && ar x ../"$deb" && tar -xf data.tar.*; rm data.tar.*)
 done
 
+# workaround for missing brcmfmac43430-sdio.txt
+echo "Applying workaround for missing brcmfmac43430-sdio.txt file"
+cp assets/brcmfmac43430-sdio.txt tmp/lib/firmware/brcm/
+
 # initialize bootfs
 rm -rf bootfs
 mkdir bootfs
