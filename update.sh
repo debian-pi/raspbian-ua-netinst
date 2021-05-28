@@ -9,13 +9,8 @@ RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
 RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_DIRECTORY}/${RASPBIAN_ARCHIVE_KEY_FILE_NAME}"
 RASPBIAN_ARCHIVE_KEY_FINGERPRINT="A0DA38D0D76E8B5D638872819165938D90FDDD2E"
 
-RASPBERRYPI_ARCHIVE_KEY_DIRECTORY="https://archive.raspberrypi.org/debian"
-RASPBERRYPI_ARCHIVE_KEY_FILE_NAME="raspberrypi.gpg.key"
-RASPBERRYPI_ARCHIVE_KEY_URL="${RASPBERRYPI_ARCHIVE_KEY_DIRECTORY}/${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}"
-RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT="CF8A1AF502A2AA2D763BAE7E82B129927FA3303E"
-
 mirror_raspbian="http://archive.raspbian.org/raspbian"
-mirror_raspberrypi="http://archive.raspberrypi.org/debian"
+
 release=buster
 
 packages=()
@@ -198,21 +193,6 @@ setup_archive_keys() {
 
     echo ""
 
-    echo "Downloading ${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}."
-    download_file "${RASPBERRYPI_ARCHIVE_KEY_URL}"
-    if check_key "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" "${RASPBERRYPI_ARCHIVE_KEY_FINGERPRINT}" ; then
-        # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing '${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}' into keyring..."
-        if gpg -q --homedir gnupg --import "${RASPBERRYPI_ARCHIVE_KEY_FILE_NAME}" ; then
-            echo "OK"
-        else
-            echo "FAILED!"
-            return 1
-        fi
-    else
-        return 1
-    fi
-
     return 0
 }
 
@@ -379,7 +359,6 @@ if ! setup_archive_keys ; then
 fi
 
 ## Download package list
-download_package_lists raspberry "${mirror_raspberrypi}"
 download_package_lists raspbian "${mirror_raspbian}"
 
 ## Select packages for download
@@ -388,7 +367,6 @@ echo -e "\nSearching for required packages..."
 packages_debs=()
 packages_sha256=()
 
-search_for_packages raspberry "${mirror_raspberrypi}"
 search_for_packages raspbian "${mirror_raspbian}"
 
 if ! allfound ; then
