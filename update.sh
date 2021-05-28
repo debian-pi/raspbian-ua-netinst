@@ -150,7 +150,10 @@ check_key() {
     echo -n "Checking key file '${KEY_FILE}'... "
 
     # check that there is only 1 public key in the key file
-    gpg_key_count=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep -c ^pub:)
+    # put the output in a variable instead of running the same (gpg) command twice
+    key_info=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons --import-options show-only --import "${KEY_FILE}")
+    #echo "${key_info}"
+    gpg_key_count=$(echo "$key_info" | grep -c '^pub:')
     if [ "$gpg_key_count" -ne 1 ] ; then
         echo "FAILED!"
         echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
@@ -158,7 +161,7 @@ check_key() {
     fi
 
     # check that the key file's fingerprint is correct
-    gpg_key_fingerprint=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons "${KEY_FILE}" | grep ^fpr: | awk -F: '{print $10}')
+    gpg_key_fingerprint=$(echo "$key_info" | grep ^fpr: | head -n1 | awk -F: '{print $10}')
     if [ "$gpg_key_fingerprint" != "${KEY_FINGERPRINT}" ] ; then
         echo "FAILED!"
         echo "Bad GPG key fingerprint for ${KEY_FILE}!"
