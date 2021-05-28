@@ -184,7 +184,7 @@ function create_cpio {
     cp tmp/lib/firmware/brcm/brcmfmac43430-sdio.{bin,txt} rootfs/lib/firmware/brcm
 
     # btrfs-progs components
-    cp tmp/sbin/mkfs.btrfs rootfs/sbin/
+    cp tmp/bin/mkfs.btrfs rootfs/bin/
 
     # busybox components
     cp tmp/bin/busybox rootfs/bin
