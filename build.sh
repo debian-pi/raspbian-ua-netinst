@@ -200,6 +200,9 @@ function create_cpio {
     cp -r tmp/usr/share/cdebootstrap rootfs/usr/share/
     cp tmp/usr/bin/cdebootstrap rootfs/usr/bin/
 
+    # coreutils components
+    cp tmp/usr/bin/tr rootfs/usr/bin/
+
     # curl components
     cp tmp/usr/bin/curl rootfs/usr/bin/
 

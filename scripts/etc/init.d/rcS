@@ -189,9 +189,7 @@ teardown_chroot()
 is_change_in_release()
 {
     changedate=$1
-    #busybox tr does NOT support [:upper:]/[:lower:] even though it's part of the POSIX standard
-    # shellcheck disable=SC2018,SC2019
-    release=$(printf '%s' "$2" | tr 'A-Z' 'a-z')
+    release=$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')
 
     releasedate=$(awk -F "," -v releasename="$release" '{ if ($3 == releasename) print $5}' /usr/share/distro-info/debian.csv)
     case $releasedate in
