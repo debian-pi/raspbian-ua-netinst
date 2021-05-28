@@ -1419,9 +1419,6 @@ else
     log_msg_end "OK"
 fi
 
-log_msg "  Adding raspberrypi.org gpg key to apt-key."
-chroot /rootfs /usr/bin/apt-key add 1>/dev/null 2>&1 < /usr/share/keyrings/raspberrypi.gpg.key
-
 # save the current location so that we can go back to it later on
 old_dir=$(pwd)
 cd /rootfs/boot/config/apt/ || fail
