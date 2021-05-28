@@ -4,10 +4,7 @@
 KERNEL_VERSION_RPI1=4.9.0-6-rpi
 KERNEL_VERSION_RPI2=4.9.0-6-rpi2
 
-RASPBIAN_ARCHIVE_KEY_DIRECTORY="https://archive.raspbian.org"
-RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian.public.key"
-RASPBIAN_ARCHIVE_KEY_URL="${RASPBIAN_ARCHIVE_KEY_DIRECTORY}/${RASPBIAN_ARCHIVE_KEY_FILE_NAME}"
-RASPBIAN_ARCHIVE_KEY_FINGERPRINT="A0DA38D0D76E8B5D638872819165938D90FDDD2E"
+RASPBIAN_ARCHIVE_KEY_FILE_NAME="raspbian-archive-keyring.gpg"
 
 mirror_raspbian="http://archive.raspbian.org/raspbian"
 
@@ -127,51 +124,6 @@ download_file() {
     fi
 }
 
-check_key() {
-    # param 1 = keyfile
-    # param 2 = key fingerprint
-    local gpg_key_count
-    local gpg_key_fingerprint
-
-    # check input parameters
-    if [ -z "$1" ] || [ ! -f "$1" ] ; then
-        echo "Parameter 1 of check_key() is not a file!"
-        return 1
-    fi
-
-    if [ -z "$2" ] ; then
-        echo "Parameter 2 of check_key() is not a key fingerprint!"
-        return 1
-    fi
-
-    KEY_FILE="$1"
-    KEY_FINGERPRINT="$2"
-
-    echo -n "Checking key file '${KEY_FILE}'... "
-
-    # check that there is only 1 public key in the key file
-    # put the output in a variable instead of running the same (gpg) command twice
-    key_info=$(gpg --homedir gnupg --keyid-format long --with-fingerprint --with-colons --import-options show-only --import "${KEY_FILE}")
-    #echo "${key_info}"
-    gpg_key_count=$(echo "$key_info" | grep -c '^pub:')
-    if [ "$gpg_key_count" -ne 1 ] ; then
-        echo "FAILED!"
-        echo "There are zero or more than one keys in the ${KEY_FILE} key file!"
-        return 1
-    fi
-
-    # check that the key file's fingerprint is correct
-    gpg_key_fingerprint=$(echo "$key_info" | grep ^fpr: | head -n1 | awk -F: '{print $10}')
-    if [ "$gpg_key_fingerprint" != "${KEY_FINGERPRINT}" ] ; then
-        echo "FAILED!"
-        echo "Bad GPG key fingerprint for ${KEY_FILE}!"
-        return 1
-    fi
-
-    echo "OK"
-    return 0
-}
-
 setup_archive_keys() {
     mkdir -m 0700 -p gnupg
     # Let gpg set itself up already in the 'gnupg' dir before we actually use it
@@ -179,18 +131,12 @@ setup_archive_keys() {
     gpg --homedir gnupg --list-secret-keys
     echo ""
 
-    echo "Downloading ${RASPBIAN_ARCHIVE_KEY_FILE_NAME}."
-    download_file "${RASPBIAN_ARCHIVE_KEY_URL}"
-    if check_key "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" "${RASPBIAN_ARCHIVE_KEY_FINGERPRINT}" ; then
-        # GPG key checks out, thus import it into our own keyring
-        echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_FILE_NAME}' into keyring... "
-        if gpg -q --homedir gnupg --import "${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" ; then
-            echo "OK"
-        else
-            echo "FAILED!"
-            return 1
-        fi
+    # Import raspbian.org's gpg repo key into our own keyring
+    echo -n "Importing '${RASPBIAN_ARCHIVE_KEY_FILE_NAME}' into keyring... "
+    if gpg -q --homedir gnupg --import "../assets/${RASPBIAN_ARCHIVE_KEY_FILE_NAME}" ; then
+        echo "OK"
     else
+        echo "FAILED!"
         return 1
     fi
 
