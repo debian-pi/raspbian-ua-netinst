@@ -352,9 +352,6 @@ function create_cpio {
     cp tmp/usr/sbin/ntpdate rootfs/usr/sbin/
     cp tmp/usr/sbin/ntpdate-debian rootfs/usr/sbin/
 
-    # raspberrypi.org GPG key
-    cp packages/raspberrypi.gpg.key rootfs/usr/share/keyrings/
-
     # raspbian-archive-keyring components
     cp tmp/usr/share/keyrings/raspbian-archive-keyring.gpg rootfs/usr/share/keyrings/
 
