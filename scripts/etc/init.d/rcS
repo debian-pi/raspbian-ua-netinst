@@ -1,10 +1,5 @@
 #!/bin/sh
 
-# "read without -r" is only used in the fail function and there we don't care
-# what, but only if something is typed indicating there's a keyboard attached
-# ready for debugging
-# shellcheck disable=SC2162
-
 # "Check exit code directly with e.g. 'if mycmd;', not indirectly with $?"
 # IIRC we did that deliberately, so suppress the warning.
 # If I/we change that in the future, we can re-enable it then.
@@ -59,7 +54,7 @@ hwrng_support=1
 enable_watchdog=0
 enable_uart=0
 gpu_mem=
-try_again=0
+fail_action=poweroff
 
 # these shouldn't really be changed unless auto-detection fails
 bootdev=/dev/mmcblk0
@@ -91,7 +86,6 @@ fail()
 {
     log_msg
     log_msg "Oh noes, something went wrong!"
-    log_msg "You have 10 seconds to hit ENTER to get a shell..."
 
     # copy logfile to /boot/ partition to preserve it.
     # test whether the sd card is still mounted on /boot and if not, mount it.
@@ -107,13 +101,25 @@ fail()
         umount /boot
     fi
     
-    if [ "$try_again" = 1 ] ; then
-        read -t 10 || reboot && exit
-    else
-        read -t 10 || poweroff && exit
-    fi
-    
-    sh
+    case "$fail_action" in
+        "poweroff")
+            poweroff
+            ;;
+        "reboot")
+            reboot
+            ;;
+        "halt")
+            halt
+            ;;
+        "shell")
+            sh
+            ;;
+        "*")
+            log_msg "Invalid 'fail_action' value, falling back to default (poweroff)"
+            poweroff
+            ;;
+    esac
+    exit
 }
 
 sanitize_inputfile()
@@ -238,6 +244,11 @@ show_deprecation_notice()
         "preset")
             log_msg "You are using an unknown 'preset', but that is deprecated. Please use 'base', 'minimal' or 'server' instead."
             config_change="remove"
+            ;;
+        "try_again")
+            log_msg "You are using the setting 'try_again', but that is deprecated. Please use 'fail_action' instead."
+            config_change="remove"
+            ;;
     esac
 
     case "$config_change" in
@@ -427,6 +438,20 @@ fi
 if [ -n "$ip_netmask" ]; then
     ip4_prefixlength=$(ipcalc -p 255.255.255.255 "$ip_netmask" | cut -d= -f2)
     show_deprecation_notice "ip_netmask"
+fi
+
+# in v1.2.x "try_again" was replaced with "fail_action"
+# shellcheck disable=SC2154  # deprecated var name
+if [ -n "$try_again" ]; then
+    if [ "$try_again" = "0" ]; then
+        fail_action="poweroff"
+    elif [ "$try_again" = "1" ]; then
+        fail_action="reboot"
+    else
+        fail_action="poweroff"
+        log_msg "ERROR: The 'try_again' variable had an invalid value, setting 'fail_action' to 'poweroff'"
+    fi
+    show_deprecation_notice "try_again"
 fi
 
 log_msg
@@ -935,6 +960,7 @@ log_msg "  rootfs_mount_options = $rootfs_mount_options"
 log_msg "  final_action = $final_action"
 log_msg "  hardware_versions = $hardware_versions"
 log_msg "  gpu_mem = $gpu_mem"
+log_msg "  fail_action = $fail_action"
 log_msg
 
 log_msg_start "Waiting 5 seconds"

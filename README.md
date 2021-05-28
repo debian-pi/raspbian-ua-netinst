@@ -171,8 +171,9 @@ The format of the _installer-config.txt_ file and the current defaults:
                               # "1" to enable this functionality.
     enable_uart=0             # Set to "1" to enable the UART. Disabled by default.
     gpu_mem=                  # specify the amount of RAM in MB that should be reserved for the GPU
-    try_again=0               # Specify action on failure. 0 (default) powers off. To reboot and try again,
-                              # set to 1. When set to 1, there is no limit to the number of retries.
+    fail_action=poweroff      # options are 'poweroff', 'reboot', 'halt' or 'shell'. This replaces the 
+                              # old 'try_again' setting. Note that with 'reboot' it could result in
+                              # a boot loop if it consistently fails (at the same point)
 
 The timeserver parameter is only used during installation for _rdate_ which is used as fallback when setting the time with `ntpdate` fails.  
 
