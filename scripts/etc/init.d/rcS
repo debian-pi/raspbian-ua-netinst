@@ -217,46 +217,54 @@ show_deprecation_notice()
         exit 1
     fi
 
-    log_msg "******************************************************"
-    log_msg "                 DEPRECATION NOTICE                   "
-    log_msg "******************************************************"
+    log_msg "***********************************************************"
+    log_msg "                   DEPRECATION NOTICE                      "
+    log_msg "***********************************************************"
 
     config_id=$1
     case "$config_id" in
         "ip_addr")
-            log_msg "You are using the setting 'ip_addr', but that is deprecated. Please use 'ip4_addr' instead."
+            log_msg "You are using the setting 'ip_addr', but that is deprecated."
+            log_msg "Please use 'ip4_addr' instead."
             config_change="remove"
         ;;
         "ip_gateway")
-            log_msg "You are using the setting 'ip_gateway', but that is deprecated. Please use 'ip4_gateway' instead."
+            log_msg "You are using the setting 'ip_gateway', but that is deprecated."
+            log_msg "Please use 'ip4_gateway' instead."
             config_change="remove"
         ;;
         "ip_nameservers")
-            log_msg "You are using the setting 'ip_nameservers', but that is deprecated. Please use 'ip4_nameservers' instead."
+            log_msg "You are using the setting 'ip_nameservers', but that is deprecated."
+            log_msg "Please use 'ip4_nameservers' instead."
             config_change="remove"
         ;;
         "ip_netmask")
-            log_msg "You are using the setting 'ip_netmask', but that is deprecated. Please use 'ip4_prefixlength' instead."
+            log_msg "You are using the setting 'ip_netmask', but that is deprecated."
+            log_msg "Please use 'ip4_prefixlength' instead."
             config_change="remove"
         ;;
         "preset")
-            log_msg "You are using an unknown 'preset', but that is deprecated. Please use 'base', 'minimal' or 'server' instead."
+            log_msg "You are using an unknown 'preset', but that is deprecated."
+            log_msg "Please use 'base', 'minimal' or 'server' instead."
             config_change="remove"
             ;;
         "try_again")
-            log_msg "You are using the setting 'try_again', but that is deprecated. Please use 'fail_action' instead."
+            log_msg "You are using the setting 'try_again', but that is deprecated."
+            log_msg "Please use 'fail_action' instead."
             config_change="remove"
             ;;
     esac
 
     case "$config_change" in
         "remove")
-            log_msg "In the next major release, this setting will no longer work and the compatibility code will be removed."
-            log_msg "Consequently, the installer will probably not do what you want or may fail entirely."
+            log_msg "In the next major release, this setting will no longer work"
+            log_msg "and the compatibility code will be removed."
+            log_msg "Consequently, the installer will probably not do"
+            log_msg "what you want or may fail entirely."
         ;;
     esac
 
-    log_msg "******************************************************"
+    log_msg "************************************************************"
 }
 
 /bin/busybox mkdir -p /opt/busybox/bin/
