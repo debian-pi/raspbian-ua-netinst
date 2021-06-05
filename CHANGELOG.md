@@ -11,6 +11,7 @@
 - Replace the `try_again` setting with `fail_action`. The latter is more flexible and isn't tied to a busybox specific functionality.
 - Added `mawk` and made that the default awk interpreter, just like on Debian.
 - Added `tr` program from the coreutils program as that is POSIX compliant, whereas busybox's was not.
+- Removed Docker files as I do not want to indicate that Docker is supported or even recommended. It is not and should not be in scope for this project.
 
 ## Deprecated settings in 1.x
 
