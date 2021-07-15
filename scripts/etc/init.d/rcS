@@ -87,6 +87,18 @@ log_msg_end()
     log_msg "$*"
 }
 
+print_mem_info()
+{
+    log_msg ""
+    log_msg "Output of 'busybox free -k':"
+    busybox free -k
+    log_msg "Output of 'busybox df -aT':"
+    busybox df -aT
+    log_msg "Output of 'busybox du -h -d 1 /':"
+    busybox du -h -d 1 / 2>/dev/null
+    log_msg ""
+}
+
 fail()
 {
     log_msg
@@ -369,6 +381,11 @@ log_msg "================================================="
 log_msg "https://github.com/debian-pi/raspbian-ua-netinst/"
 log_msg "================================================="
 
+log_msg "Output of 'busybox cat /proc/mounts':"
+busybox cat /proc/mounts
+
+print_mem_info
+
 log_msg_start "Starting HWRNG "
 modprobe bcm2835-rng
 /usr/sbin/rngd -r /dev/hwrng
@@ -378,6 +395,8 @@ else
     log_msg_end "FAILED! (continuing to use the software RNG)"
 fi
 
+print_mem_info
+
 log_msg_start "Copying boot files... "
 # copy boot data to safety
 mount $bootpartition /boot || fail
@@ -386,6 +405,8 @@ cp -r -- /boot/* /bootfs/ || fail
 
 umount /boot || fail
 log_msg_end "OK"
+
+print_mem_info
 
 if [ -e /bootfs/installer-config.txt ]; then
     log_msg "================================================="
@@ -939,6 +960,8 @@ log_msg "  hardware_versions = $hardware_versions"
 log_msg "  gpu_mem = $gpu_mem"
 log_msg
 
+print_mem_info
+
 log_msg_start "Waiting 5 seconds"
 for i in $(seq 1 5); do
     log_msg_inline "."
@@ -1110,11 +1133,15 @@ mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 log_msg_end "OK"
 
+print_mem_info
+
 log_msg "Starting install process..."
 # With 'cdebootstrap_cmdline we're actually using the word splitting what SC2086 warns us against
 # This should probably be fixed at some point, but not in this run/branch.
 # shellcheck disable=SC2086
 $CDEBOOTSTRAP_BIN --arch=armhf $cdebootstrap_cmdline "$release" /rootfs $mirror --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg || fail
+
+print_mem_info
 
 log_msg "Configuring installed system:"
 
@@ -1648,6 +1675,8 @@ teardown_chroot /rootfs
 log_msg "Saving current time for fake-hwclock..."
 sync # synchronize before saving time to make it "more accurate"
 date +"%Y-%m-%d %H:%M:%S" > /rootfs/etc/fake-hwclock.data
+
+print_mem_info
 
 ENDTIME=$(date +%s)
 DURATION=$((ENDTIME - REAL_STARTTIME))
