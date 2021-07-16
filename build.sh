@@ -720,6 +720,8 @@ cp installer-rpi.cpio.gz bootfs/
     echo "initramfs installer-rpi.cpio.gz"
     # reset filter
     echo "[all]"
+    echo "gpu_mem_256=16"
+    echo "gpu_mem_512=32"
 } >> bootfs/config.txt
 
 # clean up
