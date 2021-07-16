@@ -103,6 +103,7 @@ fail()
 {
     log_msg
     log_msg "Oh noes, something went wrong!"
+    print_mem_info
     log_msg "You have 10 seconds to hit ENTER to get a shell..."
 
     # copy logfile to /boot/ partition to preserve it.
@@ -383,6 +384,9 @@ log_msg "================================================="
 
 log_msg "Output of 'busybox cat /proc/mounts':"
 busybox cat /proc/mounts
+log_msg ""
+log_msg "Output of 'fdisk -l $bootdev':"
+fdisk -l $bootdev
 
 print_mem_info
 
