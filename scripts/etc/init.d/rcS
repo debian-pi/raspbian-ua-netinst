@@ -1119,6 +1119,25 @@ sync
 umount /boot || fail
 log_msg_end "OK"
 
+model_memory=$(busybox free -m | grep "^Mem:" | awk '{print $2}')
+low_mem_model=""
+if [ "$model_memory" -le "260" ] ; then
+    low_mem_model="true"
+else
+    low_mem_model="false"
+fi
+log_msg "Model memory in MB: '$model_memory' is a low mem model: '$low_mem_model'"
+
+if [ "$low_mem_model" = "true" ] ; then
+    log_msg_start "Removing backup copy in /bootfs... "
+    rm -r -- /bootfs/*
+    log_msg_end "OK"
+else
+    log_msg "Keeping backup copy in /bootfs"
+fi
+
+print_mem_info
+
 # only do modprobe if the module is NOT built into the kernel
 if [ "$(grep -c $rootfstype /lib/modules/"$(uname -r)"/modules.builtin)" -eq 0 ]; then
     log_msg_start "Loading $rootfstype module... "
@@ -1136,6 +1155,12 @@ mount $rootpartition /rootfs -o "$rootfs_install_mount_options" || fail
 mkdir /rootfs/boot || fail
 mount $bootpartition /rootfs/boot || fail
 log_msg_end "OK"
+
+if [ "$low_mem_model" = "true" ] ; then
+    log_msg_start "Bind mount /rootfs/boot to /bootfs... "
+    mount --bind /rootfs/boot /bootfs
+    log_msg_end "OK"
+fi
 
 print_mem_info
 
@@ -1693,6 +1718,11 @@ cp -- $LOGFILE /rootfs/var/log/raspbian-ua-netinst.log
 chmod 0640 /rootfs/var/log/raspbian-ua-netinst.log
 
 log_msg_start "Unmounting filesystems... "
+
+if [ "$low_mem_model" = "true" ] ; then
+    log_msg_inline "removing bind mount to /bootfs... "
+    umount /bootfs
+fi
 
 umount /rootfs/boot
 umount /rootfs
