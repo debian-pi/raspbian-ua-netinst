@@ -547,7 +547,7 @@ if [ "$ip4_addr" = "disable" ]; then
     # if IPv4 is disabled, configure the DNS resolver in glibc
     # to prefer IPv6 addresses (by performing AAAA lookups
     # before A lookups)
-    printf '%s' "options inet6" >> /etc/resolv.conf
+    printf '%s\n' "options inet6" >> /etc/resolv.conf
 elif [ "$ip4_addr" = "dhcp" ]; then
     log_msg_start "Configuring $ifname for IPv4 using DHCP... "
 
