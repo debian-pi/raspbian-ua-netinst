@@ -563,7 +563,7 @@ else
     ip addr add "$ip4_addr"/"$ip4_prefixlength" dev $ifname || fail
     ip route add default via "$ip4_gateway" || fail
     for i in $ip4_nameservers; do
-        printf "nameserver %s" "$i" >> /etc/resolv.conf
+        printf "nameserver %s\n" "$i" >> /etc/resolv.conf
     done
     have_ip4=$ip4_addr
     log_msg_end "OK"
@@ -653,7 +653,7 @@ if [ -n "$have_ip6" ]; then
     fi
     if [ -n "$have_ip6_nameservers" ]; then
         for i in $have_ip6_nameservers; do
-            printf "nameserver %s" "$i" >> /etc/resolv.conf
+            printf "nameserver %s\n" "$i" >> /etc/resolv.conf
         done
     fi
     log_msg_end "OK"
